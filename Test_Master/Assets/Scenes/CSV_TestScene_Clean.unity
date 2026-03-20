@@ -122,6 +122,11 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!4 &67240846 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 5372056943023685468, guid: 565a0bf5ada881e499f98246a413ea73, type: 3}
+  m_PrefabInstance: {fileID: 85632241}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &85632241
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -182,6 +187,11 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 1546517969}
   m_SourcePrefab: {fileID: 100100000, guid: 565a0bf5ada881e499f98246a413ea73, type: 3}
+--- !u!4 &642571851 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -2899422035419094908, guid: 565a0bf5ada881e499f98246a413ea73, type: 3}
+  m_PrefabInstance: {fileID: 85632241}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &822770755
 GameObject:
   m_ObjectHideFlags: 0
@@ -274,9 +284,34 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 15, y: 180, z: 0}
+--- !u!4 &961824732 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 1189529853000058984, guid: 565a0bf5ada881e499f98246a413ea73, type: 3}
+  m_PrefabInstance: {fileID: 85632241}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &1053845370 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -104578136787704052, guid: 565a0bf5ada881e499f98246a413ea73, type: 3}
+  m_PrefabInstance: {fileID: 85632241}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &1118218665 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -1070350730909333850, guid: 565a0bf5ada881e499f98246a413ea73, type: 3}
+  m_PrefabInstance: {fileID: 85632241}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &1242401657 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 3667946887678727147, guid: 565a0bf5ada881e499f98246a413ea73, type: 3}
+  m_PrefabInstance: {fileID: 85632241}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &1367110676 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 6341119541397085964, guid: 565a0bf5ada881e499f98246a413ea73, type: 3}
+  m_PrefabInstance: {fileID: 85632241}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &1526627399 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -870823317777057635, guid: 565a0bf5ada881e499f98246a413ea73, type: 3}
   m_PrefabInstance: {fileID: 85632241}
   m_PrefabAsset: {fileID: 0}
 --- !u!1 &1546517967 stripped
@@ -299,9 +334,9 @@ MonoBehaviour:
   playbackSource: {fileID: 1555010057}
   thumb:
     mcpFlex:
-      target: {fileID: 0}
-      axis: 2
-      multiplier: 1
+      target: {fileID: 1770926420}
+      axis: 1
+      multiplier: -1
       offset: 0
       baseEuler: {x: 0, y: 0, z: 0}
     mcpAbAd:
@@ -311,9 +346,9 @@ MonoBehaviour:
       offset: 0
       baseEuler: {x: 0, y: 0, z: 0}
     pipFlex:
-      target: {fileID: 0}
-      axis: 2
-      multiplier: 1
+      target: {fileID: 1526627399}
+      axis: 0
+      multiplier: -1
       offset: 0
       baseEuler: {x: 0, y: 0, z: 0}
   index:
@@ -337,9 +372,9 @@ MonoBehaviour:
       baseEuler: {x: 0, y: 0, z: 0}
   middle:
     mcpFlex:
-      target: {fileID: 0}
-      axis: 2
-      multiplier: 1
+      target: {fileID: 1242401657}
+      axis: 0
+      multiplier: -1
       offset: 0
       baseEuler: {x: 0, y: 0, z: 0}
     mcpAbAd:
@@ -349,16 +384,16 @@ MonoBehaviour:
       offset: 0
       baseEuler: {x: 0, y: 0, z: 0}
     pipFlex:
-      target: {fileID: 0}
-      axis: 2
-      multiplier: 1
+      target: {fileID: 1367110676}
+      axis: 0
+      multiplier: -1
       offset: 0
       baseEuler: {x: 0, y: 0, z: 0}
   ring:
     mcpFlex:
-      target: {fileID: 0}
-      axis: 2
-      multiplier: 1
+      target: {fileID: 1053845370}
+      axis: 0
+      multiplier: -1
       offset: 0
       baseEuler: {x: 0, y: 0, z: 0}
     mcpAbAd:
@@ -368,16 +403,16 @@ MonoBehaviour:
       offset: 0
       baseEuler: {x: 0, y: 0, z: 0}
     pipFlex:
-      target: {fileID: 0}
-      axis: 2
-      multiplier: 1
+      target: {fileID: 642571851}
+      axis: 0
+      multiplier: -1
       offset: 0
       baseEuler: {x: 0, y: 0, z: 0}
   pinky:
     mcpFlex:
-      target: {fileID: 0}
-      axis: 2
-      multiplier: 1
+      target: {fileID: 961824732}
+      axis: 0
+      multiplier: -1
       offset: 0
       baseEuler: {x: 0, y: 0, z: 0}
     mcpAbAd:
@@ -387,9 +422,9 @@ MonoBehaviour:
       offset: 0
       baseEuler: {x: 0, y: 0, z: 0}
     pipFlex:
-      target: {fileID: 0}
-      axis: 2
-      multiplier: 1
+      target: {fileID: 67240846}
+      axis: 0
+      multiplier: -1
       offset: 0
       baseEuler: {x: 0, y: 0, z: 0}
 --- !u!1 &1555010055
@@ -436,13 +471,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b829c8a89755ba04693bc0f441712465, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  csvFile: {fileID: 4900000, guid: 3c7615b2f5f6bad409088b0b8af551ad, type: 3}
+  csvFile: {fileID: 4900000, guid: fc815cd7223765143ac41351b58c5ab7, type: 3}
   playOnStart: 1
   loop: 1
   playbackSpeed: 1
 --- !u!4 &1691789314 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -5480977901411583989, guid: 565a0bf5ada881e499f98246a413ea73, type: 3}
+  m_PrefabInstance: {fileID: 85632241}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &1770926420 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 8447082967072642302, guid: 565a0bf5ada881e499f98246a413ea73, type: 3}
   m_PrefabInstance: {fileID: 85632241}
   m_PrefabAsset: {fileID: 0}
 --- !u!1660057539 &9223372036854775807

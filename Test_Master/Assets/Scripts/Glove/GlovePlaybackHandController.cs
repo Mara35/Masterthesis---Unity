@@ -66,7 +66,11 @@ public class GlovePlaybackHandController : MonoBehaviour
 
         var angles = playbackSource.CurrentAngles;
 
+        ApplyFinger(thumb, angles, 0);
         ApplyFinger(index, angles, 1);
+        ApplyFinger(middle, angles, 2);
+        ApplyFinger(ring, angles, 3);
+        ApplyFinger(pinky, angles, 4);
     }
 
     private void ApplyFinger(FingerBindings finger, float[] angles, int fingerIndex)
