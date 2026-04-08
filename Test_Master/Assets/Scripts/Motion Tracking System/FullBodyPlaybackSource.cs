@@ -1,17 +1,18 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ArmPlaybackSource : MonoBehaviour
+public class FullBodyPlaybackSource : MonoBehaviour
 {
     [SerializeField] private TextAsset csvFile;
     [SerializeField] private bool playOnStart = true;
     [SerializeField] private bool loop = true;
     [SerializeField] private float playbackSpeed = 1f;
+    [SerializeField] private float assumedDtSeconds = 0.02f;
 
-    public ArmFrame CurrentFrame { get; private set; }
+    public FullBodyFrame CurrentFrame { get; private set; }
     public bool HasData => _frames != null && _frames.Count > 0;
 
-    private List<ArmFrame> _frames = new();
+    private List<FullBodyFrame> _frames = new();
     private float _playbackTime = 0f;
     private int _currentIndex = 0;
     private bool _isPlaying = false;
@@ -19,10 +20,12 @@ public class ArmPlaybackSource : MonoBehaviour
     private void Start()
     {
         if (csvFile != null)
-            _frames = CsvArmLoader.LoadFromText(csvFile.text);
+            _frames = CsvFullBodyLoader.LoadFromText(csvFile.text, assumedDtSeconds);
 
         if (_frames.Count > 0)
             CurrentFrame = _frames[0];
+
+        Debug.Log("FullBody frames loaded: " + _frames.Count);
 
         if (playOnStart)
             Play();
@@ -56,6 +59,7 @@ public class ArmPlaybackSource : MonoBehaviour
         }
 
         CurrentFrame = _frames[_currentIndex];
+
     }
 
     public void Play()
@@ -75,6 +79,7 @@ public class ArmPlaybackSource : MonoBehaviour
         _isPlaying = false;
         _playbackTime = 0f;
         _currentIndex = 0;
+
         if (_frames.Count > 0)
             CurrentFrame = _frames[0];
     }
