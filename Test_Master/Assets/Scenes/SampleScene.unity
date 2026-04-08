@@ -1148,6 +1148,7 @@ GameObject:
   m_Component:
   - component: {fileID: 736618406}
   - component: {fileID: 736618405}
+  - component: {fileID: 736618407}
   m_Layer: 0
   m_Name: UDPCommunication
   m_TagString: Untagged
@@ -1183,6 +1184,19 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &736618407
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 736618404}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 84f47007af1d7494a82aa296b00cdf12, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  udpServer: {fileID: 0}
 --- !u!1001 &769420583
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -4151,6 +4165,108 @@ Transform:
   - {fileID: 769420584}
   m_Father: {fileID: 1416608045}
   m_LocalEulerAnglesHint: {x: -3.256, y: 0, z: 180}
+--- !u!1 &2124250233
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2124250235}
+  - component: {fileID: 2124250236}
+  - component: {fileID: 2124250237}
+  m_Layer: 0
+  m_Name: GloveController
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2124250235
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2124250233}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0.34564227, y: 1.0438854, z: -0.2489123}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2124250236
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2124250233}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 84d31687855b9124d97141c6533be772, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  udpCommunication: {fileID: 0}
+  gloveId: 20
+  thumbMCP: {fileID: 1416607997}
+  thumbPIP: {fileID: 1416607998}
+  indexMCP: {fileID: 1416608013}
+  indexPIP: {fileID: 1416608014}
+  middleMCP: {fileID: 1416608009}
+  middlePIP: {fileID: 1416608010}
+  ringMCP: {fileID: 1416608001}
+  ringPIP: {fileID: 1416608002}
+  pinkyMCP: {fileID: 1416608005}
+  pinkyPIP: {fileID: 1416608006}
+  bendAxis: 0
+  thumbMcpScale: 1
+  thumbPipScale: 1
+  indexMcpScale: 1
+  indexPipScale: 1
+  middleMcpScale: 1
+  middlePipScale: 1
+  ringMcpScale: 1
+  ringPipScale: 1
+  pinkyMcpScale: 1
+  pinkyPipScale: 1
+  thumbMcpOffset: 0
+  thumbPipOffset: 0
+  indexMcpOffset: 0
+  indexPipOffset: 0
+  middleMcpOffset: 0
+  middlePipOffset: 0
+  ringMcpOffset: 0
+  ringPipOffset: 0
+  pinkyMcpOffset: 0
+  pinkyPipOffset: 0
+  invertThumbMCP: 0
+  invertThumbPIP: 0
+  invertIndexMCP: 0
+  invertIndexPIP: 0
+  invertMiddleMCP: 0
+  invertMiddlePIP: 0
+  invertRingMCP: 0
+  invertRingPIP: 0
+  invertPinkyMCP: 0
+  invertPinkyPIP: 0
+  logValues: 0
+--- !u!114 &2124250237
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2124250233}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 84f47007af1d7494a82aa296b00cdf12, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  udpServer: {fileID: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -4166,3 +4282,4 @@ SceneRoots:
   - {fileID: 717971908}
   - {fileID: 1783684452}
   - {fileID: 1684168018}
+  - {fileID: 2124250235}

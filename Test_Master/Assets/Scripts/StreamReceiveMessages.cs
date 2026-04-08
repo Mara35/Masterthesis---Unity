@@ -8,51 +8,84 @@ using UnityEngine;
 /// </summary>
 public enum StreamReceiveMessageType
 {
-    Quaternion
+    Quaternion,
+    Glove
 }
 
 /// <summary>
 /// Static class for handling messages received from the stream sensors.
 /// Provides information about the message ids, message lengths, and methods to check which type a message has and then decode it to its data.
 /// </summary>
+
 public static class StreamReceiveMessageTypes
 {
-    public static readonly Dictionary<StreamReceiveMessageType, byte[]> StartSequences = new()
-    {
-        {StreamReceiveMessageType.Quaternion, new byte[]{0xFF, 0x00, 0xFF}},
-        
-    };
-
-
-    public static readonly Dictionary<StreamReceiveMessageType, int> Lengths = new()
-    {
-        {StreamReceiveMessageType.Quaternion, 20},
-    };
-
-
+    // -----------------------------
+    // MATCHING
+    // -----------------------------
     public static bool Matches(StreamReceiveMessageType type, List<byte> data)
     {
-        var startSequence = StartSequences[type];
-        if (data.Count < startSequence.Length) return false;
-        return !startSequence.Where((t, i) => data[i] != t).Any();
+        if (data == null || data.Count < 4)
+            return false;
+
+        switch (type)
+        {
+            case StreamReceiveMessageType.Quaternion:
+                return data[0] == 0xFF && data[1] == 0x00 && data[2] == 0xFF;
+
+            case StreamReceiveMessageType.Glove:
+                return data[0] == 0xFF && data[1] == 0x01 && data[2] == 0xFF;
+
+            default:
+                return false;
+        }
     }
 
-
-    private static float[] ConvertBytesToFloats(int startIndex, int num, byte[] data)
+    // -----------------------------
+    // QUATERNION (dein bestehender Code)
+    // -----------------------------
+    public static (int, Quaternion) DecodeQuaternionData(byte[] data)
     {
-        var ret = new float[num];
-        for (var i = 0; i < num; i++)
+        int id = data[3];
+
+        float x = BitConverter.ToSingle(data, 4);
+        float y = BitConverter.ToSingle(data, 8);
+        float z = BitConverter.ToSingle(data, 12);
+        float w = BitConverter.ToSingle(data, 16);
+
+        return (id, new Quaternion(x, y, z, w));
+    }
+
+    // -----------------------------
+    // GLOVE DECODING
+    // -----------------------------
+    public static GloveSensorData DecodeGloveData(byte[] data)
+    {
+        if (data.Length < 44)
         {
-            ret[i] = BitConverter.ToSingle(data, startIndex);
-            startIndex += 4;
+            Debug.LogError("Glove packet too small!");
+            return null;
         }
 
-        return ret;
-    }
+        GloveSensorData glove = new GloveSensorData();
 
+        glove.Id = data[3];
 
-    public static (int, Quaternion) DecodeQuaternionData(byte[] data) {
-        var fquat = ConvertBytesToFloats(4, 4, data);
-        return (data[3], new Quaternion(fquat[0], fquat[1], fquat[2], fquat[3]));
+        // Achtung: Reihenfolge MUSS exakt zu ESP passen
+        glove.Thumb_MCP = BitConverter.ToSingle(data, 4);
+        glove.Thumb_PIP = BitConverter.ToSingle(data, 8);
+
+        glove.Index_MCP = BitConverter.ToSingle(data, 12);
+        glove.Index_PIP = BitConverter.ToSingle(data, 16);
+
+        glove.Middle_MCP = BitConverter.ToSingle(data, 20);
+        glove.Middle_PIP = BitConverter.ToSingle(data, 24);
+
+        glove.Ring_MCP = BitConverter.ToSingle(data, 28);
+        glove.Ring_PIP = BitConverter.ToSingle(data, 32);
+
+        glove.Pinky_MCP = BitConverter.ToSingle(data, 36);
+        glove.Pinky_PIP = BitConverter.ToSingle(data, 40);
+
+        return glove;
     }
 }
