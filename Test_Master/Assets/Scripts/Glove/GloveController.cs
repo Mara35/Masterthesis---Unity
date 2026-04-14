@@ -27,7 +27,11 @@ public class GloveController : MonoBehaviour
     [SerializeField] private Transform pinkyPIP;
 
     [Header("Rotation Axis")]
-    [SerializeField] private FingerAxis bendAxis = FingerAxis.X;
+    [SerializeField] private FingerAxis thumbMcpAxis = FingerAxis.Z;
+    [SerializeField] private FingerAxis thumbPipAxis = FingerAxis.Z;
+
+    [SerializeField] private FingerAxis fingerMcpAxis = FingerAxis.X;
+    [SerializeField] private FingerAxis fingerPipAxis = FingerAxis.X;
 
     [Header("Scaling / Offset")]
     [SerializeField] private float thumbMcpScale = 1f;
@@ -88,21 +92,22 @@ public class GloveController : MonoBehaviour
         if (!udpCommunication.TryGetGloveData(gloveId, out var glove))
             return;
 
-        ApplyFingerRotation(thumbMCP, glove.Thumb_MCP, thumbMcpScale, thumbMcpOffset, invertThumbMCP);
-        ApplyFingerRotation(thumbPIP, glove.Thumb_PIP, thumbPipScale, thumbPipOffset, invertThumbPIP);
+        ApplyFingerRotation(thumbMCP, glove.Thumb_MCP, thumbMcpScale, thumbMcpOffset, invertThumbMCP, thumbMcpAxis);
+        ApplyFingerRotation(thumbPIP, glove.Thumb_PIP, thumbPipScale, thumbPipOffset, invertThumbPIP, thumbPipAxis);
 
-        ApplyFingerRotation(indexMCP, glove.Index_MCP, indexMcpScale, indexMcpOffset, invertIndexMCP);
-        ApplyFingerRotation(indexPIP, glove.Index_PIP, indexPipScale, indexPipOffset, invertIndexPIP);
+        ApplyFingerRotation(indexMCP, glove.Index_MCP, indexMcpScale, indexMcpOffset, invertIndexMCP, fingerMcpAxis);
+        ApplyFingerRotation(indexPIP, glove.Index_PIP, indexPipScale, indexPipOffset, invertIndexPIP, fingerPipAxis);
 
-        ApplyFingerRotation(middleMCP, glove.Middle_MCP, middleMcpScale, middleMcpOffset, invertMiddleMCP);
-        ApplyFingerRotation(middlePIP, glove.Middle_PIP, middlePipScale, middlePipOffset, invertMiddlePIP);
+        ApplyFingerRotation(middleMCP, glove.Middle_MCP, middleMcpScale, middleMcpOffset, invertMiddleMCP, fingerMcpAxis);
+        ApplyFingerRotation(middlePIP, glove.Middle_PIP, middlePipScale, middlePipOffset, invertMiddlePIP, fingerPipAxis);
 
-        ApplyFingerRotation(ringMCP, glove.Ring_MCP, ringMcpScale, ringMcpOffset, invertRingMCP);
-        ApplyFingerRotation(ringPIP, glove.Ring_PIP, ringPipScale, ringPipOffset, invertRingPIP);
+        ApplyFingerRotation(ringMCP, glove.Ring_MCP, ringMcpScale, ringMcpOffset, invertRingMCP, fingerMcpAxis);
+        ApplyFingerRotation(ringPIP, glove.Ring_PIP, ringPipScale, ringPipOffset, invertRingPIP, fingerPipAxis);
 
-        ApplyFingerRotation(pinkyMCP, glove.Pinky_MCP, pinkyMcpScale, pinkyMcpOffset, invertPinkyMCP);
-        ApplyFingerRotation(pinkyPIP, glove.Pinky_PIP, pinkyPipScale, pinkyPipOffset, invertPinkyPIP);
+        ApplyFingerRotation(pinkyMCP, glove.Pinky_MCP, pinkyMcpScale, pinkyMcpOffset, invertPinkyMCP, fingerMcpAxis);
+        ApplyFingerRotation(pinkyPIP, glove.Pinky_PIP, pinkyPipScale, pinkyPipOffset, invertPinkyPIP, fingerPipAxis);
 
+     
         if (logValues)
         {
             Debug.Log(
@@ -113,7 +118,7 @@ public class GloveController : MonoBehaviour
         }
     }
 
-    private void ApplyFingerRotation(Transform joint, float rawValue, float scale, float offset, bool invert)
+    private void ApplyFingerRotation(Transform joint, float rawValue, float scale, float offset, bool invert, FingerAxis axis)
     {
         if (joint == null)
             return;
@@ -123,12 +128,12 @@ public class GloveController : MonoBehaviour
         if (invert)
             angle = -angle;
 
-        joint.localRotation = CreateRotation(angle);
+        joint.localRotation = CreateRotation(angle, axis);
     }
 
-    private Quaternion CreateRotation(float angle)
+    private Quaternion CreateRotation(float angle, FingerAxis axis)
     {
-        return bendAxis switch
+        return axis switch
         {
             FingerAxis.X => Quaternion.Euler(angle, 0f, 0f),
             FingerAxis.Y => Quaternion.Euler(0f, angle, 0f),
@@ -136,4 +141,5 @@ public class GloveController : MonoBehaviour
             _ => Quaternion.identity
         };
     }
-}
+};
+    
