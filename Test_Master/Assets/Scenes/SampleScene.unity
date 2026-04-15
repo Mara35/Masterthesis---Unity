@@ -4263,7 +4263,10 @@ MonoBehaviour:
   ringPIP: {fileID: 1416608002}
   pinkyMCP: {fileID: 1416608005}
   pinkyPIP: {fileID: 1416608006}
-  bendAxis: 0
+  thumbMcpAxis: 2
+  thumbPipAxis: 2
+  fingerMcpAxis: 0
+  fingerPipAxis: 0
   thumbMcpScale: 1
   thumbPipScale: 1
   indexMcpScale: 1
@@ -4286,14 +4289,14 @@ MonoBehaviour:
   pinkyPipOffset: 0
   invertThumbMCP: 0
   invertThumbPIP: 0
-  invertIndexMCP: 0
-  invertIndexPIP: 0
-  invertMiddleMCP: 0
-  invertMiddlePIP: 0
-  invertRingMCP: 0
-  invertRingPIP: 0
-  invertPinkyMCP: 0
-  invertPinkyPIP: 0
+  invertIndexMCP: 1
+  invertIndexPIP: 1
+  invertMiddleMCP: 1
+  invertMiddlePIP: 1
+  invertRingMCP: 1
+  invertRingPIP: 1
+  invertPinkyMCP: 1
+  invertPinkyPIP: 1
   logValues: 0
 --- !u!114 &2124250237
 MonoBehaviour:
