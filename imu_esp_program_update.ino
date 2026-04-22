@@ -11,9 +11,10 @@
 // -----------------------------
 #define BNO08X_RESET -1
 
-const byte strapId = 3;
 
-// Anpassen
+const byte strapId = 6;
+
+
 const char *ssid = "LAPTOP-Mara";
 const char *pwd  = "2Rc209@3";
 
@@ -27,7 +28,6 @@ const int SCL_PIN = D5;
 // Vibrationsmotor
 // -----------------------------
 struct VibrationMotor {
-  // Nur Beispielpin. Ändern, falls du den Motor an einem anderen Pin hast.
   uint8_t pin = D3;
   float value = 0.0f;
   unsigned long stopTime = 0;
@@ -35,6 +35,7 @@ struct VibrationMotor {
 
   void begin() {
     pinMode(pin, OUTPUT);
+    analogWrite(pin, 0);   // sicher aus
   }
 
   void setVibration(float newValue, float durationSeconds = -1) {
@@ -46,6 +47,8 @@ struct VibrationMotor {
 
     if (durationSeconds > 0) {
       stopTime = millis() + (unsigned long)(durationSeconds * 1000);
+    } else {
+      stopTime = 0;
     }
   }
 
@@ -54,6 +57,17 @@ struct VibrationMotor {
       setVibration(0.0f);
       stopTime = 0;
     }
+  }
+
+  void pulse(unsigned long durationMs) {
+    if (!enabled) return;
+
+    analogWrite(pin, 255);
+    delay(durationMs);
+    analogWrite(pin, 0);
+
+    value = 0.0f;
+    stopTime = 0;
   }
 } vibrationMotor;
 
@@ -66,7 +80,7 @@ struct Imu {
   sh2_SensorValue_t sensorValue;
 
   void begin() {
-    // XIAO ESP32C6 I2C explizit auf D4/D5
+    
     Wire.begin(SDA_PIN, SCL_PIN);
     delay(100);
 
@@ -114,6 +128,8 @@ struct WifiConnection {
   bool connected = false;
   wl_status_t status = WL_IDLE_STATUS;
 
+  bool wifiVibrationDone = false; 
+
   std::function<void(byte*, size_t)> onMessage = nullptr;
 
   void begin() {
@@ -133,12 +149,22 @@ struct WifiConnection {
       lastPoll = millis();
     }
 
-    bool connectedNow = (status == WL_CONNECTED);
+        bool connectedNow = (status == WL_CONNECTED);
 
     if (connectedNow && !connected) {
-      serverIp = WiFi.gatewayIP();
+      serverIp = IPAddress(192,168,137,1);
       Serial.print("Connected to WiFi. Gateway IP: ");
       Serial.println(serverIp);
+
+      
+      if (!wifiVibrationDone) {
+        vibrationMotor.pulse(300);
+        wifiVibrationDone = true;
+      }
+    }
+
+    if (!connectedNow) {
+      wifiVibrationDone = false;
     }
 
     int len = udp.parsePacket();
@@ -218,14 +244,14 @@ void setup() {
   Serial.println("Starting device");
 
   vibrationMotor.begin();
+
+  // --- HINZUGEFÜGT: einmal kurz beim Einschalten ---
+  vibrationMotor.pulse(300);
+
   imu.begin();
 
   wifiConnection.onMessage = onUdpMessage;
   wifiConnection.begin();
-
-  vibrationMotor.setVibration(1.0f);
-  delay(300);
-  vibrationMotor.setVibration(0.0f);
 }
 
 // -----------------------------
