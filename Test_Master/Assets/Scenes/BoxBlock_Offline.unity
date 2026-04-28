@@ -239,7 +239,7 @@ GameObject:
   - component: {fileID: 94766424}
   - component: {fileID: 94766423}
   - component: {fileID: 94766422}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Table_platform
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -490,7 +490,7 @@ GameObject:
   - component: {fileID: 191961085}
   - component: {fileID: 191961088}
   - component: {fileID: 191961089}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: Block_08
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -631,7 +631,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 308499506}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: HoldPoint
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -667,7 +667,7 @@ GameObject:
   - component: {fileID: 369682933}
   - component: {fileID: 369682937}
   - component: {fileID: 369682938}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: HandProxy
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -951,7 +951,7 @@ GameObject:
   - component: {fileID: 592855306}
   - component: {fileID: 592855305}
   - component: {fileID: 592855304}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Leg_FL
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1058,7 +1058,7 @@ GameObject:
   - component: {fileID: 647215548}
   - component: {fileID: 647215547}
   - component: {fileID: 647215546}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Leg_BL
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1167,7 +1167,7 @@ GameObject:
   - component: {fileID: 729774703}
   - component: {fileID: 729774706}
   - component: {fileID: 729774707}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: Block_07
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1599,7 +1599,7 @@ GameObject:
   - component: {fileID: 977068375}
   - component: {fileID: 977068378}
   - component: {fileID: 977068379}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: Block_02
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1745,7 +1745,7 @@ GameObject:
   - component: {fileID: 1020935149}
   - component: {fileID: 1020935152}
   - component: {fileID: 1020935153}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: Block_03
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1958,7 +1958,7 @@ GameObject:
   - component: {fileID: 1090175101}
   - component: {fileID: 1090175100}
   - component: {fileID: 1090175099}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Leg_BR
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2191,7 +2191,7 @@ GameObject:
   - component: {fileID: 1387309516}
   - component: {fileID: 1387309515}
   - component: {fileID: 1387309514}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Leg_FR
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2331,7 +2331,7 @@ GameObject:
   - component: {fileID: 1556054572}
   - component: {fileID: 1556054575}
   - component: {fileID: 1556054576}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: Block_11
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2477,7 +2477,7 @@ GameObject:
   - component: {fileID: 1628237194}
   - component: {fileID: 1628237197}
   - component: {fileID: 1628237198}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: Block_06
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2623,7 +2623,7 @@ GameObject:
   - component: {fileID: 1805919139}
   - component: {fileID: 1805919142}
   - component: {fileID: 1805919143}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: Block_10
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2769,7 +2769,7 @@ GameObject:
   - component: {fileID: 1822853122}
   - component: {fileID: 1822853125}
   - component: {fileID: 1822853126}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: Block_04
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2957,7 +2957,7 @@ GameObject:
   - component: {fileID: 1869317339}
   - component: {fileID: 1869317342}
   - component: {fileID: 1869317343}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: Block_05
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3103,7 +3103,7 @@ GameObject:
   - component: {fileID: 1880366144}
   - component: {fileID: 1880366148}
   - component: {fileID: 1880366149}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: Block_01
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3249,7 +3249,7 @@ GameObject:
   - component: {fileID: 2031025390}
   - component: {fileID: 2031025393}
   - component: {fileID: 2031025394}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: Block_09
   m_TagString: Untagged
   m_Icon: {fileID: 0}
