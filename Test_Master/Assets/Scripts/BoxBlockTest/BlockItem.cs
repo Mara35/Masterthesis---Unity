@@ -7,10 +7,8 @@ public class BlockItem : MonoBehaviour
     private Collider col;
 
     private bool isHeld = false;
-    private bool counted = false;
-    private bool inTargetZone = false;
 
-    public bool CanBeGrabbed => !isHeld && !counted;
+    public bool CanBeGrabbed => !isHeld;
 
     private void Awake()
     {
@@ -27,7 +25,6 @@ public class BlockItem : MonoBehaviour
         rb.useGravity = false;
         rb.isKinematic = true;
 
-        // Wichtig: Collider aus, damit keine Kollision mit der Hand entsteht
         col.enabled = false;
 
         transform.SetParent(holdPoint);
@@ -35,7 +32,7 @@ public class BlockItem : MonoBehaviour
         transform.localRotation = Quaternion.identity;
     }
 
-    public bool Release()
+    public void Release()
     {
         transform.SetParent(null);
 
@@ -43,31 +40,6 @@ public class BlockItem : MonoBehaviour
 
         rb.isKinematic = false;
         rb.useGravity = true;
-
-        // Collider wieder aktivieren
         col.enabled = true;
-
-        return inTargetZone && !counted;
-    }
-
-    public void MarkCounted()
-    {
-        counted = true;
-    }
-
-    private void OnTriggerEnter(Collider other)
-    {
-        if (other.CompareTag("TargetZone"))
-        {
-            inTargetZone = true;
-        }
-    }
-
-    private void OnTriggerExit(Collider other)
-    {
-        if (other.CompareTag("TargetZone"))
-        {
-            inTargetZone = false;
-        }
     }
 }

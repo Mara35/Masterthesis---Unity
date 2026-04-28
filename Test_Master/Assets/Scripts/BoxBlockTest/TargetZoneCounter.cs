@@ -1,0 +1,51 @@
+using System.Collections.Generic;
+using UnityEngine;
+using TMPro;
+
+[RequireComponent(typeof(BoxCollider))]
+public class TargetZoneCounter : MonoBehaviour
+{
+    [Header("UI")]
+    public TextMeshProUGUI scoreText;
+
+    private HashSet<BlockItem> blocksInZone = new HashSet<BlockItem>();
+
+    public int CurrentCount => blocksInZone.Count;
+
+    private void Start()
+    {
+        UpdateUI();
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        BlockItem block = other.GetComponent<BlockItem>();
+
+        if (block != null)
+        {
+            blocksInZone.Add(block);
+            UpdateUI();
+            Debug.Log("Blocks in zone: " + blocksInZone.Count);
+        }
+    }
+
+    private void OnTriggerExit(Collider other)
+    {
+        BlockItem block = other.GetComponent<BlockItem>();
+
+        if (block != null)
+        {
+            blocksInZone.Remove(block);
+            UpdateUI();
+            Debug.Log("Blocks in zone: " + blocksInZone.Count);
+        }
+    }
+
+    private void UpdateUI()
+    {
+        if (scoreText != null)
+        {
+            scoreText.text = "Blocks in Target Zone: " + blocksInZone.Count;
+        }
+    }
+}

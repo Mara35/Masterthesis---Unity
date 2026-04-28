@@ -10,9 +10,6 @@ public class SimpleGrabber : MonoBehaviour
     private readonly List<BlockItem> candidates = new List<BlockItem>();
     private BlockItem heldBlock;
 
-    private int score = 0;
-    public int Score => score;
-
     private void Update()
     {
         if (Input.GetKeyDown(grabKey) && heldBlock == null)
@@ -61,15 +58,7 @@ public class SimpleGrabber : MonoBehaviour
 
     private void ReleaseHeldBlock()
     {
-        bool scored = heldBlock.Release();
-
-        if (scored)
-        {
-            heldBlock.MarkCounted();
-            score++;
-            Debug.Log("Score: " + score);
-        }
-
+        heldBlock.Release();
         heldBlock = null;
     }
 
