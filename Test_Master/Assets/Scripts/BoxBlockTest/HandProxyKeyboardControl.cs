@@ -6,6 +6,7 @@ public class HandProxyKeyboardControl : MonoBehaviour
     [Header("Movement")]
     public float moveSpeed = 0.5f;
     public float fastMultiplier = 2f;
+    public bool HasMovedThisFrame { get; private set; }
 
     private Rigidbody rb;
     private Vector3 movement;
@@ -17,6 +18,7 @@ public class HandProxyKeyboardControl : MonoBehaviour
 
     private void Update()
     {
+        HasMovedThisFrame = false;  
         float x = 0f;
         float y = 0f;
         float z = 0f;
@@ -31,8 +33,14 @@ public class HandProxyKeyboardControl : MonoBehaviour
         if (Input.GetKey(KeyCode.W)) z = 1f;
 
         movement = new Vector3(x, y, z).normalized;
-    }
 
+        if (movement.magnitude > 0.001f)
+        {
+            HasMovedThisFrame = true;
+        }
+
+    }
+    
     private void FixedUpdate()
     {
         float speed = moveSpeed;

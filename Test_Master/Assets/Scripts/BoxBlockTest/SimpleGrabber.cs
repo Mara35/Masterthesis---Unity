@@ -9,9 +9,20 @@ public class SimpleGrabber : MonoBehaviour
 
     private readonly List<BlockItem> candidates = new List<BlockItem>();
     private BlockItem heldBlock;
+    private TestTimer timer;
+
+     private void Start()
+    {
+        timer = FindObjectOfType<TestTimer>();
+    }
 
     private void Update()
     {
+        if (timer != null && !timer.IsRunning)
+        {
+            return;
+        }
+
         if (Input.GetKeyDown(grabKey) && heldBlock == null)
         {
             TryGrabNearest();
