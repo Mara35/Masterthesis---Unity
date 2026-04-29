@@ -41,5 +41,7 @@ public class BlockItem : MonoBehaviour
         rb.isKinematic = false;
         rb.useGravity = true;
         col.enabled = true;
+        rb.velocity = Vector3.zero;
+        rb.angularVelocity = Vector3.zero;
     }
 }

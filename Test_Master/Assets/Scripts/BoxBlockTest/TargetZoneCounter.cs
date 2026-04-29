@@ -45,7 +45,7 @@ public class TargetZoneCounter : MonoBehaviour
     {
         if (scoreText != null)
         {
-            scoreText.text = "Blocks in Target Zone: " + blocksInZone.Count;
+            scoreText.text = "Score: " + blocksInZone.Count;
         }
     }
 }
