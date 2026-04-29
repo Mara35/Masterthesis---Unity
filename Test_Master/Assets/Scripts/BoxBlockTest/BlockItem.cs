@@ -8,6 +8,11 @@ public class BlockItem : MonoBehaviour
 
     private bool isHeld = false;
 
+    private bool startedOnRightSide;
+    private bool crossedPartitionWhileHeld = false;
+
+    public Transform partition;
+
     public bool CanBeGrabbed => !isHeld;
 
     private void Awake()
@@ -30,9 +35,22 @@ public class BlockItem : MonoBehaviour
         transform.SetParent(holdPoint);
         transform.localPosition = Vector3.zero;
         transform.localRotation = Quaternion.identity;
+
+        startedOnRightSide = transform.position.x > partition.position.x;
+        crossedPartitionWhileHeld = false;
     }
 
-    public void Release()
+    private void Update()
+    {
+        if (!isHeld) return;
+
+        if (startedOnRightSide && transform.position.x < partition.position.x)
+        {
+            crossedPartitionWhileHeld = true;
+        }
+    }
+
+    public bool Release()
     {
         transform.SetParent(null);
 
@@ -43,5 +61,12 @@ public class BlockItem : MonoBehaviour
         col.enabled = true;
         rb.velocity = Vector3.zero;
         rb.angularVelocity = Vector3.zero;
+
+        bool nowOnLeftSide = transform.position.x < partition.position.x;
+
+        
+        bool valid = startedOnRightSide && crossedPartitionWhileHeld && nowOnLeftSide;
+
+        return valid;
     }
 }

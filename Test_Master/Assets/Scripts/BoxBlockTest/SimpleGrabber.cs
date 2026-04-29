@@ -69,9 +69,19 @@ public class SimpleGrabber : MonoBehaviour
 
     private void ReleaseHeldBlock()
     {
-        heldBlock.Release();
+        if (heldBlock == null)
+            return;
+
+        bool valid = heldBlock.Release();
+
+        if (valid)
+        {
+            Debug.Log("VALID TRANSFER");
+        }
+
         heldBlock = null;
     }
+
 
     private void OnTriggerEnter(Collider other)
     {
