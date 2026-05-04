@@ -622,6 +622,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2d6a0a203e1e65c41bd26621b63d2d4d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  partition: {fileID: 879326063}
 --- !u!1 &308499505
 GameObject:
   m_ObjectHideFlags: 0
@@ -1367,6 +1368,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2d6a0a203e1e65c41bd26621b63d2d4d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  partition: {fileID: 879326063}
 --- !u!1 &761587198
 GameObject:
   m_ObjectHideFlags: 0
@@ -1813,6 +1815,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2d6a0a203e1e65c41bd26621b63d2d4d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  partition: {fileID: 879326063}
 --- !u!1 &1020935147
 GameObject:
   m_ObjectHideFlags: 0
@@ -1959,6 +1962,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2d6a0a203e1e65c41bd26621b63d2d4d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  partition: {fileID: 879326063}
 --- !u!1 &1071444725
 GameObject:
   m_ObjectHideFlags: 0
@@ -2863,6 +2867,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2d6a0a203e1e65c41bd26621b63d2d4d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  partition: {fileID: 879326063}
 --- !u!1 &1580816392
 GameObject:
   m_ObjectHideFlags: 0
@@ -3143,6 +3148,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2d6a0a203e1e65c41bd26621b63d2d4d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  partition: {fileID: 879326063}
 --- !u!1 &1805919137
 GameObject:
   m_ObjectHideFlags: 0
@@ -3289,6 +3295,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2d6a0a203e1e65c41bd26621b63d2d4d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  partition: {fileID: 879326063}
 --- !u!1 &1822853120
 GameObject:
   m_ObjectHideFlags: 0
@@ -3435,6 +3442,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2d6a0a203e1e65c41bd26621b63d2d4d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  partition: {fileID: 879326063}
 --- !u!1 &1845723599
 GameObject:
   m_ObjectHideFlags: 0
@@ -3623,6 +3631,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2d6a0a203e1e65c41bd26621b63d2d4d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  partition: {fileID: 879326063}
 --- !u!1 &1880366143
 GameObject:
   m_ObjectHideFlags: 0
@@ -3769,6 +3778,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2d6a0a203e1e65c41bd26621b63d2d4d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  partition: {fileID: 879326063}
 --- !u!1 &2031025388
 GameObject:
   m_ObjectHideFlags: 0
@@ -3915,6 +3925,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2d6a0a203e1e65c41bd26621b63d2d4d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  partition: {fileID: 879326063}
 --- !u!1 &2038424095
 GameObject:
   m_ObjectHideFlags: 0

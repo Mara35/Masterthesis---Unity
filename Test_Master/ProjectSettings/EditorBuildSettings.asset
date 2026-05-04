@@ -4,5 +4,14 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes: []
+  m_Scenes:
+  - enabled: 1
+    path: Assets/Scenes/BoxBlock_Offline.unity
+    guid: a32d5c1cefd639f41ae6a057ba1cf660
+  - enabled: 1
+    path: Assets/Scenes/MainMenu.unity
+    guid: 93db816764f4d5c47b43d9a999491a64
+  - enabled: 1
+    path: Assets/Scenes/BoxBlock_Competition.unity
+    guid: 9d728d10361957347bcfdc372630a565
   m_configObjects: {}
