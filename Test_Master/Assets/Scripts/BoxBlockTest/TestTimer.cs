@@ -8,8 +8,12 @@ public class TestTimer : MonoBehaviour
     [Header("UI")]
     public TextMeshProUGUI timerText;
 
+    [Header ("End Screen")]
+    [SerializeField] private GameOverUI gameOverUI;
+
     private HandProxyKeyboardControl hand;
     private StartZoneDetector startZone;
+    private TargetZoneCounter targetZoneCounter;
 
     private float timeRemaining;
     private bool isRunning = false;
@@ -20,6 +24,10 @@ public class TestTimer : MonoBehaviour
     {
         hand = FindObjectOfType<HandProxyKeyboardControl>();
         startZone = FindObjectOfType<StartZoneDetector>();
+        targetZoneCounter = FindAnyObjectByType<TargetZoneCounter>();
+
+        if (gameOverUI == null)
+            gameOverUI = FindObjectOfType<GameOverUI>();
 
         timeRemaining = testDuration;
         UpdateUI();
@@ -57,7 +65,13 @@ public class TestTimer : MonoBehaviour
     {
         Debug.Log("Test finished");
 
-        // Optional: Eingaben deaktivieren
+        // Score aus TargetZoneCounter holen
+        int finalScore = (targetZoneCounter != null) ? targetZoneCounter.CurrentCount : 0;
+
+        // End-Screen anzeigen
+        if (gameOverUI != null)
+            gameOverUI.ShowEndScreen(finalScore);
+
         DisableInteraction();
     }
 
@@ -71,14 +85,14 @@ public class TestTimer : MonoBehaviour
 
     private void DisableInteraction()
     {
-        // Grabber deaktivieren
+        // deactivate Grabber
         SimpleGrabber grabber = FindObjectOfType<SimpleGrabber>();
         if (grabber != null)
         {
             grabber.enabled = false;
         }
 
-        // Handsteuerung deaktivieren
+        // deactivate KeyboardControl
         HandProxyKeyboardControl hand = FindObjectOfType<HandProxyKeyboardControl>();
         if (hand != null)
         {
