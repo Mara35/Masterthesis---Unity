@@ -6,7 +6,7 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Scenes/BoxBlock_Offline.unity
+    path: Assets/Scenes/BoxBlock_Training.unity
     guid: a32d5c1cefd639f41ae6a057ba1cf660
   - enabled: 1
     path: Assets/Scenes/MainMenu.unity
