@@ -4,57 +4,83 @@ using UnityEngine.UI;
 
 public class MainMenuManager : MonoBehaviour
 {
-    // -----------------------------------------------------------------------
-    // Inspector Fields
-    // -----------------------------------------------------------------------
-
     [Header("Scene Namen (exakt wie in Build Settings)")]
-    [SerializeField] private string trainingSceneName = "BoxBlock_Training";
+    [SerializeField] private string manuellesTrainingSceneName = "BoxBlock_Training";
+    [SerializeField] private string visuellesTrainingSceneName = "BoxBlock_VisuellesTraining"; 
     [SerializeField] private string competitionSceneName = "BoxBlock_Competition";
 
-    [Header("Buttons")]
+    [Header("Panels")]
+    [SerializeField] private GameObject mainMenuPanel;      
+    [SerializeField] private GameObject trainingInfoPanel;  
+
+    [Header("Hauptmenü Buttons")]
     [SerializeField] private Button trainingButton;
     [SerializeField] private Button competitionButton;
 
-    // -----------------------------------------------------------------------
-    // Unity Lifecycle
-    // -----------------------------------------------------------------------
+    [Header("Trainings-Info Buttons")]
+    [SerializeField] private Button manuellesTrainingButton;
+    [SerializeField] private Button visuellesTrainingButton;
+    [SerializeField] private Button zurueckButton;
+
 
     private void Start()
     {
-        if (trainingButton != null) trainingButton.onClick.AddListener(LoadTrainingScene);
+        // Sicherstellen: Hauptmenü sichtbar, Info-Panel versteckt
+        ShowMainMenu();
+
+        // Hauptmenü-Buttons
+        if (trainingButton != null) trainingButton.onClick.AddListener(ShowTrainingInfo);
         if (competitionButton != null) competitionButton.onClick.AddListener(LoadCompetitionScene);
+
+        // Trainings-Info-Buttons
+        if (manuellesTrainingButton != null) manuellesTrainingButton.onClick.AddListener(LoadManuellesTraining);
+        if (visuellesTrainingButton != null) visuellesTrainingButton.onClick.AddListener(LoadVisuellesTraining);
     }
 
     private void OnDestroy()
     {
-        if (trainingButton != null) trainingButton.onClick.RemoveListener(LoadTrainingScene);
+        if (trainingButton != null) trainingButton.onClick.RemoveListener(ShowTrainingInfo);
         if (competitionButton != null) competitionButton.onClick.RemoveListener(LoadCompetitionScene);
+        if (manuellesTrainingButton != null) manuellesTrainingButton.onClick.RemoveListener(LoadManuellesTraining);
+        if (visuellesTrainingButton != null) visuellesTrainingButton.onClick.RemoveListener(LoadVisuellesTraining);
     }
 
-    // -----------------------------------------------------------------------
-    // Button Callbacks
-    // -----------------------------------------------------------------------
-
-    /// <summary>
-    /// TrainingButton --> BoxBlock_Training Scene
-    /// </summary>
-    public void LoadTrainingScene()
+    
+    private void ShowMainMenu()
     {
-        SceneManager.LoadScene(trainingSceneName);
+        if (mainMenuPanel != null) mainMenuPanel.SetActive(true);
+        if (trainingInfoPanel != null) trainingInfoPanel.SetActive(false);
     }
 
-    /// <summary>
-    /// CompetitionButton --> BoxBlock_Competition Scene
-    /// </summary>
-    public void LoadCompetitionScene()
+    
+    private void ShowTrainingInfo()
+    {
+        if (mainMenuPanel != null) mainMenuPanel.SetActive(false);
+        if (trainingInfoPanel != null) trainingInfoPanel.SetActive(true);
+    }
+
+    
+    private void LoadManuellesTraining()
+    {
+        SceneManager.LoadScene(manuellesTrainingSceneName);
+    }
+
+    
+    private void LoadVisuellesTraining()
+    {
+        // TODO: Ersetzen sobald BoxBlock_VisuellesTraining Scene vorhanden ist
+        Debug.Log("[MainMenu] Visuelles Training noch nicht verfügbar.");
+
+        
+    }
+
+    
+    private void LoadCompetitionScene()
     {
         SceneManager.LoadScene(competitionSceneName);
     }
 
-    /// <summary>
-    /// Optionaler Quit-Button (kann später hinzugefügt werden)
-    /// </summary>
+    
     public void QuitApplication()
     {
 #if UNITY_EDITOR
