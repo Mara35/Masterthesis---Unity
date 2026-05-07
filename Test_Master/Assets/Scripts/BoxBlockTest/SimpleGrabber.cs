@@ -11,7 +11,10 @@ public class SimpleGrabber : MonoBehaviour
     private BlockItem heldBlock;
     private TestTimer timer;
 
-     private void Start()
+    // NEU: öffentlich lesbar für PartitionZone
+    public BlockItem HeldBlock => heldBlock;
+
+    private void Start()
     {
         timer = FindObjectOfType<TestTimer>();
     }
@@ -19,19 +22,13 @@ public class SimpleGrabber : MonoBehaviour
     private void Update()
     {
         if (timer != null && !timer.IsRunning)
-        {
             return;
-        }
 
         if (Input.GetKeyDown(grabKey) && heldBlock == null)
-        {
             TryGrabNearest();
-        }
 
         if (Input.GetKeyDown(releaseKey) && heldBlock != null)
-        {
             ReleaseHeldBlock();
-        }
     }
 
     private void TryGrabNearest()
@@ -41,22 +38,11 @@ public class SimpleGrabber : MonoBehaviour
 
         for (int i = candidates.Count - 1; i >= 0; i--)
         {
-            if (candidates[i] == null)
-            {
-                candidates.RemoveAt(i);
-                continue;
-            }
-
-            if (!candidates[i].CanBeGrabbed)
-                continue;
+            if (candidates[i] == null) { candidates.RemoveAt(i); continue; }
+            if (!candidates[i].CanBeGrabbed) continue;
 
             float d = Vector3.Distance(holdPoint.position, candidates[i].transform.position);
-
-            if (d < bestDistance)
-            {
-                bestDistance = d;
-                bestBlock = candidates[i];
-            }
+            if (d < bestDistance) { bestDistance = d; bestBlock = candidates[i]; }
         }
 
         if (bestBlock != null)
@@ -69,37 +55,25 @@ public class SimpleGrabber : MonoBehaviour
 
     private void ReleaseHeldBlock()
     {
-        if (heldBlock == null)
-            return;
+        if (heldBlock == null) return;
 
         bool valid = heldBlock.Release();
-
-        if (valid)
-        {
-            Debug.Log("VALID TRANSFER");
-        }
+        if (valid) Debug.Log("VALID TRANSFER");
 
         heldBlock = null;
     }
 
-
     private void OnTriggerEnter(Collider other)
     {
         BlockItem block = other.GetComponent<BlockItem>();
-
         if (block != null && !candidates.Contains(block))
-        {
             candidates.Add(block);
-        }
     }
 
     private void OnTriggerExit(Collider other)
     {
         BlockItem block = other.GetComponent<BlockItem>();
-
         if (block != null)
-        {
             candidates.Remove(block);
-        }
     }
 }

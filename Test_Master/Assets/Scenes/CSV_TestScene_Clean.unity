@@ -223,6 +223,7 @@ MonoBehaviour:
   playOnStart: 1
   loop: 1
   playbackSpeed: 1
+  assumedDtSeconds: 0.02
 --- !u!4 &175667814
 Transform:
   m_ObjectHideFlags: 0
@@ -490,9 +491,57 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 88e4bde424c1aab4483ae8178b90cdad, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  armSource: {fileID: 175667813}
-  targetBone: {fileID: 2088266318}
-  useBaseRotation: 1
+  playbackSource: {fileID: 0}
+  hips:
+    sensorId: 0
+    targetBone: {fileID: 0}
+    useBaseRotation: 1
+    baseRotation: {x: 0, y: 0, z: 0, w: 0}
+  chest:
+    sensorId: 0
+    targetBone: {fileID: 0}
+    useBaseRotation: 1
+    baseRotation: {x: 0, y: 0, z: 0, w: 0}
+  rightUpperArm:
+    sensorId: 0
+    targetBone: {fileID: 0}
+    useBaseRotation: 1
+    baseRotation: {x: 0, y: 0, z: 0, w: 0}
+  rightForeArm:
+    sensorId: 0
+    targetBone: {fileID: 0}
+    useBaseRotation: 1
+    baseRotation: {x: 0, y: 0, z: 0, w: 0}
+  leftUpperArm:
+    sensorId: 0
+    targetBone: {fileID: 0}
+    useBaseRotation: 1
+    baseRotation: {x: 0, y: 0, z: 0, w: 0}
+  leftForeArm:
+    sensorId: 0
+    targetBone: {fileID: 0}
+    useBaseRotation: 1
+    baseRotation: {x: 0, y: 0, z: 0, w: 0}
+  rightUpperLeg:
+    sensorId: 0
+    targetBone: {fileID: 0}
+    useBaseRotation: 1
+    baseRotation: {x: 0, y: 0, z: 0, w: 0}
+  rightLowerLeg:
+    sensorId: 0
+    targetBone: {fileID: 0}
+    useBaseRotation: 1
+    baseRotation: {x: 0, y: 0, z: 0, w: 0}
+  leftUpperLeg:
+    sensorId: 0
+    targetBone: {fileID: 0}
+    useBaseRotation: 1
+    baseRotation: {x: 0, y: 0, z: 0, w: 0}
+  leftLowerLeg:
+    sensorId: 0
+    targetBone: {fileID: 0}
+    useBaseRotation: 1
+    baseRotation: {x: 0, y: 0, z: 0, w: 0}
 --- !u!1 &1555010055
 GameObject:
   m_ObjectHideFlags: 0
@@ -537,7 +586,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b829c8a89755ba04693bc0f441712465, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  csvFile: {fileID: 4900000, guid: fc815cd7223765143ac41351b58c5ab7, type: 3}
+  csvFile: {fileID: 4900000, guid: be945b3a487d74d4f81fab1d41331d87, type: 3}
   playOnStart: 1
   loop: 1
   playbackSpeed: 1
@@ -549,11 +598,6 @@ Transform:
 --- !u!4 &1770926420 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 8447082967072642302, guid: 565a0bf5ada881e499f98246a413ea73, type: 3}
-  m_PrefabInstance: {fileID: 85632241}
-  m_PrefabAsset: {fileID: 0}
---- !u!4 &2088266318 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 6000407479487422213, guid: 565a0bf5ada881e499f98246a413ea73, type: 3}
   m_PrefabInstance: {fileID: 85632241}
   m_PrefabAsset: {fileID: 0}
 --- !u!1660057539 &9223372036854775807

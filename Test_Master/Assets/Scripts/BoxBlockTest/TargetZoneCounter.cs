@@ -21,12 +21,18 @@ public class TargetZoneCounter : MonoBehaviour
     {
         BlockItem block = other.GetComponent<BlockItem>();
 
-        if (block != null)
+        if (block == null) return;
+
+        // Nur zählen wenn der Transfer als gültig markiert wurde
+        if (!block.IsValidlyTransferred)
         {
-            blocksInZone.Add(block);
-            UpdateUI();
-            Debug.Log("Blocks in zone: " + blocksInZone.Count);
+            Debug.Log("[TargetZone] Block abgelehnt – kein gültiger Transfer.");
+            return;
         }
+
+        blocksInZone.Add(block);
+        UpdateUI();
+        Debug.Log("Blocks in zone: " + blocksInZone.Count);
     }
 
     private void OnTriggerExit(Collider other)
@@ -44,8 +50,6 @@ public class TargetZoneCounter : MonoBehaviour
     private void UpdateUI()
     {
         if (scoreText != null)
-        {
             scoreText.text = "Score: " + blocksInZone.Count;
-        }
     }
 }

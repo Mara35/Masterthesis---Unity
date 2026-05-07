@@ -371,6 +371,75 @@ Transform:
   - {fileID: 883463735}
   m_Father: {fileID: 1091433497}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &154082908
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 154082909}
+  - component: {fileID: 154082911}
+  - component: {fileID: 154082910}
+  m_Layer: 0
+  m_Name: PartitionZone
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &154082909
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 154082908}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 5.5, z: 0}
+  m_LocalScale: {x: 1, y: 10, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 879326063}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &154082910
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 154082908}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 213ccd15cbd3af84f9a1c2366b7edb4f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  triggerObjectNames:
+  - HandProxy
+  - GrabTrigger
+--- !u!65 &154082911
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 154082908}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1, y: 1, z: 1}
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &181033796
 GameObject:
   m_ObjectHideFlags: 0
@@ -623,6 +692,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   partition: {fileID: 879326063}
+  blocksStartSide: {fileID: 0}
 --- !u!1 &308499505
 GameObject:
   m_ObjectHideFlags: 0
@@ -1582,6 +1652,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   partition: {fileID: 879326063}
+  blocksStartSide: {fileID: 0}
 --- !u!1 &761587198
 GameObject:
   m_ObjectHideFlags: 0
@@ -1741,7 +1812,8 @@ Transform:
   m_LocalPosition: {x: 0, y: 0.076, z: 0}
   m_LocalScale: {x: 0.01, y: 0.152, z: 0.254}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 154082909}
   m_Father: {fileID: 131375097}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!65 &879326064
@@ -1842,7 +1914,7 @@ Transform:
   m_GameObject: {fileID: 883463734}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.135, y: 0, z: 0}
+  m_LocalPosition: {x: -0.135, y: 0.05, z: 0}
   m_LocalScale: {x: 0.27298397, y: 0.15, z: 0.2561082}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2029,6 +2101,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   partition: {fileID: 879326063}
+  blocksStartSide: {fileID: 0}
 --- !u!1 &1020935147
 GameObject:
   m_ObjectHideFlags: 0
@@ -2176,6 +2249,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   partition: {fileID: 879326063}
+  blocksStartSide: {fileID: 0}
 --- !u!1 &1071444725
 GameObject:
   m_ObjectHideFlags: 0
@@ -3064,8 +3138,8 @@ Transform:
   m_GameObject: {fileID: 1482934706}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.135, y: 0.05, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalPosition: {x: 0.136, y: 0.05, z: 0}
+  m_LocalScale: {x: 0.265, y: 0.15, z: 0.2561082}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 131375097}
@@ -3238,6 +3312,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   partition: {fileID: 879326063}
+  blocksStartSide: {fileID: 0}
 --- !u!1 &1565137797
 GameObject:
   m_ObjectHideFlags: 0
@@ -3774,6 +3849,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   partition: {fileID: 879326063}
+  blocksStartSide: {fileID: 0}
 --- !u!1 &1805919137
 GameObject:
   m_ObjectHideFlags: 0
@@ -3921,6 +3997,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   partition: {fileID: 879326063}
+  blocksStartSide: {fileID: 0}
 --- !u!1 &1822853120
 GameObject:
   m_ObjectHideFlags: 0
@@ -4068,6 +4145,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   partition: {fileID: 879326063}
+  blocksStartSide: {fileID: 0}
 --- !u!1 &1845723599
 GameObject:
   m_ObjectHideFlags: 0
@@ -4257,6 +4335,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   partition: {fileID: 879326063}
+  blocksStartSide: {fileID: 0}
 --- !u!1 &1880366143
 GameObject:
   m_ObjectHideFlags: 0
@@ -4404,6 +4483,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   partition: {fileID: 879326063}
+  blocksStartSide: {fileID: 0}
 --- !u!1 &1890218658
 GameObject:
   m_ObjectHideFlags: 0
@@ -4685,6 +4765,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   partition: {fileID: 879326063}
+  blocksStartSide: {fileID: 0}
 --- !u!1 &2038424095
 GameObject:
   m_ObjectHideFlags: 0
