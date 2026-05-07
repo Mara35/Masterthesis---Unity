@@ -1642,7 +1642,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   manuellesTrainingSceneName: BoxBlock_Training
-  visuellesTrainingSceneName: BoxBlock_VisuellesTraining
+  visuellesTrainingSceneName: BoxBlock_VisualTraining
   competitionSceneName: BoxBlock_Competition
   mainMenuPanel: {fileID: 875272739}
   trainingInfoPanel: {fileID: 2061798366}

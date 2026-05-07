@@ -6,7 +6,7 @@ public class MainMenuManager : MonoBehaviour
 {
     [Header("Scene Namen (exakt wie in Build Settings)")]
     [SerializeField] private string manuellesTrainingSceneName = "BoxBlock_Training";
-    [SerializeField] private string visuellesTrainingSceneName = "BoxBlock_VisuellesTraining"; 
+    [SerializeField] private string visuellesTrainingSceneName = "BoxBlock_VisualTraining"; 
     [SerializeField] private string competitionSceneName = "BoxBlock_Competition";
 
     [Header("Panels")]
@@ -68,10 +68,7 @@ public class MainMenuManager : MonoBehaviour
     
     private void LoadVisuellesTraining()
     {
-        // TODO: Ersetzen sobald BoxBlock_VisuellesTraining Scene vorhanden ist
-        Debug.Log("[MainMenu] Visuelles Training noch nicht verfügbar.");
-
-        
+        SceneManager.LoadScene(visuellesTrainingSceneName);
     }
 
     

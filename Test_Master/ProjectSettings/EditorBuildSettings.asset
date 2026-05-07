@@ -14,4 +14,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/BoxBlock_Competition.unity
     guid: 9d728d10361957347bcfdc372630a565
+  - enabled: 1
+    path: Assets/Scenes/BoxBlock_VisualTraining.unity
+    guid: 4dbc1766825ea634d913c7e6f92cfd47
   m_configObjects: {}
