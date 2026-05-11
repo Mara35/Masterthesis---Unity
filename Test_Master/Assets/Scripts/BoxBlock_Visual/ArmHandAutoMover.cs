@@ -1,16 +1,18 @@
 using UnityEngine;
 using System;
+using System.Collections.Generic;
 
 /// <summary>
-/// Bewegt das HandIKTarget entlang der Bézier-Kurve.
-/// Two Bone IK Constraint (Animation Rigging) übernimmt die gesamte
-/// Arm-Rotation – kein manuelles Bone-Steering nötig.
+/// Bewegt HandIKTarget entlang einer glatten Catmull-Rom-Kurve durch
+/// automatisch berechnete Wegpunkte, die Boxwände umgehen.
 ///
-/// Setup im Inspector:
-///   handIKTarget    = HandIKTarget GameObject
-///   handBone        = mixamorig:RightHand  (nur für Würfel-Position)
-///   fingerMCPBones  = RightHandIndex1, Middle1, Ring1, Pinky1, Thumb1
-///   homePosOverride = X 0.3 / Y 0.765 / Z -0.25  (von HomePosArm)
+/// Wegpunkt-Strategie (keine manuellen Punkte nötig):
+///   Aufheben:  start ? liftAboveBlock ? overWall ? block
+///   Ablegen:   block ? overWall ? liftAboveDrop ? drop
+///   Rückkehr:  drop  ? midAir        ? home
+///
+/// Die "over wall"-Punkte werden aus den Box-Bounds berechnet,
+/// sodass die Hand immer über den Rand geht, nie durch.
 /// </summary>
 public class ArmHandAutoMover : MonoBehaviour
 {
@@ -18,16 +20,23 @@ public class ArmHandAutoMover : MonoBehaviour
     // Inspector
     // -----------------------------------------------------------------------
 
-    [Header("IK Target (wird bewegt)")]
-    [Tooltip("Das HandIKTarget GameObject das im Two Bone IK Constraint als Target eingetragen ist")]
+    [Header("IK Target")]
     [SerializeField] private Transform handIKTarget;
 
     [Header("Hand Bone (nur für Würfel-Mitführen)")]
-    [Tooltip("mixamorig:RightHand")]
     [SerializeField] private Transform handBone;
 
-    [Header("Finger Bones (je erster Joint)")]
-    [Tooltip("RightHandIndex1, RightHandMiddle1, RightHandRing1, RightHandPinky1, RightHandThumb1")]
+    [Header("Handgelenk-Knick in der Box")]
+    [Tooltip("mixamorig:RightHand – wird in der Box nach unten geneigt")]
+    [SerializeField] private Transform wristBone;
+    [Tooltip("Lokale Rotation des Handgelenks wenn Hand IN der Box ist (nach unten zeigen)")]
+    [SerializeField] private Vector3 wristInBoxRotation = new Vector3(60f, 0f, 0f);
+    [Tooltip("Lokale Rotation des Handgelenks in Ruhe (außerhalb Box)")]
+    [SerializeField] private Vector3 wristNeutralRotation = new Vector3(0f, 0f, 0f);
+    [Tooltip("Wie schnell das Handgelenk knickt/streckt (Grad/s)")]
+    [SerializeField] private float wristSpeed = 180f;
+
+    [Header("Finger Bones")]
     [SerializeField] private Transform[] fingerMCPBones;
 
     [Header("Finger Greif-Winkel")]
@@ -40,17 +49,15 @@ public class ArmHandAutoMover : MonoBehaviour
     [SerializeField] private float snapDistance = 0.03f;
 
     [Header("Ruheposition (Weltkoordinaten)")]
-    [Tooltip("Von HomePosArm übernehmen: X 0.3 / Y 0.765 / Z -0.25")]
     [SerializeField] private Vector3 homePosOverride = new Vector3(0.3f, 0.765f, -0.25f);
 
-    [Header("Partition & Bogenhöhe")]
-    [SerializeField] private Transform centerPartition = null;
-    [SerializeField] private float partitionClearance = 0.15f;
-    [SerializeField] private float minArcHeight = 0.25f;
-
-    [Header("Kurvenform")]
-    [Range(0f, 1f)][SerializeField] private float cp1SideBias = 0.1f;
-    [Range(0f, 1f)][SerializeField] private float cp2SideBias = 0.3f;
+    [Header("Box-Wände (für Wand-Kollisionsvermeidung)")]
+    [Tooltip("BoxRoot-Collider der die gesamte Box umfasst")]
+    [SerializeField] private Collider boxCollider;
+    [Tooltip("Wie weit über dem Boxrand die Hand fährt")]
+    [SerializeField] private float wallClearance = 0.12f;
+    [Tooltip("Wie weit über dem Würfel die Hand angehoben wird")]
+    [SerializeField] private float liftHeight = 0.18f;
 
     [Header("Pausen (Sekunden)")]
     [SerializeField] private float pauseAfterGrab = 0.3f;
@@ -58,6 +65,8 @@ public class ArmHandAutoMover : MonoBehaviour
 
     [Header("Würfel-Offset zur Hand")]
     [SerializeField] private Vector3 holdOffset = new Vector3(0f, -0.05f, 0.05f);
+    [Tooltip("Wie weit über dem Würfel-Mittelpunkt die Hand stoppt (Würfel Scale Y = 0.025)")]
+    [SerializeField] private float grabHeightOffset = 0.025f;
 
     // -----------------------------------------------------------------------
     // State Machine
@@ -66,26 +75,31 @@ public class ArmHandAutoMover : MonoBehaviour
     private enum State { Idle, MovingToBlock, Grabbing, ArcCarry, Dropping, ArcReturn }
     private State state = State.Idle;
 
-    private Transform heldBlock;   // aktiv gehalten (ab GrabBlock)
-    private Rigidbody heldRb;
-    private Collider heldCol;
-
-    private Transform pendingBlock; // Ziel-Block, noch nicht gegriffen
+    private Transform pendingBlock;
     private Rigidbody pendingRb;
     private Collider pendingCol;
+
+    private Transform heldBlock;
+    private Rigidbody heldRb;
+    private Collider heldCol;
 
     private Vector3 blockGoal;
     private Vector3 dropGoal;
     private Vector3 homePos;
 
-    // Bézier
-    private Vector3 arcStart, arcEnd, peakPos, cpA, cpB;
-    private float arcT, segALen, segBLen, totalLen, tSplit;
+    // Spline
+    private List<Vector3> splinePoints = new List<Vector3>();
+    private float splineLength;
+    private float splineT;        // 0..1 über gesamte Kurve
 
     // Finger
     private float fingerGrip = 0f;
     private float fingerGripTarget = 0f;
     private Quaternion[] fingerBaseRots;
+
+    // Handgelenk
+    private float wristBendTarget = 0f; // 0 = neutral, 1 = in Box gebogen
+    private float wristBendCurrent = 0f;
 
     private float pauseTimer;
     private Action onDone;
@@ -98,12 +112,6 @@ public class ArmHandAutoMover : MonoBehaviour
 
     private void Awake()
     {
-        if (centerPartition == null)
-        {
-            var go = GameObject.Find("CenterPartition");
-            if (go != null) centerPartition = go.transform;
-        }
-
         var kb = GetComponent<HandProxyKeyboardControl>();
         if (kb != null) kb.enabled = false;
         var grb = GetComponent<SimpleGrabber>();
@@ -112,7 +120,6 @@ public class ArmHandAutoMover : MonoBehaviour
 
     private void Start()
     {
-        // Finger-Base-Rotationen cachen
         if (fingerMCPBones != null)
         {
             fingerBaseRots = new Quaternion[fingerMCPBones.Length];
@@ -121,24 +128,20 @@ public class ArmHandAutoMover : MonoBehaviour
                     fingerBaseRots[i] = fingerMCPBones[i].localRotation;
         }
 
-        // Ruheposition
-        homePos = homePosOverride != Vector3.zero ? homePosOverride : Vector3.zero;
-
-        // HandIKTarget sofort auf Ruheposition
-        if (handIKTarget != null)
-            handIKTarget.position = homePos;
+        homePos = homePosOverride != Vector3.zero ? homePosOverride : transform.position;
+        if (handIKTarget != null) handIKTarget.position = homePos;
     }
 
     private void LateUpdate()
     {
         TickStateMachine();
         AnimateFingers();
+        AnimateWrist();
 
-        // Würfel mitführen
         if (heldBlock != null)
         {
-            Vector3 handPos = handBone != null ? handBone.position : handIKTarget.position;
-            heldBlock.position = handPos + holdOffset;
+            Vector3 anchor = handBone != null ? handBone.position : handIKTarget.position;
+            heldBlock.position = anchor + holdOffset;
         }
     }
 
@@ -153,9 +156,9 @@ public class ArmHandAutoMover : MonoBehaviour
         switch (state)
         {
             case State.MovingToBlock:
-                handIKTarget.position = Vector3.MoveTowards(
-                    handIKTarget.position, blockGoal, moveSpeed * Time.deltaTime);
-                if (Vector3.Distance(handIKTarget.position, blockGoal) <= snapDistance)
+                AdvanceSpline();
+                wristBendTarget = IsAboveBox(handIKTarget.position) ? 1f : 0f;
+                if (splineT >= 1f)
                 {
                     handIKTarget.position = blockGoal;
                     fingerGripTarget = 0f;
@@ -166,41 +169,46 @@ public class ArmHandAutoMover : MonoBehaviour
 
             case State.Grabbing:
                 fingerGripTarget = 1f;
+                wristBendTarget = 1f;
                 pauseTimer -= Time.deltaTime;
                 if (pauseTimer <= 0f)
                 {
                     GrabBlock();
-                    BuildArc(handIKTarget.position, dropGoal);
+                    BuildSpline(handIKTarget.position, dropGoal, carrying: true);
                     state = State.ArcCarry;
                 }
                 break;
 
             case State.ArcCarry:
-                AdvanceArc();
-                if (arcT >= 1f)
+                AdvanceSpline();
+                wristBendTarget = IsAboveBox(handIKTarget.position) ? 1f : 0f;
+                if (splineT >= 1f)
                 {
-                    handIKTarget.position = arcEnd;
+                    handIKTarget.position = dropGoal;
                     pauseTimer = pauseAfterDrop;
                     state = State.Dropping;
                 }
                 break;
 
             case State.Dropping:
+                wristBendTarget = 1f;
                 pauseTimer -= Time.deltaTime;
                 if (pauseTimer <= 0f)
                 {
                     fingerGripTarget = 0f;
                     DropBlock();
-                    BuildArc(handIKTarget.position, homePos);
+                    BuildSpline(handIKTarget.position, homePos, carrying: false);
                     state = State.ArcReturn;
                 }
                 break;
 
             case State.ArcReturn:
-                AdvanceArc();
-                if (arcT >= 1f)
+                AdvanceSpline();
+                wristBendTarget = IsAboveBox(handIKTarget.position) ? 1f : 0f;
+                if (splineT >= 1f)
                 {
-                    handIKTarget.position = arcEnd;
+                    handIKTarget.position = homePos;
+                    wristBendTarget = 0f;
                     state = State.Idle;
                     onDone?.Invoke();
                     onDone = null;
@@ -220,17 +228,84 @@ public class ArmHandAutoMover : MonoBehaviour
             Debug.LogWarning("[ArmHandAutoMover] Noch beschäftigt.");
             return;
         }
-        // Noch NICHT heldBlock – Würfel soll erst beim Greifen mitfliegen
+
         pendingBlock = block;
         pendingRb = block.GetComponent<Rigidbody>();
         pendingCol = block.GetComponent<Collider>();
         heldBlock = null;
-        blockGoal = block.position;
-        dropGoal = dropPosition;
+        // Y-Offset damit Hand über dem Würfel stoppt, nicht im Würfel
+        blockGoal = block.position + Vector3.up * grabHeightOffset;
+        dropGoal = dropPosition + Vector3.up * grabHeightOffset;
         onDone = callback;
 
         fingerGripTarget = 0f;
+
+        // Kurve: home ? über Wandrand ? über Block ? Block
+        BuildSpline(handIKTarget.position, blockGoal, carrying: false);
         state = State.MovingToBlock;
+    }
+
+    // -----------------------------------------------------------------------
+    // Spline-Aufbau
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Berechnet Wegpunkte die die Boxwände umgehen.
+    /// Nutzt Catmull-Rom für glatte Übergänge.
+    /// </summary>
+    private void BuildSpline(Vector3 start, Vector3 end, bool carrying)
+    {
+        splinePoints.Clear();
+        splineT = 0f;
+
+        float wallTop = GetWallTop();
+
+        // Peak = direkt über dem Mittelpunkt zwischen Start und End
+        // Das ist immer korrekt egal wo Start/End liegen
+        Vector3 mid = Vector3.Lerp(start, end, 0.5f);
+        Vector3 peak = new Vector3(mid.x, wallTop, mid.z);
+
+        splinePoints.Add(start);
+        splinePoints.Add(peak);
+        splinePoints.Add(end);
+
+        splineLength = Vector3.Distance(start, peak) + Vector3.Distance(peak, end);
+        splineLength = Mathf.Max(splineLength, 0.001f);
+    }
+
+    /// <summary>
+    /// Fährt den Spline mit gleichmäßiger Geschwindigkeit ab.
+    /// Catmull-Rom interpoliert zwischen den Wegpunkten ? weiche Kurven.
+    /// </summary>
+    private void AdvanceSpline()
+    {
+        splineT = Mathf.Clamp01(splineT + (moveSpeed * Time.deltaTime) / splineLength);
+
+        int count = splinePoints.Count;
+        float scaledT = splineT * (count - 1);
+        int seg = Mathf.Min((int)scaledT, count - 2);
+        float localT = scaledT - seg;
+
+        // Catmull-Rom Kontrollpunkte (gespiegelt an den Rändern)
+        Vector3 p0 = splinePoints[Mathf.Max(seg - 1, 0)];
+        Vector3 p1 = splinePoints[seg];
+        Vector3 p2 = splinePoints[Mathf.Min(seg + 1, count - 1)];
+        Vector3 p3 = splinePoints[Mathf.Min(seg + 2, count - 1)];
+
+        handIKTarget.position = CatmullRom(p0, p1, p2, p3, localT);
+    }
+
+    // -----------------------------------------------------------------------
+    // Box-Geometrie Helpers
+    // -----------------------------------------------------------------------
+
+    private float GetWallTop()
+    {
+        if (boxCollider != null)
+            return boxCollider.bounds.max.y + wallClearance;
+        var cp = GameObject.Find("CenterPartition");
+        if (cp != null) return cp.transform.position.y + wallClearance + 0.1f;
+        return homePosOverride.y + liftHeight;
     }
 
     // -----------------------------------------------------------------------
@@ -251,72 +326,29 @@ public class ArmHandAutoMover : MonoBehaviour
         }
     }
 
-    // -----------------------------------------------------------------------
-    // Bézier-Bogen
-    // -----------------------------------------------------------------------
-
-    private void BuildArc(Vector3 start, Vector3 end)
+    private void AnimateWrist()
     {
-        arcStart = start;
-        arcEnd = end;
-        arcT = 0f;
+        if (wristBone == null) return;
 
-        if (centerPartition != null)
-        {
-            Vector3 p = centerPartition.position;
-            float spanX = Mathf.Abs(end.x - start.x);
-            float spanZ = Mathf.Abs(end.z - start.z);
-            float px, pz;
-            if (spanZ >= spanX) { pz = p.z; px = Mathf.Lerp(start.x, end.x, 0.5f); }
-            else { px = p.x; pz = Mathf.Lerp(start.z, end.z, 0.5f); }
-            float py = Mathf.Max(Mathf.Max(start.y, end.y) + minArcHeight, p.y + partitionClearance);
-            peakPos = new Vector3(px, py, pz);
-        }
-        else
-        {
-            peakPos = Vector3.Lerp(start, end, 0.5f);
-            peakPos.y = Mathf.Max(start.y, end.y) + minArcHeight;
-        }
+        // Sanft zwischen neutral und gebogen interpolieren
+        wristBendCurrent = Mathf.MoveTowards(
+            wristBendCurrent, wristBendTarget,
+            (wristSpeed * Time.deltaTime) / 90f); // normiert auf [0,1]
 
-        cpA = new Vector3(Mathf.Lerp(start.x, peakPos.x, cp1SideBias), peakPos.y,
-                          Mathf.Lerp(start.z, peakPos.z, cp1SideBias));
-        cpB = new Vector3(Mathf.Lerp(peakPos.x, end.x, cp2SideBias), peakPos.y,
-                          Mathf.Lerp(peakPos.z, end.z, cp2SideBias));
-
-        const int segs = 20;
-        segALen = 0f;
-        Vector3 prev = arcStart;
-        for (int i = 1; i <= segs; i++)
-        {
-            Vector3 pt = QuadBezier(arcStart, cpA, peakPos, i / (float)segs);
-            segALen += Vector3.Distance(prev, pt); prev = pt;
-        }
-        segBLen = 0f; prev = peakPos;
-        for (int i = 1; i <= segs; i++)
-        {
-            Vector3 pt = QuadBezier(peakPos, cpB, arcEnd, i / (float)segs);
-            segBLen += Vector3.Distance(prev, pt); prev = pt;
-        }
-        segALen = Mathf.Max(segALen, 0.001f);
-        segBLen = Mathf.Max(segBLen, 0.001f);
-        totalLen = segALen + segBLen;
-        tSplit = segALen / totalLen;
+        Vector3 targetEuler = Vector3.Lerp(wristNeutralRotation, wristInBoxRotation, wristBendCurrent);
+        wristBone.localRotation = Quaternion.Euler(targetEuler);
     }
 
-    private void AdvanceArc()
+    /// <summary>
+    /// Prüft ob die Hand-Position XZ innerhalb der Box-Bounds liegt
+    /// (unabhängig von Y – Hand kann über dem Rand sein).
+    /// </summary>
+    private bool IsAboveBox(Vector3 worldPos)
     {
-        arcT = Mathf.Clamp01(arcT + (moveSpeed * Time.deltaTime) / totalLen);
-        Vector3 pos = arcT <= tSplit
-            ? QuadBezier(arcStart, cpA, peakPos, tSplit > 0f ? arcT / tSplit : 1f)
-            : QuadBezier(peakPos, cpB, arcEnd,
-                (1f - tSplit) > 0f ? (arcT - tSplit) / (1f - tSplit) : 1f);
-        handIKTarget.position = pos;
-    }
-
-    private static Vector3 QuadBezier(Vector3 p0, Vector3 p1, Vector3 p2, float t)
-    {
-        float u = 1f - t;
-        return u * u * p0 + 2f * u * t * p1 + t * t * p2;
+        if (boxCollider == null) return false;
+        Bounds b = boxCollider.bounds;
+        return worldPos.x > b.min.x && worldPos.x < b.max.x &&
+               worldPos.z > b.min.z && worldPos.z < b.max.z;
     }
 
     // -----------------------------------------------------------------------
@@ -325,7 +357,6 @@ public class ArmHandAutoMover : MonoBehaviour
 
     private void GrabBlock()
     {
-        // Jetzt erst wirklich greifen – pending ? held
         heldBlock = pendingBlock;
         heldRb = pendingRb;
         heldCol = pendingCol;
@@ -346,34 +377,58 @@ public class ArmHandAutoMover : MonoBehaviour
     }
 
     // -----------------------------------------------------------------------
+    // Catmull-Rom Interpolation
+    // -----------------------------------------------------------------------
+
+    private static Vector3 CatmullRom(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, float t)
+    {
+        return 0.5f * (
+            2f * p1 +
+            (-p0 + p2) * t +
+            (2f * p0 - 5f * p1 + 4f * p2 - p3) * t * t +
+            (-p0 + 3f * p1 - 3f * p2 + p3) * t * t * t
+        );
+    }
+
+    // -----------------------------------------------------------------------
     // Gizmos
     // -----------------------------------------------------------------------
 
 #if UNITY_EDITOR
     private void OnDrawGizmosSelected()
     {
-        // Ruheposition (magenta) – auch außerhalb Play-Mode
+        // Ruheposition
         Gizmos.color = Color.magenta;
         Gizmos.DrawWireSphere(homePosOverride, 0.05f);
 
-        if (!Application.isPlaying) return;
+        if (!Application.isPlaying || splinePoints == null || splinePoints.Count < 2) return;
 
+        // Spline-Kurve
         Gizmos.color = Color.cyan;
-        Vector3 prev = arcStart;
-        for (int i = 1; i <= 20; i++)
+        int count = splinePoints.Count;
+        for (int seg = 0; seg < count - 1; seg++)
         {
-            Vector3 p = QuadBezier(arcStart, cpA, peakPos, i / 20f);
-            Gizmos.DrawLine(prev, p); prev = p;
+            Vector3 p0 = splinePoints[Mathf.Max(seg - 1, 0)];
+            Vector3 p1 = splinePoints[seg];
+            Vector3 p2 = splinePoints[Mathf.Min(seg + 1, count - 1)];
+            Vector3 p3 = splinePoints[Mathf.Min(seg + 2, count - 1)];
+
+            Vector3 prev = p1;
+            for (int s = 1; s <= 10; s++)
+            {
+                float lt = s / 10f;
+                Vector3 pt = CatmullRom(p0, p1, p2, p3, lt);
+                Gizmos.DrawLine(prev, pt);
+                prev = pt;
+            }
         }
-        Gizmos.color = Color.green;
-        prev = peakPos;
-        for (int i = 1; i <= 20; i++)
-        {
-            Vector3 p = QuadBezier(peakPos, cpB, arcEnd, i / 20f);
-            Gizmos.DrawLine(prev, p); prev = p;
-        }
-        Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(peakPos, 0.035f);
+
+        // Wegpunkte
+        Gizmos.color = Color.yellow;
+        foreach (var pt in splinePoints)
+            Gizmos.DrawWireSphere(pt, 0.025f);
+
+        // Aktuelles Ziel
         if (handIKTarget != null)
         {
             Gizmos.color = Color.white;
