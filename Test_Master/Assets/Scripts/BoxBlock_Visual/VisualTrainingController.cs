@@ -26,7 +26,7 @@ public class VisualTrainingController : MonoBehaviour
     [SerializeField] private List<BlockEntry> blocks = new List<BlockEntry>();
 
     [Header("Hand")]
-    [SerializeField] private AutoHandMover handMover;
+    [SerializeField] private ArmHandAutoMover handMover;
 
     [Header("UI")]
     [SerializeField] private TextMeshProUGUI instructionText;
