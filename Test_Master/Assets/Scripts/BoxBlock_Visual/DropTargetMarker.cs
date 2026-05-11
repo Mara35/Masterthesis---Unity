@@ -35,7 +35,6 @@ public class DropTargetMarker : MonoBehaviour
     // Start: Inspector-Werte sind jetzt geladen -> Farbe setzen
     private void Start()
     {
-        Debug.Log($"[DropTargetMarker] {gameObject.name} markerColor = {markerColor}");
         if (frameMat != null)
             frameMat.color = markerColor;
     }
