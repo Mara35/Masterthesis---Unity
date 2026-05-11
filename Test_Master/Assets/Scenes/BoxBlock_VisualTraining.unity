@@ -289,18 +289,23 @@ MonoBehaviour:
   - block: {fileID: 1880366147}
     dropTarget: {fileID: 1172714725}
     colorNameDE: yellow
+    targetHighlightColor: {r: 0.89019614, g: 0.8980393, b: 0.15686275, a: 1}
   - block: {fileID: 977068374}
     dropTarget: {fileID: 1148707195}
     colorNameDE: blue
+    targetHighlightColor: {r: 0.16078432, g: 0.8470589, b: 0.8431373, a: 1}
   - block: {fileID: 1020935148}
     dropTarget: {fileID: 1985827916}
     colorNameDE: green
+    targetHighlightColor: {r: 0.33333334, g: 0.93725497, b: 0.20784315, a: 1}
   - block: {fileID: 1822853121}
     dropTarget: {fileID: 424380004}
     colorNameDE: orange
+    targetHighlightColor: {r: 0.9176471, g: 0.654902, b: 0.15686275, a: 1}
   - block: {fileID: 1869317338}
     dropTarget: {fileID: 1883121118}
     colorNameDE: red
+    targetHighlightColor: {r: 0.8313726, g: 0.28235295, b: 0.18431373, a: 1}
   handMover: {fileID: 369682939}
   instructionText: {fileID: 14404263}
   finishedText: {fileID: 610029963}
@@ -954,6 +959,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 424380004}
+  - component: {fileID: 424380006}
   m_Layer: 0
   m_Name: DropTarget_orange
   m_TagString: Untagged
@@ -976,6 +982,21 @@ Transform:
   m_Children: []
   m_Father: {fileID: 883463735}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &424380006
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 424380003}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5713d3cb75d16ca4abc266dfd76e92d6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  markerColor: {r: 0.91194963, g: 0.667379, b: 0.07742955, a: 1}
+  size: 0.1
+  thickness: 0.006
 --- !u!1 &446440878
 GameObject:
   m_ObjectHideFlags: 0
@@ -2289,6 +2310,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1148707195}
+  - component: {fileID: 1148707197}
   m_Layer: 0
   m_Name: DropTarget_blue
   m_TagString: Untagged
@@ -2311,6 +2333,21 @@ Transform:
   m_Children: []
   m_Father: {fileID: 883463735}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1148707197
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1148707194}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5713d3cb75d16ca4abc266dfd76e92d6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  markerColor: {r: 0.19081506, g: 0.79052037, b: 0.9056604, a: 1}
+  size: 0.1
+  thickness: 0.006
 --- !u!1 &1172714724
 GameObject:
   m_ObjectHideFlags: 0
@@ -2320,6 +2357,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1172714725}
+  - component: {fileID: 1172714727}
   m_Layer: 0
   m_Name: DropTarget_yellow
   m_TagString: Untagged
@@ -2342,6 +2380,21 @@ Transform:
   m_Children: []
   m_Father: {fileID: 883463735}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1172714727
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1172714724}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5713d3cb75d16ca4abc266dfd76e92d6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  markerColor: {r: 0.93710685, g: 0.91863877, b: 0.103140585, a: 1}
+  size: 0.1
+  thickness: 0.006
 --- !u!1 &1230934263
 GameObject:
   m_ObjectHideFlags: 0
@@ -3253,6 +3306,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1883121118}
+  - component: {fileID: 1883121120}
   m_Layer: 0
   m_Name: DropTarget_red
   m_TagString: Untagged
@@ -3275,6 +3329,21 @@ Transform:
   m_Children: []
   m_Father: {fileID: 883463735}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1883121120
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1883121117}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5713d3cb75d16ca4abc266dfd76e92d6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  markerColor: {r: 0.98742133, g: 0.05899668, b: 0.05899668, a: 1}
+  size: 0.1
+  thickness: 0.006
 --- !u!1 &1985827915
 GameObject:
   m_ObjectHideFlags: 0
@@ -3284,6 +3353,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1985827916}
+  - component: {fileID: 1985827918}
   m_Layer: 0
   m_Name: DropTarget_green
   m_TagString: Untagged
@@ -3306,6 +3376,21 @@ Transform:
   m_Children: []
   m_Father: {fileID: 883463735}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1985827918
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1985827915}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5713d3cb75d16ca4abc266dfd76e92d6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  markerColor: {r: 0.2834245, g: 1, b: 0.059748232, a: 1}
+  size: 0.1
+  thickness: 0.006
 --- !u!1 &2038424095
 GameObject:
   m_ObjectHideFlags: 0
