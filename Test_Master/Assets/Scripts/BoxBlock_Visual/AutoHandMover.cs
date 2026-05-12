@@ -174,6 +174,7 @@ public class AutoHandMover : MonoBehaviour
                 {
                     GrabBlock();
                     if (handGrip != null) handGrip.SetWristBend(false); // Handgelenk strecken
+                    if (handGrip != null) handGrip.SetElbowBend(true);  // Beugung an für Hinweg
                     BuildArc(transform.position, dropGoal);
                     state = State.ArcCarry;
                 }
@@ -201,6 +202,7 @@ public class AutoHandMover : MonoBehaviour
                 {
                     DropBlock();
                     if (handGrip != null) handGrip.SetWristBend(false); // Handgelenk strecken
+                    if (handGrip != null) handGrip.SetElbowBend(false); // Beugung aus für Rückweg
                     BuildArc(transform.position, homePos);
                     state = State.ArcReturn;
                 }

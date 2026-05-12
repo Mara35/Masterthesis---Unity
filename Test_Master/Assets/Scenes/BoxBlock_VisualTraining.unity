@@ -2901,6 +2901,13 @@ MonoBehaviour:
   wristBendAngle: 60
   wristBendAxis: {x: 1, y: 0, z: 0}
   wristBlendSpeed: 5
+  foreArmBone: {fileID: 1967456092}
+  elbowMaxBendAngle: 40
+  elbowBendAxis: {x: 0, y: 0, z: 1}
+  elbowBlendSpeed: 4
+  handMoverGhost: {fileID: 448038246}
+  partitionX: 0
+  leftMaxX: -0.3
 --- !u!1 &1071444725
 GameObject:
   m_ObjectHideFlags: 0
