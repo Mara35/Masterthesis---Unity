@@ -3,19 +3,8 @@ using System;
 
 /// <summary>
 /// Bewegt den HandProxy in einer natürlichen Bogenbewegung über die CenterPartition.
-///
-/// Strategie: ZWEI verkettete quadratische Bézier-Segmente mit einem festen
-/// Zwischenpunkt direkt über der Partition.
-///
-///   Segment A:  arcStart  ? überPeak  ? peak        (Aufstieg)
-///   Segment B:  peak      ? überEnd   ? arcEnd       (Abstieg)
-///
-/// „peak" liegt EXAKT über der CenterPartition auf sicherer Höhe.
-/// Dadurch ist es physikalisch unmöglich, dass die Kurve die Wand schneidet.
-///
-/// Falls centerPartition nicht per Inspector gesetzt ist, sucht das Skript
-/// beim Start automatisch nach einem GameObject namens "CenterPartition"
-/// in der eigenen Szene.
+/// NEU: Synchronisiert jeden Frame das HandIKTarget mit der eigenen Position,
+///      damit der Two Bone IK Constraint (Animation Rigging) den XBot-Arm steuert.
 /// </summary>
 public class AutoHandMover : MonoBehaviour
 {
@@ -55,6 +44,28 @@ public class AutoHandMover : MonoBehaviour
     [SerializeField] private Vector3 holdOffset = new Vector3(0f, 0.05f, 0f);
 
     // -----------------------------------------------------------------------
+    // NEU: IK Target + Hand Grip
+    // -----------------------------------------------------------------------
+
+    [Header("IK Target (Animation Rigging)")]
+    [Tooltip("HandIKTarget zuweisen.")]
+    [SerializeField] private Transform ikTarget;
+
+    [Header("Hand Greifen")]
+    [Tooltip("Das GameObject mit HandGrip.cs drauf.")]
+    [SerializeField] private HandGrip handGrip;
+
+    [Header("IK Offset Korrektur")]
+    [Tooltip("mixamorig:RightHand zuweisen – misst live den Versatz zwischen Ghost und echter Hand.")]
+    [SerializeField] private Transform realHandBone;
+
+    [Tooltip("Mindesthöhe der Hand – verhindert dass Unterarm durch Vorderwand geht.")]
+    [SerializeField] private float minHandHeight = 0.5f;
+
+    [Tooltip("Zusätzlicher Z-Offset – Hand weiter nach +Z schieben vom Avatar weg.")]
+    [SerializeField] private float handZOffset = 0.1f;
+
+    // -----------------------------------------------------------------------
     // State Machine
     // -----------------------------------------------------------------------
 
@@ -81,15 +92,13 @@ public class AutoHandMover : MonoBehaviour
     private Vector3 dropGoal;
     private Vector3 homePos;
 
-    // Zwei-Segment-Bogen:
-    //   Segment A (t in [0,0.5]): quadratische Bézier arcStart ? cpA ? peak
-    //   Segment B (t in [0.5,1]): quadratische Bézier peak ? cpB ? arcEnd
+    // Zwei-Segment-Bogen
     private Vector3 arcStart, arcEnd, peakPos, cpA, cpB;
     private float arcT = 0f;
-    private float segALen = 1f;   // Länge Segment A
-    private float segBLen = 1f;   // Länge Segment B
+    private float segALen = 1f;
+    private float segBLen = 1f;
     private float totalLen = 1f;
-    private float tSplit = 0.5f; // t-Wert an dem Segment A endet (= segALen/totalLen)
+    private float tSplit = 0.5f;
 
     // Misc
     private float pauseTimer;
@@ -106,7 +115,6 @@ public class AutoHandMover : MonoBehaviour
         homePos = transform.position;
         handCol = GetComponent<Collider>();
 
-        // Partition auto-suchen wenn nicht per Inspector gesetzt
         if (centerPartition == null)
         {
             var go = GameObject.Find("CenterPartition");
@@ -117,8 +125,18 @@ public class AutoHandMover : MonoBehaviour
             }
             else
             {
-                Debug.LogWarning("[AutoHandMover] CenterPartition nicht gesetzt und nicht gefunden! " +
-                                 "Bitte im Inspector zuweisen.");
+                Debug.LogWarning("[AutoHandMover] CenterPartition nicht gesetzt und nicht gefunden!");
+            }
+        }
+
+        // ikTarget auto-suchen falls nicht gesetzt
+        if (ikTarget == null)
+        {
+            var go = GameObject.Find("HandIKTarget");
+            if (go != null)
+            {
+                ikTarget = go.transform;
+                Debug.Log("[AutoHandMover] HandIKTarget automatisch gefunden.");
             }
         }
 
@@ -135,8 +153,10 @@ public class AutoHandMover : MonoBehaviour
         {
             case State.MovingToBlock:
                 MoveTo(blockGoal);
+                SyncIKTarget();                         // NEU
                 if (Arrived(blockGoal))
                 {
+                    if (handGrip != null) handGrip.SetWristBend(true); // Handgelenk knicken
                     pauseTimer = pauseAfterGrab;
                     state = State.Grabbing;
                 }
@@ -144,9 +164,16 @@ public class AutoHandMover : MonoBehaviour
 
             case State.Grabbing:
                 pauseTimer -= Time.deltaTime;
+
+                // Faust schließt sich im letzten 30% der Pause (Hand ist schon am Würfel)
+                // Wert erhöhen (z.B. 0.5f) um früher zu greifen
+                if (pauseTimer <= pauseAfterGrab * 0.3f)
+                    if (handGrip != null) handGrip.Grip();
+
                 if (pauseTimer <= 0f)
                 {
                     GrabBlock();
+                    if (handGrip != null) handGrip.SetWristBend(false); // Handgelenk strecken
                     BuildArc(transform.position, dropGoal);
                     state = State.ArcCarry;
                 }
@@ -154,10 +181,12 @@ public class AutoHandMover : MonoBehaviour
 
             case State.ArcCarry:
                 AdvanceArc();
+                SyncIKTarget();                         // NEU
                 CarryBlock();
                 if (arcT >= 1f)
                 {
                     transform.position = arcEnd;
+                    SyncIKTarget();                     // NEU
                     CarryBlock();
                     pauseTimer = pauseAfterDrop;
                     state = State.Dropping;
@@ -166,9 +195,12 @@ public class AutoHandMover : MonoBehaviour
 
             case State.Dropping:
                 pauseTimer -= Time.deltaTime;
+                if (pauseTimer <= pauseAfterDrop * 0.5f)
+                    if (handGrip != null) handGrip.SetWristBend(true); // Handgelenk knicken
                 if (pauseTimer <= 0f)
                 {
                     DropBlock();
+                    if (handGrip != null) handGrip.SetWristBend(false); // Handgelenk strecken
                     BuildArc(transform.position, homePos);
                     state = State.ArcReturn;
                 }
@@ -176,9 +208,11 @@ public class AutoHandMover : MonoBehaviour
 
             case State.ArcReturn:
                 AdvanceArc();
+                SyncIKTarget();                         // NEU
                 if (arcT >= 1f)
                 {
                     transform.position = arcEnd;
+                    SyncIKTarget();                     // NEU
                     state = State.Idle;
                     onDone?.Invoke();
                     onDone = null;
@@ -219,43 +253,26 @@ public class AutoHandMover : MonoBehaviour
     // Arc – Zwei verkettete quadratische Bézier-Segmente
     // -----------------------------------------------------------------------
 
-    /// <summary>
-    /// Baut den Zwei-Segment-Bogen.
-    ///
-    /// Der Peak liegt EXAKT über der CenterPartition bei sicherer Höhe.
-    /// Segment A geht von start senkrecht nach oben zum peak.
-    /// Segment B geht vom peak sanft abfallend zum end.
-    ///
-    /// Da der Peak ein echter Kurvenpunkt (kein Kontrollpunkt) ist,
-    /// kann die Bézier-Kurve NIEMALS durch die Wand führen.
-    /// </summary>
     private void BuildArc(Vector3 start, Vector3 end)
     {
         arcStart = start;
         arcEnd = end;
         arcT = 0f;
 
-        // ?? 1. Peak direkt über der Partition ??????????????????????????????
         if (centerPartition != null)
         {
             Vector3 partPos = centerPartition.position;
-
-            // Trennachse erkennen: In welcher Achse liegt die größte Bewegungsspanne?
             float spanX = Mathf.Abs(end.x - start.x);
             float spanZ = Mathf.Abs(end.z - start.z);
 
             float peakX, peakZ;
             if (spanZ >= spanX)
             {
-                // Hauptbewegung in Z ? Trennwand liegt bei festem partPos.z
                 peakZ = partPos.z;
-                // X des Peaks: X-Anteil der Partition zwischen Start und Ziel interpolieren,
-                // aber sicherheitshalber einfach Start-X nehmen (Hand bleibt in ihrer Spur)
                 peakX = Mathf.Lerp(start.x, end.x, 0.5f);
             }
             else
             {
-                // Hauptbewegung in X ? Trennwand liegt bei festem partPos.x
                 peakX = partPos.x;
                 peakZ = Mathf.Lerp(start.z, end.z, 0.5f);
             }
@@ -268,32 +285,22 @@ public class AutoHandMover : MonoBehaviour
         }
         else
         {
-            // Fallback: Scheitelpunkt in der Mitte
             peakPos = Vector3.Lerp(start, end, 0.5f);
             peakPos.y = Mathf.Max(start.y, end.y) + minArcHeight;
         }
 
-        // ?? 2. Kontrollpunkte der beiden quadratischen Segmente ?????????????
-        //
-        // cpA steuert den Aufstieg (Segment A: start?peak).
-        //   cp1SideBias = 0  ? cpA liegt direkt über start (senkrechter Aufstieg)
-        //   cp1SideBias = 1  ? cpA liegt direkt beim peak (sofort schräg)
         cpA = new Vector3(
             Mathf.Lerp(start.x, peakPos.x, cp1SideBias),
-            peakPos.y,                                      // immer auf Peak-Höhe!
+            peakPos.y,
             Mathf.Lerp(start.z, peakPos.z, cp1SideBias)
         );
 
-        // cpB steuert den Abstieg (Segment B: peak?end).
-        //   cp2SideBias = 0  ? cpB liegt direkt beim peak (senkrechter Abstieg)
-        //   cp2SideBias = 1  ? cpB liegt direkt beim end  (sanft schräg)
         cpB = new Vector3(
             Mathf.Lerp(peakPos.x, end.x, cp2SideBias),
-            peakPos.y,                                      // immer auf Peak-Höhe!
+            peakPos.y,
             Mathf.Lerp(peakPos.z, end.z, cp2SideBias)
         );
 
-        // ?? 3. Bogenlänge schätzen (für gleichmäßige Geschwindigkeit) ???????
         const int segs = 20;
         segALen = 0f;
         Vector3 prev = arcStart;
@@ -318,14 +325,9 @@ public class AutoHandMover : MonoBehaviour
         segALen = Mathf.Max(segALen, 0.001f);
         segBLen = Mathf.Max(segBLen, 0.001f);
         totalLen = segALen + segBLen;
-        tSplit = segALen / totalLen;   // t-Wert an dem Segment A endet
+        tSplit = segALen / totalLen;
     }
 
-    /// <summary>
-    /// Bewegt arcT vorwärts und berechnet die aktuelle Handposition.
-    /// t in [0, tSplit]   ? Segment A (Aufstieg)
-    /// t in [tSplit, 1]   ? Segment B (Abstieg)
-    /// </summary>
     private void AdvanceArc()
     {
         float dtT = (moveSpeed * Time.deltaTime) / totalLen;
@@ -346,7 +348,6 @@ public class AutoHandMover : MonoBehaviour
         transform.position = pos;
     }
 
-    /// <summary>Quadratische Bézier: P0, P1 (Kontrollpunkt), P2</summary>
     private static Vector3 QuadBezier(Vector3 p0, Vector3 p1, Vector3 p2, float t)
     {
         float u = 1f - t;
@@ -362,6 +363,7 @@ public class AutoHandMover : MonoBehaviour
         if (heldBlock == null) return;
         if (heldRb != null) { heldRb.isKinematic = true; heldRb.useGravity = false; }
         if (heldCol != null) heldCol.enabled = false;
+        // Grip wird bereits im Grabbing-State ausgelöst (früher)
     }
 
     private void CarryBlock()
@@ -384,6 +386,7 @@ public class AutoHandMover : MonoBehaviour
         heldCol = null;
 
         if (handCol != null) handCol.isTrigger = false;
+        if (handGrip != null) handGrip.Release();      // NEU
     }
 
     // -----------------------------------------------------------------------
@@ -397,12 +400,39 @@ public class AutoHandMover : MonoBehaviour
     private bool Arrived(Vector3 goal) =>
         Vector3.Distance(transform.position, goal) <= snapDistance;
 
+    /// <summary>
+    /// NEU: Synchronisiert HandIKTarget mit der aktuellen HandProxy-Position.
+    /// Der Two Bone IK Constraint auf RightArmIK übernimmt den Rest automatisch.
+    /// </summary>
+    private void SyncIKTarget()
+    {
+        if (ikTarget == null) return;
+
+        Vector3 pos = transform.position;
+
+        // Mindesthöhe – Unterarm kommt von oben statt durch die Vorderwand
+        pos.y = Mathf.Max(pos.y, minHandHeight);
+
+        // Z-Offset – Hand weiter vom Avatar weg Richtung Tisch
+        pos.z += handZOffset;
+
+        if (realHandBone != null)
+        {
+            // Live-Versatz zwischen Ghost und echter Hand kompensieren (nur X und Z)
+            Vector3 currentOffset = transform.position - realHandBone.position;
+            ikTarget.position = pos + new Vector3(currentOffset.x, 0f, currentOffset.z);
+        }
+        else
+        {
+            ikTarget.position = pos;
+        }
+    }
+
 #if UNITY_EDITOR
     private void OnDrawGizmosSelected()
     {
         if (!Application.isPlaying) return;
 
-        // Segment A (cyan)
         Gizmos.color = Color.cyan;
         Vector3 prev = arcStart;
         for (int i = 1; i <= 20; i++)
@@ -413,7 +443,6 @@ public class AutoHandMover : MonoBehaviour
             prev = p;
         }
 
-        // Segment B (green)
         Gizmos.color = Color.green;
         prev = peakPos;
         for (int i = 1; i <= 20; i++)
@@ -424,7 +453,6 @@ public class AutoHandMover : MonoBehaviour
             prev = p;
         }
 
-        // Kontrollpunkte & Peak (yellow/red)
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireSphere(cpA, 0.025f);
         Gizmos.DrawWireSphere(cpB, 0.025f);
