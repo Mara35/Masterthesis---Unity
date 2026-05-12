@@ -2,6 +2,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 using TMPro;
 
 public class VisualTrainingController : MonoBehaviour
@@ -32,6 +34,16 @@ public class VisualTrainingController : MonoBehaviour
     [SerializeField] private TextMeshProUGUI instructionText;
     [SerializeField] private TextMeshProUGUI finishedText;
 
+    [Header("Buttons (am Ende)")]
+    [Tooltip("FinishedPanel zuweisen – wird am Ende eingeblendet (enthält Text + Buttons).")]
+    [SerializeField] private GameObject finishedPanel;
+    [Tooltip("Button zum Wiederholen der Übung.")]
+    [SerializeField] private Button repeatButton;
+    [Tooltip("Button zum Zurückkehren zur Hauptszene.")]
+    [SerializeField] private Button mainMenuButton;
+    [Tooltip("Name der Hauptszene (muss in Build Settings eingetragen sein).")]
+    [SerializeField] private string mainSceneName = "MainMenu";
+
     [Header("Timing")]
     [SerializeField] private float instructionDisplayTime = 3.0f;
     [SerializeField] private float pauseBetweenBlocks = 1.0f;
@@ -40,18 +52,17 @@ public class VisualTrainingController : MonoBehaviour
     [SerializeField]
     private string instructionTemplate =
         "Stelle dir jetzt vor,\ndu hebst den {COLOR} Würfel auf.";
-    [SerializeField]
-    private string finishedMessage =
-        "Gut gemacht!\nDu hast alle Würfel transportiert.";
 
     // -----------------------------------------------------------------------
     private void Start()
     {
-        if (finishedText != null) finishedText.gameObject.SetActive(false);
         if (instructionText != null) instructionText.text = "";
 
-        // Kein SetVisible(false) hier nötig –
-        // DropTargetMarker.Awake() setzt frameRoot bereits auf inaktiv
+        // Panel zu Beginn verstecken (Text ist Kind des Panels)
+        if (finishedPanel != null) finishedPanel.SetActive(false);
+        if (repeatButton != null) repeatButton.onClick.AddListener(OnRepeat);
+        if (mainMenuButton != null) mainMenuButton.onClick.AddListener(OnMainMenu);
+
         StartCoroutine(RunTrainingSequence());
     }
 
@@ -140,11 +151,23 @@ public class VisualTrainingController : MonoBehaviour
     private void ShowFinished()
     {
         ClearInstruction();
-        if (finishedText != null)
-        {
-            finishedText.gameObject.SetActive(true);
-            finishedText.text = finishedMessage;
-        }
+        if (instructionText != null) instructionText.gameObject.SetActive(false);
+
+        // Panel einblenden (enthält Text + Buttons)
+        if (finishedPanel != null)
+            finishedPanel.SetActive(true);
+
         Debug.Log("[VisualTraining] Alle Würfel abgeschlossen.");
+    }
+
+    // -----------------------------------------------------------------------
+    private void OnRepeat()
+    {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    }
+
+    private void OnMainMenu()
+    {
+        SceneManager.LoadScene(mainSceneName);
     }
 }
