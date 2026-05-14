@@ -44,6 +44,10 @@ public class CSVReplayController : MonoBehaviour
     [Header("--- HandTarget (IK Target) ---")]
     public Transform handTarget;
 
+    [Header("--- Automatisches Greifen ---")]
+    [Tooltip("GloveGrabber Script auf HandTarget – bekommt Fingerwinkel")]
+    public GloveGrabber gloveGrabber;
+
     [Header("--- Wiedergabe ---")]
     public float playbackSpeed = 1f;
     public bool loop = true;
@@ -267,6 +271,19 @@ public class CSVReplayController : MonoBehaviour
         ApplyFinger(middleBones, angles[6], angles[8], fingerFlexAxis);
         ApplyFinger(ringBones, angles[9], angles[11], fingerFlexAxis);
         ApplyFinger(pinkyBones, angles[12], angles[14], fingerFlexAxis);
+
+        // Winkel an GloveGrabber weitergeben für automatisches Greifen
+        if (gloveGrabber != null)
+        {
+            gloveGrabber.currentIndexMcp = angles[3];
+            gloveGrabber.currentIndexPip = angles[5];
+            gloveGrabber.currentMiddleMcp = angles[6];
+            gloveGrabber.currentMiddlePip = angles[8];
+            gloveGrabber.currentRingMcp = angles[9];
+            gloveGrabber.currentRingPip = angles[11];
+            gloveGrabber.currentPinkyMcp = angles[12];
+            gloveGrabber.currentPinkyPip = angles[14];
+        }
     }
 
     void ApplyFinger(Transform[] bones, float mcpDeg, float pipDeg, Vector3 flexAxis)
