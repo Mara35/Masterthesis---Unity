@@ -9,7 +9,7 @@ public class Timer : MonoBehaviour
     public TextMeshProUGUI timerText;
 
     [Header("End Screen")]
-    [SerializeField] private GameOverUI gameOverUI;
+    [SerializeField] private GameOverUI_off gameOverUI;
 
     private TargetZoneCounter targetZoneCounter;
 
@@ -23,7 +23,7 @@ public class Timer : MonoBehaviour
         targetZoneCounter = FindAnyObjectByType<TargetZoneCounter>();
 
         if (gameOverUI == null)
-            gameOverUI = FindObjectOfType<GameOverUI>();
+            gameOverUI = FindObjectOfType<GameOverUI_off>();
 
         timeRemaining = testDuration;
         UpdateUI();

@@ -3243,9 +3243,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1230934265}
-  - component: {fileID: 1230934264}
-  - component: {fileID: 1230934266}
   - component: {fileID: 1230934267}
+  - component: {fileID: 1230934268}
   m_Layer: 0
   m_Name: TestManager
   m_TagString: Untagged
@@ -3253,21 +3252,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1230934264
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1230934263}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e658c2f07fe97d64ca5a3f868b6d3734, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  testDuration: 60
-  timerText: {fileID: 1580816394}
-  gameOverUI: {fileID: 0}
 --- !u!4 &1230934265
 Transform:
   m_ObjectHideFlags: 0
@@ -3283,26 +3267,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1230934266
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1230934263}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5750002e680a0ed4ba270cee509f1dd3, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  gameOverPanel: {fileID: 725380807}
-  finalScoreText: {fileID: 1565137799}
-  hudScoreText: {fileID: 1308708706}
-  hudTimerText: {fileID: 1580816392}
-  newGameButton: {fileID: 2119584145}
-  mainMenuButton: {fileID: 1582517786}
-  trainingSceneName: BoxBlock_Training
-  mainMenuSceneName: MainMenu
 --- !u!114 &1230934267
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3318,6 +3282,26 @@ MonoBehaviour:
   testDuration: 60
   timerText: {fileID: 1580816394}
   gameOverUI: {fileID: 0}
+--- !u!114 &1230934268
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1230934263}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9922ec9d6d895d441b996bfb5f159b93, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  gameOverPanel: {fileID: 725380807}
+  finalScoreText: {fileID: 1565137799}
+  hudScoreText: {fileID: 0}
+  hudTimerText: {fileID: 0}
+  newGameButton: {fileID: 2119584145}
+  mainMenuButton: {fileID: 1582517786}
+  trainingSceneName: BoxBlock_Training_offline
+  mainMenuSceneName: MainMenu
 --- !u!1 &1256216347
 GameObject:
   m_ObjectHideFlags: 0
