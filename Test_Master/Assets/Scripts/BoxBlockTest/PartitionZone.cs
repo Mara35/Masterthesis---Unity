@@ -18,16 +18,23 @@ public class PartitionZone : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
+        CheckTrigger(other);
+    }
+
+    private void OnTriggerStay(Collider other)
+    {
+        CheckTrigger(other);
+    }
+
+    private void CheckTrigger(Collider other)
+    {
         bool isHandObject = System.Array.IndexOf(triggerObjectNames, other.name) >= 0;
         if (!isHandObject) return;
-
-        Debug.Log($"[PartitionZone] '{other.name}' hat Zone betreten. AutoHandMover IsIdle={autoHandMover?.IsIdle}");
 
         // AutoHandMover: wenn nicht idle = Block wird getragen
         if (autoHandMover != null && !autoHandMover.IsIdle)
         {
             autoHandMover.NotifyPartitionPassed();
-            Debug.Log("[PartitionZone] AutoHandMover: NotifyPartitionPassed aufgerufen ?");
             return;
         }
 
@@ -44,9 +51,6 @@ public class PartitionZone : MonoBehaviour
         {
             simpleGrabber.HeldBlock.OnPassedThroughPartitionZone();
             Debug.Log($"[PartitionZone] SimpleGrabber: '{simpleGrabber.HeldBlock.name}' Zone passiert ?");
-            return;
         }
-
-        Debug.Log($"[PartitionZone] '{other.name}' - kein Block gehalten.");
     }
 }

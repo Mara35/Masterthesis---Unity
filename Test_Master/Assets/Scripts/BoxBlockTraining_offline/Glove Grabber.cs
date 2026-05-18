@@ -15,7 +15,7 @@ public class GloveGrabber : MonoBehaviour
     [Header("--- Debug ---")]
     public bool showDebugGUI = true;
 
-    // Winkel - werden von CSVReplayController direkt gesetzt
+    // Winkel - werden von CSVReplayController gesetzt
     public float currentIndexMcp = 0f;
     public float currentIndexPip = 0f;
     public float currentMiddleMcp = 0f;
@@ -28,21 +28,12 @@ public class GloveGrabber : MonoBehaviour
     private readonly List<BlockItem> candidates = new List<BlockItem>();
     private BlockItem heldBlock;
     private bool isGripping = false;
-    private TestTimer timer;
 
     public BlockItem HeldBlock => heldBlock;
     public bool IsGripping => isGripping;
 
-    private void Start()
-    {
-        timer = FindObjectOfType<TestTimer>();
-    }
-
     private void Update()
     {
-        // Timer-Check entfernt - GloveGrabber läuft immer
-        // (Timer-Logik wird vom TestManager gesteuert)
-
         bool shouldGrip = CheckGripCondition();
 
         if (!isGripping && shouldGrip)
@@ -81,7 +72,6 @@ public class GloveGrabber : MonoBehaviour
                 if (b != null && !candidates.Contains(b))
                     candidates.Add(b);
             }
-            Debug.Log($"[GloveGrabber] Overlap: {candidates.Count} Kandidaten");
         }
 
         float bestDist = float.MaxValue;
@@ -90,7 +80,6 @@ public class GloveGrabber : MonoBehaviour
         for (int i = candidates.Count - 1; i >= 0; i--)
         {
             if (candidates[i] == null) { candidates.RemoveAt(i); continue; }
-            // CanBeGrabbed Check temporär deaktiviert
             float d = Vector3.Distance(searchPos, candidates[i].transform.position);
             if (d < bestDist) { bestDist = d; best = candidates[i]; }
         }
@@ -102,22 +91,16 @@ public class GloveGrabber : MonoBehaviour
             isGripping = true;
             Debug.Log($"[GloveGrabber] GEGRIFFEN: {best.name}");
         }
-        else
-        {
-            Debug.Log($"[GloveGrabber] Kein Block greifbar! Kandidaten={candidates.Count}");
-        }
     }
 
     void Release()
     {
         if (heldBlock == null) { isGripping = false; return; }
 
-        heldBlock.transform.SetParent(null);
-        heldBlock.GetComponent<Rigidbody>().isKinematic = false;
-        heldBlock.GetComponent<Rigidbody>().useGravity = true;
-        heldBlock.GetComponent<BoxCollider>().isTrigger = false;
+        // BlockItem.Release() prüft PartitionZone und setzt IsValidlyTransferred
+        bool valid = heldBlock.Release();
+        Debug.Log($"[GloveGrabber] LOSGELASSEN: {heldBlock.name} - Transfer {(valid ? "GUELTIG" : "UNGUELTIG")}");
 
-        Debug.Log($"[GloveGrabber] LOSGELASSEN: {heldBlock.name}");
         heldBlock = null;
         isGripping = false;
     }
@@ -144,7 +127,6 @@ public class GloveGrabber : MonoBehaviour
         GUILayout.BeginArea(new Rect(10, 150, 320, 110));
         GUILayout.Label($"[GloveGrabber] Gripping={isGripping} | Kandidaten={candidates.Count}");
         GUILayout.Label($"Index MCP={currentIndexMcp:F1}(T={gripMcpThreshold}) PIP={currentIndexPip:F1}(T={gripPipThreshold})");
-        GUILayout.Label($"Middle MCP={currentMiddleMcp:F1} PIP={currentMiddlePip:F1}");
         GUILayout.Label($"CheckGrip={CheckGripCondition()} | Block={heldBlock?.name ?? "-"}");
         GUILayout.EndArea();
     }

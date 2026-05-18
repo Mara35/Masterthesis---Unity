@@ -400,7 +400,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &154082909
 Transform:
   m_ObjectHideFlags: 0
@@ -410,7 +410,7 @@ Transform:
   m_GameObject: {fileID: 154082908}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 5.5, z: 0}
+  m_LocalPosition: {x: 0, y: 4.5, z: 0}
   m_LocalScale: {x: 1, y: 10, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -423,14 +423,13 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 154082908}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 213ccd15cbd3af84f9a1c2366b7edb4f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   triggerObjectNames:
-  - HandProxy
-  - GrabTrigger
+  - HandTarget
 --- !u!65 &154082911
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -459,7 +458,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 154082908}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0730630ccbd28564087607b08cec22fb, type: 3}
   m_Name: 
@@ -1854,7 +1853,7 @@ MonoBehaviour:
   playbackSpeed: 1
   loop: 1
   loopPauseSeconds: 1
-  showDebugGUI: 1
+  showDebugGUI: 0
 --- !u!4 &610723650
 Transform:
   m_ObjectHideFlags: 0
@@ -1877,7 +1876,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 610723648}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9a6c5599da48c9a4b866c51774833990, type: 3}
   m_Name: 
@@ -2561,10 +2560,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 883463734}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 36e62af9a2147fd499804d6a39f3aca2, type: 3}
+  m_Script: {fileID: 11500000, guid: 1d40a31206c9ab74c8c162eaed83d7b5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   scoreText: {fileID: 1308708708}
+  partitionTransform: {fileID: 0}
+  useBlockItemValidation: 1
 --- !u!4 &894539163 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 5097370190579632962, guid: 565a0bf5ada881e499f98246a413ea73, type: 3}
@@ -3413,7 +3414,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1308708707
 RectTransform:
   m_ObjectHideFlags: 0
@@ -5272,8 +5273,6 @@ GameObject:
   - component: {fileID: 1916315912}
   - component: {fileID: 1916315911}
   - component: {fileID: 1916315910}
-  - component: {fileID: 1916315914}
-  - component: {fileID: 1916315913}
   - component: {fileID: 1916315915}
   - component: {fileID: 1916315916}
   m_Layer: 0
@@ -5346,38 +5345,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1916315913
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1916315908}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e0e4d086f84d43140b3243222d6691b2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  moveSpeed: 0.5
-  fastMultiplier: 2
-  useBounds: 1
-  boundsMin: {x: -0.1, y: 0.78, z: -0.8}
-  boundsMax: {x: 0.8, y: 1.5, z: 0.2}
---- !u!114 &1916315914
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1916315908}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 368530d5789826445a2fe931850b0176, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  holdPoint: {fileID: 560501526}
-  grabKey: 101
-  releaseKey: 113
 --- !u!114 &1916315915
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5395,7 +5362,7 @@ MonoBehaviour:
   minFingersForGrip: 2
   releaseHysteresis: 5
   holdPoint: {fileID: 560501526}
-  showDebugGUI: 1
+  showDebugGUI: 0
   currentIndexMcp: 0
   currentIndexPip: 0
   currentMiddleMcp: 0
@@ -5411,7 +5378,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1916315908}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c967c945b4bc1424fb37e794aee08a7b, type: 3}
   m_Name: 
