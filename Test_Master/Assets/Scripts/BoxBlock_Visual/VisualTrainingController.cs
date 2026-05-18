@@ -11,20 +11,20 @@ public class VisualTrainingController : MonoBehaviour
     [Serializable]
     public class BlockEntry
     {
-        [Tooltip("Der Würfel in der Startzone")]
+        [Tooltip("The cube in the starting zone")]
         public Transform block;
 
-        [Tooltip("Ablagepunkt in der Zielzone")]
+        [Tooltip("Drop-off point in the target zone")]
         public Transform dropTarget;
 
-        [Tooltip("Farb-Name für den Instruktionstext, z.B. 'grünen'")]
-        public string colorNameDE = "grünen";
+        [Tooltip("Color name for the instruction text")]
+        public string colorName_ = "green";
 
-        [Tooltip("Farbe des zugehörigen DropTargets")]
+        [Tooltip("Color of the associated drop target")]
         public Color targetHighlightColor = Color.white;
     }
 
-    [Header("Würfel-Sequenz (Reihenfolge der Übung)")]
+    [Header("Cube sequence (order of the exercise)")]
     [SerializeField] private List<BlockEntry> blocks = new List<BlockEntry>();
 
     [Header("Hand")]
@@ -34,31 +34,31 @@ public class VisualTrainingController : MonoBehaviour
     [SerializeField] private TextMeshProUGUI instructionText;
     [SerializeField] private TextMeshProUGUI finishedText;
 
-    [Header("Buttons (am Ende)")]
-    [Tooltip("FinishedPanel zuweisen – wird am Ende eingeblendet (enthält Text + Buttons).")]
+    [Header("Buttons (at the end)")]
+    [Tooltip("Assign FinishedPanel")]
     [SerializeField] private GameObject finishedPanel;
-    [Tooltip("Button zum Wiederholen der Übung.")]
+    [Tooltip("Repeat button")]
     [SerializeField] private Button repeatButton;
-    [Tooltip("Button zum Zurückkehren zur Hauptszene.")]
+    [Tooltip("MainMenu button")]
     [SerializeField] private Button mainMenuButton;
-    [Tooltip("Name der Hauptszene (muss in Build Settings eingetragen sein).")]
+    [Tooltip("Name of the main scene")]
     [SerializeField] private string mainSceneName = "MainMenu";
 
     [Header("Timing")]
     [SerializeField] private float instructionDisplayTime = 3.0f;
     [SerializeField] private float pauseBetweenBlocks = 1.0f;
 
-    [Header("Texte (anpassbar)")]
+    [Header("Texts")]
     [SerializeField]
     private string instructionTemplate =
-        "Stelle dir jetzt vor,\ndu hebst den {COLOR} Würfel auf.";
+        "Now imagine picking up \nthe {COLOR} cube.";
 
     // -----------------------------------------------------------------------
     private void Start()
     {
         if (instructionText != null) instructionText.text = "";
 
-        // Panel zu Beginn verstecken (Text ist Kind des Panels)
+        // Hide the panel at the start
         if (finishedPanel != null) finishedPanel.SetActive(false);
         if (repeatButton != null) repeatButton.onClick.AddListener(OnRepeat);
         if (mainMenuButton != null) mainMenuButton.onClick.AddListener(OnMainMenu);
@@ -77,32 +77,32 @@ public class VisualTrainingController : MonoBehaviour
 
             if (entry.block == null || entry.dropTarget == null)
             {
-                Debug.LogWarning($"[VisualTraining] Block {i} fehlt – übersprungen.");
+                Debug.LogWarning($"[VisualTraining] Block {i} is missing – skipped");
                 continue;
             }
 
-            // 1. DropTarget einfärben und anzeigen
+            // 1. Color the DropTarget and display it
             SetTargetColor(entry.dropTarget, entry.targetHighlightColor);
 
-            // 2. Instruktionstext
-            ShowInstruction(entry.colorNameDE);
+            // 2. Instructions
+            ShowInstruction(entry.colorName_);
 
-            // 3. Lesen lassen
+            // 3. Time to read
             yield return new WaitForSeconds(instructionDisplayTime);
 
-            // 4. Drop-Position: X/Z vom Target, Y vom Würfel
+            // 4. Drop position: X/Z from the target, Y from the cube
             Vector3 dropPos = new Vector3(
                 entry.dropTarget.position.x,
                 entry.block.position.y,
                 entry.dropTarget.position.z
             );
 
-            // 5. Hand-Sequenz
+            // 5. Hand sequence
             bool done = false;
             handMover.RunSequence(entry.block, dropPos, () => done = true);
             yield return new WaitUntil(() => done);
 
-            // 6. Marker ausblenden
+            // 6. Hide marker
             ResetTargetColor(entry.dropTarget);
 
             // 7. Pause
@@ -153,11 +153,11 @@ public class VisualTrainingController : MonoBehaviour
         ClearInstruction();
         if (instructionText != null) instructionText.gameObject.SetActive(false);
 
-        // Panel einblenden (enthält Text + Buttons)
+        // Show panel
         if (finishedPanel != null)
             finishedPanel.SetActive(true);
 
-        Debug.Log("[VisualTraining] Alle Würfel abgeschlossen.");
+        Debug.Log("[VisualTraining] All cubes completed.");
     }
 
     // -----------------------------------------------------------------------

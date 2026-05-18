@@ -9,10 +9,10 @@ public class DropTargetMarker : MonoBehaviour
     private GameObject frameRoot;
     private Material frameMat;
 
-    // Awake: Frame aufbauen, noch ohne Farbe
+    // Awake: Frame under construction, not yet colored
     private void Awake()
     {
-        // Material vorerst weiß - Farbe kommt in Start()
+        // Material is white for now—color will be added in Start()
         frameMat = new Material(Shader.Find("Unlit/Color"));
 
         frameRoot = new GameObject("_FrameRoot");
@@ -32,7 +32,7 @@ public class DropTargetMarker : MonoBehaviour
         frameRoot.SetActive(false);
     }
 
-    // Start: Inspector-Werte sind jetzt geladen -> Farbe setzen
+    // Start: Inspector values are now loaded -> Set color
     private void Start()
     {
         if (frameMat != null)

@@ -1,36 +1,35 @@
 using UnityEngine;
 
 /// <summary>
-/// Steuert Finger, Handgelenk und Ellbogen des XBot per Script.
-/// - Finger: Grip()/Release() zum Greifen/Loslassen
-/// - Handgelenk: SetWristBend() zum Knicken beim Auf-/Ablegen
-/// - Ellbogen: beugt sich automatisch basierend auf der X-Position
-///             der Hand (rechts = gestreckt, links = gebeugt)
+/// Controls the XBot's fingers, wrist, and elbow via script.
+/// - Fingers: Grip()/Release() to grasp/release
+/// - Wrist: SetWristBend() to bend when picking up/putting down
+/// - Elbow: bends automatically based on the X-position of the hand (right = extended, left = bent)
 /// </summary>
 public class HandGrip : MonoBehaviour
 {
     // -----------------------------------------------------------------------
-    [Header("Fingerknochen (je 3 Glieder pro Finger)")]
+    [Header("Finger bones (3 joints per finger)")]
     [SerializeField] private Transform[] indexBones;
     [SerializeField] private Transform[] middleBones;
     [SerializeField] private Transform[] ringBones;
     [SerializeField] private Transform[] pinkyBones;
     [SerializeField] private Transform[] thumbBones;
 
-    [Header("Greifwinkel (Grad)")]
+    [Header("Grip angle (degrees)")]
     [SerializeField] private float fingerGripAngle = 70f;
     [SerializeField] private float thumbGripAngle = 45f;
 
-    [Header("Rotation-Achse (lokal)")]
+    [Header("Rotation axis (local)")]
     [SerializeField] private Vector3 fingerAxis = new Vector3(1, 0, 0);
     [SerializeField] private Vector3 thumbAxis = new Vector3(0, 1, 0);
 
-    [Header("Blend-Geschwindigkeit Finger")]
+    [Header("Blend speed: Finger")]
     [SerializeField] private float blendSpeed = 8f;
 
     // -----------------------------------------------------------------------
-    [Header("Handgelenk-Knick")]
-    [Tooltip("mixamorig:RightHand zuweisen.")]
+    [Header("Wrist bend")]
+    [Tooltip("mixamorig:RightHand assign")]
     [SerializeField] private Transform wristBone;
     [SerializeField] private float wristBendAngle = 60f;
     [SerializeField] private Vector3 wristBendAxis = new Vector3(1, 0, 0);
@@ -41,26 +40,26 @@ public class HandGrip : MonoBehaviour
     private float targetWristBlend = 0f;
 
     // -----------------------------------------------------------------------
-    [Header("Ellbogen-Beugung")]
-    [Tooltip("mixamorig:RightForeArm zuweisen.")]
+    [Header("Elbow bend")]
+    [Tooltip("mixamorig:RightForeArm assign")]
     [SerializeField] private Transform foreArmBone;
 
-    [Tooltip("Maximaler Beugewinkel wenn Hand ganz links ist (Grad).")]
+    [Tooltip("Maximum bending angle when the hand is all the way to the left (degrees)")]
     [SerializeField] private float elbowMaxBendAngle = 40f;
 
-    [Tooltip("Achse der Ellbogen-Beugung (lokal). Z=1 meist korrekt für Mixamo.")]
+    [Tooltip("Axis of elbow flexion (local). Z=1 is usually correct for Mixamo")]
     [SerializeField] private Vector3 elbowBendAxis = new Vector3(0, 0, 1);
 
-    [Tooltip("Blend-Geschwindigkeit der Ellbogen-Beugung.")]
+    [Tooltip("Blend speed of elbow flexion")]
     [SerializeField] private float elbowBlendSpeed = 4f;
 
-    [Tooltip("Referenz auf HandMoverGhost – dessen X-Position steuert die Beugung.")]
+    [Tooltip("Reference to HandMoverGhost – its X-position controls the bending")]
     [SerializeField] private Transform handMoverGhost;
 
-    [Tooltip("X-Position der Trennwand (Mitte). Rechts davon = gestreckt, links = gebeugt.")]
+    [Tooltip("X-position of the partition (center). To the right of it = extended, to the left = flexed.")]
     [SerializeField] private float partitionX = 0f;
 
-    [Tooltip("X-Position der linken Seite wo Beugung maximal ist.")]
+    [Tooltip("The X-coordinate of the left side where the bending is greatest.")]
     [SerializeField] private float leftMaxX = -0.3f;
 
     private float currentElbowBlend = 0f;
@@ -95,7 +94,7 @@ public class HandGrip : MonoBehaviour
         ApplyFinger(pinkyBones, pinkyOpen, fingerAxis, fingerGripAngle);
         ApplyFinger(thumbBones, thumbOpen, thumbAxis, thumbGripAngle);
 
-        // --- Handgelenk ---
+        // --- wrist ---
         if (wristBone != null)
         {
             currentWristBlend = Mathf.Lerp(currentWristBlend, targetWristBlend,
@@ -104,13 +103,13 @@ public class HandGrip : MonoBehaviour
             wristBone.localRotation = Quaternion.Lerp(wristOpenRot, bentRot, currentWristBlend);
         }
 
-        // --- Ellbogen ---
+        // --- elbow ---
         if (foreArmBone != null && handMoverGhost != null)
         {
             float handX = handMoverGhost.position.x;
 
-            // Rechts von Partition = 0, links zunehmend bis 1
-            // Nur aktiv wenn targetElbowEnabled (nicht während ArcReturn)
+            // Right side of partition = 0, left side increasing up to 1
+            // Active only if targetElbowEnabled (not during ArcReturn)
             float targetElbow = 0f;
             if (targetElbowEnabled && handX < partitionX)
             {
@@ -121,7 +120,7 @@ public class HandGrip : MonoBehaviour
             currentElbowBlend = Mathf.Lerp(currentElbowBlend, targetElbow,
                                              Time.deltaTime * elbowBlendSpeed);
 
-            // Rotation NACH IK überschreiben
+            // Override rotation after IK
             Quaternion currentRot = foreArmBone.localRotation;
             Quaternion bentRot = currentRot * Quaternion.AngleAxis(
                                         elbowMaxBendAngle * currentElbowBlend, elbowBendAxis);

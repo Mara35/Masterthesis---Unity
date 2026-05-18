@@ -3,13 +3,11 @@ using UnityEngine;
 using TMPro;
 
 /// <summary>
-/// Score-Zähler für BoxBlock_VisualTraining und BoxBlock_Training_offline.
-/// 
+/// Score counter for BoxBlock_VisualTraining and BoxBlock_Training_offline.
 /// BoxBlock_VisualTraining (AutoHandMover):
-///   useBlockItemValidation = false ? prüft ob Würfel links von Partition liegt
-///
+///   useBlockItemValidation = false: checks whether the cube is to the left of the partition
 /// BoxBlock_Training_offline (GloveGrabber):
-///   useBlockItemValidation = true ? prüft BlockItem.IsValidlyTransferred
+///   useBlockItemValidation = true: checks BlockItem.IsValidlyTransferred
 /// </summary>
 [RequireComponent(typeof(BoxCollider))]
 public class ScoreCounter : MonoBehaviour
@@ -18,10 +16,10 @@ public class ScoreCounter : MonoBehaviour
     public TextMeshProUGUI scoreText;
 
     [Header("Partition")]
-    [Tooltip("Wird automatisch gesucht falls leer")]
+    [Tooltip("Will be automatically filled in if left blank")]
     public Transform partitionTransform;
 
-    [Header("Validierung")]
+    [Header("Validation")]
     [Tooltip("FALSE = AutoHandMover\nTRUE = GloveGrabber")]
     public bool useBlockItemValidation = false;
 
@@ -57,7 +55,7 @@ public class ScoreCounter : MonoBehaviour
         }
         else
         {
-            // AutoHandMover Flow: Würfel links von Partition = gültiger Transfer
+            // AutoHandMover Flow: Cube to the left of the partition = valid transfer
             if (partitionTransform != null)
                 valid = other.transform.position.x < partitionTransform.position.x;
             else
@@ -69,11 +67,11 @@ public class ScoreCounter : MonoBehaviour
             countedInstanceIDs.Add(id);
             score++;
             UpdateUI();
-            Debug.Log($"[ScoreCounter] '{block.name}' gezählt – GÜLTIGER Transfer. Score={score}");
+            Debug.Log($"[ScoreCounter] '{block.name}' counted – VALID transfer. Score={score}");
         }
         else
         {
-            Debug.Log($"[ScoreCounter] '{block.name}' abgelehnt – kein gültiger Transfer.");
+            Debug.Log($"[ScoreCounter] '{block.name}' rejected – invalid transfer.");
         }
     }
 
@@ -84,7 +82,7 @@ public class ScoreCounter : MonoBehaviour
         {
             score = Mathf.Max(0, score - 1);
             UpdateUI();
-            Debug.Log($"[ScoreCounter] Block verlassen. Score={score}");
+            Debug.Log($"[ScoreCounter] leave block. Score={score}");
         }
     }
 

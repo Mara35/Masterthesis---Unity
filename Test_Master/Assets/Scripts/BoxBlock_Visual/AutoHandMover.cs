@@ -2,9 +2,8 @@ using UnityEngine;
 using System;
 
 /// <summary>
-/// Bewegt den HandProxy in einer nat?rlichen Bogenbewegung ?ber die CenterPartition.
-/// NEU: Synchronisiert jeden Frame das HandIKTarget mit der eigenen Position,
-///      damit der Two Bone IK Constraint (Animation Rigging) den XBot-Arm steuert.
+/// Move the HandProxy in a natural arcing motion across the center partition.
+/// Pick up all 5 cubes one after the other and place them on the other side of the box.
 /// </summary>
 public class AutoHandMover : MonoBehaviour
 {
@@ -12,57 +11,57 @@ public class AutoHandMover : MonoBehaviour
     // Inspector
     // -----------------------------------------------------------------------
 
-    [Header("Bewegung")]
+    [Header("Movement")]
     [SerializeField] private float moveSpeed = 1.2f;
     [SerializeField] private float snapDistance = 0.03f;
 
-    [Header("Partition & Bogenh?he")]
-    [Tooltip("Referenz auf das CenterPartition-GameObject. " +
-             "Wenn leer, wird automatisch nach 'CenterPartition' in der Szene gesucht.")]
+    [Header("Partition & Arch Height")]
+    [Tooltip("Reference to the CenterPartition GameObject." +
+             "If left blank, the system will automatically search for ‘CenterPartition’ in the scene.")]
     [SerializeField] private Transform centerPartition = null;
 
-    [Tooltip("Wie weit der Scheitel ?ber der Partition-Oberkante liegt (Sicherheitsabstand).")]
+    [Tooltip("The distance between the crest and the top edge of the partition (safety margin).")]
     [SerializeField] private float partitionClearance = 0.15f;
 
-    [Tooltip("Mindesth?he des Scheitels ?ber der h?chsten der beiden Endpositionen.")]
+    [Tooltip("Minimum height of the crest above the higher of the two end positions.")]
     [SerializeField] private float minArcHeight = 0.25f;
 
-    [Header("Kurvenform")]
-    [Tooltip("Kontrollpunkt A: wie weit der Aufstieg seitlich zum Peak versetzt ist (0 = senkrecht).")]
+    [Header("Shape of curve")]
+    [Tooltip("Checkpoint A: how far the ascent is offset to the side of the peak (0 = perpendicular).")]
     [Range(0f, 1f)]
     [SerializeField] private float cp1SideBias = 0.1f;
 
-    [Tooltip("Kontrollpunkt B: wie weit der Abstieg seitlich zum Ziel versetzt ist (0 = senkrecht).")]
+    [Tooltip("Checkpoint B: how far the descent is offset to the side of the target (0 = perpendicular).")]
     [Range(0f, 1f)]
     [SerializeField] private float cp2SideBias = 0.3f;
 
-    [Header("Pausen (Sekunden)")]
+    [Header("Pauses (seconds)")]
     [SerializeField] private float pauseAfterGrab = 0.3f;
     [SerializeField] private float pauseAfterDrop = 0.4f;
 
-    [Header("W?rfel-Offset zur Hand (Weltkoordinaten)")]
+    [Header("Cube Offset (World Coordinates)")]
     [SerializeField] private Vector3 holdOffset = new Vector3(0f, 0.05f, 0f);
 
     // -----------------------------------------------------------------------
-    // NEU: IK Target + Hand Grip
+    // IK Target + Hand Grip
     // -----------------------------------------------------------------------
 
     [Header("IK Target (Animation Rigging)")]
-    [Tooltip("HandIKTarget zuweisen.")]
+    [Tooltip("assign HandIKTarget")]
     [SerializeField] private Transform ikTarget;
 
-    [Header("Hand Greifen")]
-    [Tooltip("Das GameObject mit HandGrip.cs drauf.")]
+    [Header("Hand Grasping")]
+    [Tooltip("Das GameObject mit der Datei „HandGrip.cs“")]
     [SerializeField] private HandGrip handGrip;
 
-    [Header("IK Offset Korrektur")]
-    [Tooltip("mixamorig:RightHand zuweisen ? misst live den Versatz zwischen Ghost und echter Hand.")]
+    [Header("IK Offset Correction")]
+    [Tooltip("mixamorig: Assign RightHand. Measures the offset between the ghost hand and the real hand in real time.")]
     [SerializeField] private Transform realHandBone;
 
-    [Tooltip("Mindesth?he der Hand ? verhindert dass Unterarm durch Vorderwand geht.")]
+    [Tooltip("Minimum hand height. Prevents the forearm from passing through the front panel.")]
     [SerializeField] private float minHandHeight = 0.5f;
 
-    [Tooltip("Zus?tzlicher Z-Offset ? Hand weiter nach +Z schieben vom Avatar weg.")]
+    [Tooltip("Additional Z-offset: Move your hand further along the +Z axis, away from the avatar.")]
     [SerializeField] private float handZOffset = 0.1f;
 
     // -----------------------------------------------------------------------
@@ -92,7 +91,7 @@ public class AutoHandMover : MonoBehaviour
     private Vector3 dropGoal;
     private Vector3 homePos;
 
-    // Zwei-Segment-Bogen
+    // Two-segment arch
     private Vector3 arcStart, arcEnd, peakPos, cpA, cpB;
     private float arcT = 0f;
     private float segALen = 1f;
@@ -127,11 +126,11 @@ public class AutoHandMover : MonoBehaviour
             if (go != null)
             {
                 centerPartition = go.transform;
-                Debug.Log("[AutoHandMover] CenterPartition automatisch gefunden: " + go.name);
+                Debug.Log("[AutoHandMover] CenterPartition found automatically: " + go.name);
             }
             else
             {
-                Debug.LogWarning("[AutoHandMover] CenterPartition nicht gesetzt und nicht gefunden!");
+                Debug.LogWarning("[AutoHandMover] CenterPartition is not set and was not found!");
             }
         }
 
@@ -142,7 +141,7 @@ public class AutoHandMover : MonoBehaviour
             if (go != null)
             {
                 ikTarget = go.transform;
-                Debug.Log("[AutoHandMover] HandIKTarget automatisch gefunden.");
+                Debug.Log("[AutoHandMover] HandIKTarget found automatically.");
             }
         }
 
@@ -159,10 +158,10 @@ public class AutoHandMover : MonoBehaviour
         {
             case State.MovingToBlock:
                 MoveTo(blockGoal);
-                SyncIKTarget();                         // NEU
+                SyncIKTarget();                         
                 if (Arrived(blockGoal))
                 {
-                    if (handGrip != null) handGrip.SetWristBend(true); // Handgelenk knicken
+                    if (handGrip != null) handGrip.SetWristBend(true); // Wrist bending
                     pauseTimer = pauseAfterGrab;
                     state = State.Grabbing;
                 }
@@ -171,16 +170,15 @@ public class AutoHandMover : MonoBehaviour
             case State.Grabbing:
                 pauseTimer -= Time.deltaTime;
 
-                // Faust schlie?t sich im letzten 30% der Pause (Hand ist schon am W?rfel)
-                // Wert erh?hen (z.B. 0.5f) um fr?her zu greifen
-                if (pauseTimer <= pauseAfterGrab * 0.3f)
+                // Faust folds in the last 40% of the break (his hand is already on the dice)
+                if (pauseTimer <= pauseAfterGrab * 0.4f)
                     if (handGrip != null) handGrip.Grip();
 
                 if (pauseTimer <= 0f)
                 {
                     GrabBlock();
-                    if (handGrip != null) handGrip.SetWristBend(false); // Handgelenk strecken
-                    if (handGrip != null) handGrip.SetElbowBend(true);  // Beugung an f?r Hinweg
+                    if (handGrip != null) handGrip.SetWristBend(false); // Wrist extension
+                    if (handGrip != null) handGrip.SetElbowBend(true);  // Wrist bending for return trip
                     BuildArc(transform.position, dropGoal);
                     state = State.ArcCarry;
                 }
@@ -188,12 +186,12 @@ public class AutoHandMover : MonoBehaviour
 
             case State.ArcCarry:
                 AdvanceArc();
-                SyncIKTarget();                         // NEU
+                SyncIKTarget();                        
                 CarryBlock();
                 if (arcT >= 1f)
                 {
                     transform.position = arcEnd;
-                    SyncIKTarget();                     // NEU
+                    SyncIKTarget();                     
                     CarryBlock();
                     pauseTimer = pauseAfterDrop;
                     state = State.Dropping;
@@ -203,12 +201,12 @@ public class AutoHandMover : MonoBehaviour
             case State.Dropping:
                 pauseTimer -= Time.deltaTime;
                 if (pauseTimer <= pauseAfterDrop * 0.5f)
-                    if (handGrip != null) handGrip.SetWristBend(true); // Handgelenk knicken
+                    if (handGrip != null) handGrip.SetWristBend(true); // Wrist bending
                 if (pauseTimer <= 0f)
                 {
                     DropBlock();
-                    if (handGrip != null) handGrip.SetWristBend(false); // Handgelenk strecken
-                    if (handGrip != null) handGrip.SetElbowBend(false); // Beugung aus f?r R?ckweg
+                    if (handGrip != null) handGrip.SetWristBend(false); // Wrist extension
+                    if (handGrip != null) handGrip.SetElbowBend(false); // Wrist bending for return trip
                     BuildArc(transform.position, homePos);
                     state = State.ArcReturn;
                 }
@@ -216,11 +214,11 @@ public class AutoHandMover : MonoBehaviour
 
             case State.ArcReturn:
                 AdvanceArc();
-                SyncIKTarget();                         // NEU
+                SyncIKTarget();                         
                 if (arcT >= 1f)
                 {
                     transform.position = arcEnd;
-                    SyncIKTarget();                     // NEU
+                    SyncIKTarget();                     
                     state = State.Idle;
                     onDone?.Invoke();
                     onDone = null;
@@ -241,7 +239,7 @@ public class AutoHandMover : MonoBehaviour
     {
         if (!IsIdle)
         {
-            Debug.LogWarning("[AutoHandMover] Noch besch?ftigt.");
+            Debug.LogWarning("[AutoHandMover] Still busy.");
             return;
         }
 
@@ -257,9 +255,6 @@ public class AutoHandMover : MonoBehaviour
         state = State.MovingToBlock;
     }
 
-    // -----------------------------------------------------------------------
-    // Arc ? Zwei verkettete quadratische B?zier-Segmente
-    // -----------------------------------------------------------------------
 
     private void BuildArc(Vector3 start, Vector3 end)
     {
@@ -391,13 +386,13 @@ public class AutoHandMover : MonoBehaviour
         if (valid)
         {
             heldBlock.position = dropGoal;
-            Debug.Log("[AutoHandMover] GUELTIGER Transfer: " + heldBlock.name);
+            Debug.Log("[AutoHandMover] Valid transfer:" + heldBlock.name);
         }
         else
         {
             heldBlock.position = blockStartPosition;
             heldBlock.rotation = blockStartRotation;
-            Debug.Log("[AutoHandMover] UNGUELTIGER Transfer: " + heldBlock.name + " Reset. partition=" + passedPartitionZone + " leftSide=" + nowOnLeftSide);
+            Debug.Log("[AutoHandMover] Invalid Transfer: " + heldBlock.name + " Reset. partition=" + passedPartitionZone + " leftSide=" + nowOnLeftSide);
         }
         if (heldRb != null) { heldRb.isKinematic = false; heldRb.useGravity = true; }
         if (heldCol != null) { heldCol.enabled = true; heldCol.isTrigger = false; }
@@ -417,25 +412,25 @@ public class AutoHandMover : MonoBehaviour
     private bool Arrived(Vector3 goal) =>
         Vector3.Distance(transform.position, goal) <= snapDistance;
 
-    /// <summary>
-    /// NEU: Synchronisiert HandIKTarget mit der aktuellen HandProxy-Position.
-    /// Der Two Bone IK Constraint auf RightArmIK ?bernimmt den Rest automatisch.
-    /// </summary>
+
+    // Synchronizes HandIKTarget with the current HandProxy position.
+    // The Two Bone IK Constraint on RightArmIK handles the rest automatically.
+
     private void SyncIKTarget()
     {
         if (ikTarget == null) return;
 
         Vector3 pos = transform.position;
 
-        // Mindesth?he ? Unterarm kommt von oben statt durch die Vorderwand
+        // Minimum height: The forearm comes from above rather than through the front wall
         pos.y = Mathf.Max(pos.y, minHandHeight);
 
-        // Z-Offset ? Hand weiter vom Avatar weg Richtung Tisch
+        // Z-offset: Move the hand further away from the avatar toward the table
         pos.z += handZOffset;
 
         if (realHandBone != null)
         {
-            // Live-Versatz zwischen Ghost und echter Hand kompensieren (nur X und Z)
+            // Compensate for live offset between the ghost and the real hand (X and Z only)
             Vector3 currentOffset = transform.position - realHandBone.position;
             ikTarget.position = pos + new Vector3(currentOffset.x, 0f, currentOffset.z);
         }
