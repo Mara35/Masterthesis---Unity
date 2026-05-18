@@ -15,13 +15,10 @@ public class BlockItem : MonoBehaviour
 
     public Transform partition;
 
-    // Weltposition + Rotation beim Greifen – für den Reset
     private Vector3 grabPosition;
     private Quaternion grabRotation;
 
     public bool CanBeGrabbed => !isHeld;
-
-    // ------------------------------------------------------------------
 
     private void Awake()
     {
@@ -32,8 +29,6 @@ public class BlockItem : MonoBehaviour
     public void Grab(Transform holdPoint)
     {
         isHeld = true;
-
-        // Position und Rotation VOR dem Greifen merken
         grabPosition = transform.position;
         grabRotation = transform.rotation;
 
@@ -58,7 +53,7 @@ public class BlockItem : MonoBehaviour
         if (isHeld)
         {
             passedThroughPartitionZone = true;
-            Debug.Log("[BlockItem] PartitionZone passiert ?");
+            Debug.Log("[BlockItem] PartitionZone passiert");
         }
     }
 
@@ -76,7 +71,6 @@ public class BlockItem : MonoBehaviour
 
         isHeld = false;
         col.isTrigger = false;
-
         rb.isKinematic = false;
         rb.useGravity = true;
         rb.velocity = Vector3.zero;
@@ -93,24 +87,15 @@ public class BlockItem : MonoBehaviour
 
         if (!valid)
         {
-            ResetToGrabPosition();
-            Debug.Log($"[BlockItem] Ungültiger Transfer – Reset zur Ausgangsposition. " +
-                      $"(rightSide={startedOnRightSide}, crossedX={crossedPartitionWhileHeld}, " +
-                      $"partitionZone={passedThroughPartitionZone}, leftSide={nowOnLeftSide})");
+            transform.position = grabPosition;
+            transform.rotation = grabRotation;
+            Debug.Log($"[BlockItem] Ungueltig - Reset.");
         }
         else
         {
-            Debug.Log("[BlockItem] GÜLTIGER Transfer ?");
+            Debug.Log("[BlockItem] GUELTIGER Transfer");
         }
 
         return valid;
-    }
-
-    // ------------------------------------------------------------------
-
-    private void ResetToGrabPosition()
-    {
-        transform.position = grabPosition;
-        transform.rotation = grabRotation;
     }
 }

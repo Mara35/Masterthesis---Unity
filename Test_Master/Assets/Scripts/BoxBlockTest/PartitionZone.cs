@@ -1,31 +1,52 @@
 using UnityEngine;
 
-
 public class PartitionZone : MonoBehaviour
 {
-    private SimpleGrabber grabber;
+    [Tooltip("Namen der GameObjects die diese Zone auslösen")]
+    public string[] triggerObjectNames = { "HandProxy", "GrabTrigger", "HandTarget", "HandMoverGhost" };
 
-    [Tooltip("Namen der GameObjects die diese Zone auslösen (HandProxy, GrabTrigger, ...)")]
-    public string[] triggerObjectNames = { "HandProxy", "GrabTrigger" };
+    private SimpleGrabber simpleGrabber;
+    private GloveGrabber gloveGrabber;
+    private AutoHandMover autoHandMover;
 
     private void Start()
     {
-        grabber = FindObjectOfType<SimpleGrabber>();
+        simpleGrabber = FindObjectOfType<SimpleGrabber>();
+        gloveGrabber = FindObjectOfType<GloveGrabber>();
+        autoHandMover = FindObjectOfType<AutoHandMover>();
     }
 
     private void OnTriggerEnter(Collider other)
     {
-        // Prüfe ob der Name des Objekts in der Liste ist
         bool isHandObject = System.Array.IndexOf(triggerObjectNames, other.name) >= 0;
         if (!isHandObject) return;
 
-        // Prüfe ob der Grabber gerade einen Block hält
-        if (grabber != null && grabber.HeldBlock != null)
+        Debug.Log($"[PartitionZone] '{other.name}' hat Zone betreten. AutoHandMover IsIdle={autoHandMover?.IsIdle}");
+
+        // AutoHandMover: wenn nicht idle = Block wird getragen
+        if (autoHandMover != null && !autoHandMover.IsIdle)
         {
-            grabber.HeldBlock.OnPassedThroughPartitionZone();
-            Debug.Log("[PartitionZone] Hand mit Block erkannt – Zone passiert ?");
+            autoHandMover.NotifyPartitionPassed();
+            Debug.Log("[PartitionZone] AutoHandMover: NotifyPartitionPassed aufgerufen ?");
+            return;
         }
+
+        // GloveGrabber
+        if (gloveGrabber != null && gloveGrabber.HeldBlock != null)
+        {
+            gloveGrabber.HeldBlock.OnPassedThroughPartitionZone();
+            Debug.Log($"[PartitionZone] GloveGrabber: '{gloveGrabber.HeldBlock.name}' Zone passiert ?");
+            return;
+        }
+
+        // SimpleGrabber
+        if (simpleGrabber != null && simpleGrabber.HeldBlock != null)
+        {
+            simpleGrabber.HeldBlock.OnPassedThroughPartitionZone();
+            Debug.Log($"[PartitionZone] SimpleGrabber: '{simpleGrabber.HeldBlock.name}' Zone passiert ?");
+            return;
+        }
+
+        Debug.Log($"[PartitionZone] '{other.name}' - kein Block gehalten.");
     }
 }
-
-
