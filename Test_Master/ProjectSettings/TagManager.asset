@@ -6,6 +6,7 @@ TagManager:
   tags:
   - TargetZone
   - StartZone
+  - Block
   layers:
   - Default
   - TransparentFX
