@@ -92,9 +92,14 @@ public class CompetitionScoreCounter : MonoBehaviour
             if (!cube.activeInHierarchy) continue;
 
             float x = cube.transform.position.x;
+            bool onMySide = (countSide == Side.RightSide && x > partitionX)
+                         || (countSide == Side.LeftSide && x < partitionX);
 
-            if (countSide == Side.RightSide && x > partitionX) count++;
-            if (countSide == Side.LeftSide && x < partitionX) count++;
+            if (!onMySide) continue;
+
+            // Bonus-Würfel zählen mit ihrem Punktewert, normale mit 1
+            BonusCube bonus = cube.GetComponent<BonusCube>();
+            count += (bonus != null) ? bonus.pointValue : 1;
         }
 
         if (count != currentScore)
