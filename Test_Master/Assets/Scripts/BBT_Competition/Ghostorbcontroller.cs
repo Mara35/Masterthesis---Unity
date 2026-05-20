@@ -29,6 +29,9 @@ public class GhostOrbController : MonoBehaviour
     [Tooltip("Ablagebereich auf der XBot-Seite (StartZone des XBot)")]
     public Transform ghostTargetZone;
 
+    [Tooltip("FreezeZone für eigene FreezeCubes (links für Player, rechts für Ghost)")]
+    public Transform freezeZone;
+
     [Tooltip("Eigene Ablageseite des Ghost (TargetZone – linke Seite)")]
     public Transform ghostOwnZone;
 
@@ -81,6 +84,7 @@ public class GhostOrbController : MonoBehaviour
 
     private bool isActive = false;
     private bool isStealingMalus = false;
+    private bool isCarryingFreeze = false;
 
 
 
@@ -161,12 +165,15 @@ public class GhostOrbController : MonoBehaviour
 
     private void HandleIdle()
     {
-        // 50% Chance: versuche grünen Würfel vom Gegner zu klauen
+        // FreezeCube auf eigener Seite hat höchste Priorität
+        GameObject freezeTarget = FindFreezeCubeOnOwnSide();
+
+        // 50% Chance: versuche roten Würfel vom Gegner zu klauen
         GameObject stealTarget = null;
-        if (Random.value < 0.5f)
+        if (freezeTarget == null && Random.value < 0.5f)
             stealTarget = FindMalusCubeOnEnemySide();
 
-        targetCube = (stealTarget != null) ? stealTarget : FindNearestCubeOnMySide();
+        targetCube = freezeTarget ?? stealTarget ?? FindNearestCubeOnMySide();
 
         // Fallback: Cooldown ignorieren falls kein Würfel gefunden (verhindert Stillstand)
         if (targetCube == null)
@@ -175,6 +182,7 @@ public class GhostOrbController : MonoBehaviour
         if (targetCube == null) return;
 
         isStealingMalus = (stealTarget != null);
+        isCarryingFreeze = (freezeTarget != null);
         targetRb = targetCube.GetComponent<Rigidbody>();
 
         // Orb auf falscher Seite ? erst zurückfliegen
@@ -320,6 +328,11 @@ public class GhostOrbController : MonoBehaviour
         OrbSharedState.Lock(targetCube.GetInstanceID());
 
         Vector3 pos = transform.position;
+        // FreezeCube: in FreezeZone ablegen
+        if (isCarryingFreeze)
+        {
+            dropTarget = GetFreezeZonePosition();
+        }
         // Gestohlen: ins eigene Feld (links) ablegen, sonst normal ins Gegnerfeld
         dropTarget = isStealingMalus ? GetRandomOwnSidePosition() : GetRandomDropPosition();
         liftTarget = new Vector3(pos.x, flyHeight, pos.z);
@@ -409,6 +422,40 @@ public class GhostOrbController : MonoBehaviour
     }
 
     // Zufällige Position auf der eigenen (Ghost-)Seite – für gestohlene rote Würfel
+    private GameObject FindFreezeCubeOnOwnSide()
+    {
+        try
+        {
+            foreach (GameObject fc in GameObject.FindGameObjectsWithTag("Freeze"))
+            {
+                if (!fc.activeInHierarchy) continue;
+                if (!OrbSharedState.IsAvailable(fc.GetInstanceID())) continue;
+                if (fc.transform.position.x < partitionX) return fc;
+            }
+        }
+        catch { }
+        return null;
+    }
+
+    private Vector3 GetFreezeZonePosition()
+    {
+        if (freezeZone != null)
+        {
+            Collider col = freezeZone.GetComponent<Collider>();
+            if (col != null)
+            {
+                Bounds b = col.bounds;
+                return new Vector3(
+                    Random.Range(b.min.x + 0.02f, b.max.x - 0.02f),
+                    b.max.y + 0.02f,
+                    Random.Range(b.min.z + 0.02f, b.max.z - 0.02f)
+                );
+            }
+            return freezeZone.position + Vector3.up * 0.05f;
+        }
+        return transform.position; // Fallback
+    }
+
     private Vector3 GetRandomOwnSidePosition()
     {
         Transform zone = ghostOwnZone;
@@ -461,6 +508,33 @@ public class GhostOrbController : MonoBehaviour
     // -----------------------------------------------------------------------
 
     public void StartPlaying() { isActive = true; state = State.Idle; }
+
+    public void Freeze(float seconds)
+    {
+        StartCoroutine(FreezeRoutine(seconds));
+    }
+
+    private System.Collections.IEnumerator FreezeRoutine(float seconds)
+    {
+        bool wasActive = isActive;
+        isActive = false;
+        Debug.Log($"[GhostOrb] Eingefroren für {seconds}s.");
+
+        // Würfel loslassen falls gerade getragen
+        if (targetCube != null && targetRb != null)
+        {
+            targetRb.isKinematic = false;
+            OrbSharedState.Unlock(targetCube.GetInstanceID());
+            targetCube = null;
+            targetRb = null;
+        }
+
+        yield return new UnityEngine.WaitForSeconds(seconds);
+
+        isActive = wasActive;
+        state = State.Idle;
+        Debug.Log($"[GhostOrb] Freeze beendet.");
+    }
 
     public void StopPlaying()
     {
