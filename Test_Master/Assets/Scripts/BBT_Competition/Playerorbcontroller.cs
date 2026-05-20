@@ -46,6 +46,9 @@ public class PlayerOrbController : MonoBehaviour
     [Tooltip("Wie hoch der Orb über die Partition-Oberkante hebt (Meter)")]
     public float liftHeight = 0.15f;
 
+    [Tooltip("Minimale Y-Höhe des Orbs – manuell auf Tischoberfläche setzen")]
+    public float minSafeY = 0.9f;
+
     [Tooltip("Radius zum Aufnehmen eines Würfels")]
     public float pickupRadius = 0.12f;
 
@@ -82,6 +85,13 @@ public class PlayerOrbController : MonoBehaviour
 
     private bool isActive = false;
     private bool isStealingMalus = false;
+
+    // Würfel die kürzlich abgelegt wurden – kurze Cooldown-Zeit
+    private static Dictionary<int, float> recentlyDropped = new Dictionary<int, float>();
+    public static float dropCooldown = 1.5f; // Sekunden bis Würfel wieder aufgenommen werden darf
+
+    // Würfel die gerade von einem Orb getragen werden – gesperrt für andere Orbs
+    public static HashSet<int> lockedCubes = new HashSet<int>();
 
     // -----------------------------------------------------------------------
     // Unity Lifecycle
@@ -137,6 +147,11 @@ public class PlayerOrbController : MonoBehaviour
             stealTarget = FindMalusCubeOnEnemySide();
 
         targetCube = (stealTarget != null) ? stealTarget : FindNearestCubeOnMySide();
+
+        // Fallback: Cooldown ignorieren falls kein Würfel gefunden (verhindert Stillstand)
+        if (targetCube == null)
+            targetCube = FindNearestCubeOnMySide(ignoreCooldown: true);
+
         if (targetCube == null) return;
 
         isStealingMalus = (stealTarget != null);
@@ -167,6 +182,8 @@ public class PlayerOrbController : MonoBehaviour
         {
             if (bc.pointValue > 0) continue; // nur negative (rote) Würfel
             if (!bc.gameObject.activeInHierarchy) continue;
+            if (lockedCubes.Contains(bc.gameObject.GetInstanceID())) continue;
+            if (recentlyDropped.TryGetValue(bc.gameObject.GetInstanceID(), out float cd) && Time.time < cd) continue;
 
             // Gegnerische Seite = links der Partition (Player ist rechts)
             if (bc.transform.position.x >= partitionX) continue;
@@ -257,7 +274,9 @@ public class PlayerOrbController : MonoBehaviour
 
     private void MoveTowards(Vector3 target)
     {
-        transform.position = Vector3.MoveTowards(transform.position, target, speed * Time.deltaTime);
+        Vector3 next = Vector3.MoveTowards(transform.position, target, speed * Time.deltaTime);
+        next.y = Mathf.Max(next.y, minSafeY); // nie unter Tischoberfläche
+        transform.position = next;
     }
 
     private void CarryCube()
@@ -275,9 +294,12 @@ public class PlayerOrbController : MonoBehaviour
     {
         if (targetRb != null)
         {
-            targetRb.isKinematic = true;
             targetRb.velocity = Vector3.zero;
+            targetRb.isKinematic = true;
         }
+
+        // Würfel sperren damit kein anderer Orb ihn klauen kann
+        lockedCubes.Add(targetCube.GetInstanceID());
 
         Vector3 pos = transform.position;
         // Gestohlen: ins eigene Feld (rechts) ablegen, sonst normal ins Gegnerfeld
@@ -295,6 +317,10 @@ public class PlayerOrbController : MonoBehaviour
 
         if (targetRb != null)
             targetRb.isKinematic = false;
+
+        // Würfel entsperren und Cooldown starten
+        lockedCubes.Remove(targetCube.GetInstanceID());
+        recentlyDropped[targetCube.GetInstanceID()] = Time.time + dropCooldown;
 
         Debug.Log($"[PlayerOrb] Abgelegt: {targetCube.name} an {dropTarget}");
 
@@ -316,7 +342,7 @@ public class PlayerOrbController : MonoBehaviour
     // Würfelsuche per POSITION – rechte Seite (positive X)
     // -----------------------------------------------------------------------
 
-    private GameObject FindNearestCubeOnMySide()
+    private GameObject FindNearestCubeOnMySide(bool ignoreCooldown = false)
     {
         GameObject nearest = null;
         float bestDist = float.MaxValue;
@@ -342,6 +368,10 @@ public class PlayerOrbController : MonoBehaviour
 
             // Würfel der gerade getragen wird überspringen
             if (cube == targetCube) continue;
+            // Gesperrte Würfel (gerade von einem Orb getragen) überspringen
+            if (lockedCubes.Contains(cube.GetInstanceID())) continue;
+            // Cooldown: kürzlich abgelegter Würfel nicht sofort wieder aufnehmen
+            if (!ignoreCooldown && recentlyDropped.TryGetValue(cube.GetInstanceID(), out float cooldownEnd) && Time.time < cooldownEnd) continue;
 
             float d = Vector3.Distance(transform.position, cube.transform.position);
             if (d < bestDist) { bestDist = d; nearest = cube; }
