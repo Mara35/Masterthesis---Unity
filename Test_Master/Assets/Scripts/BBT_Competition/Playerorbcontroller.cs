@@ -33,6 +33,9 @@ public class PlayerOrbController : MonoBehaviour
     [Tooltip("Ablagebereich auf der Ghost-Seite (linke Seite)")]
     public Transform playerTargetZone;
 
+    [Tooltip("Eigene Ablageseite des Players (StartZone – rechte Seite)")]
+    public Transform playerOwnZone;
+
     [Tooltip("Tag aller Würfel-GameObjects")]
     public string cubeTag = "Block";
 
@@ -78,6 +81,7 @@ public class PlayerOrbController : MonoBehaviour
     private Transform centerPartition;
 
     private bool isActive = false;
+    private bool isStealingMalus = false;
 
     // -----------------------------------------------------------------------
     // Unity Lifecycle
@@ -127,12 +131,18 @@ public class PlayerOrbController : MonoBehaviour
 
     private void HandleIdle()
     {
-        targetCube = FindNearestCubeOnMySide();
+        // 50% Chance: versuche grünen Würfel vom Gegner zu klauen
+        GameObject stealTarget = null;
+        if (Random.value < 0.5f)
+            stealTarget = FindMalusCubeOnEnemySide();
+
+        targetCube = (stealTarget != null) ? stealTarget : FindNearestCubeOnMySide();
         if (targetCube == null) return;
 
+        isStealingMalus = (stealTarget != null);
         targetRb = targetCube.GetComponent<Rigidbody>();
 
-        // Orb auf falscher Seite (links/Ghost-Seite) ? erst zurückfliegen
+        // Orb auf falscher Seite ? erst zurückfliegen
         if (transform.position.x < partitionX)
         {
             returnTarget = new Vector3(targetCube.transform.position.x, flyHeight,
@@ -145,6 +155,27 @@ public class PlayerOrbController : MonoBehaviour
         {
             state = State.MovingToCube;
         }
+    }
+
+    // Sucht einen Malus-Würfel auf der GEGNERISCHEN Seite (links = Ghost-Seite)
+    private GameObject FindMalusCubeOnEnemySide()
+    {
+        GameObject nearest = null;
+        float bestDist = float.MaxValue;
+
+        foreach (BonusCube bc in FindObjectsOfType<BonusCube>())
+        {
+            if (bc.pointValue > 0) continue; // nur negative (rote) Würfel
+            if (!bc.gameObject.activeInHierarchy) continue;
+
+            // Gegnerische Seite = links der Partition (Player ist rechts)
+            if (bc.transform.position.x >= partitionX) continue;
+
+            float d = Vector3.Distance(transform.position, bc.transform.position);
+            if (d < bestDist) { bestDist = d; nearest = bc.gameObject; }
+        }
+
+        return nearest;
     }
 
     private void HandleMoveToCube()
@@ -232,7 +263,8 @@ public class PlayerOrbController : MonoBehaviour
     private void CarryCube()
     {
         if (targetCube != null)
-            targetCube.transform.position = transform.position;
+            // Würfel leicht über dem Orb-Mittelpunkt halten damit er nicht durch Geometrie drückt
+            targetCube.transform.position = transform.position + Vector3.up * 0.01f;
     }
 
     // -----------------------------------------------------------------------
@@ -248,12 +280,13 @@ public class PlayerOrbController : MonoBehaviour
         }
 
         Vector3 pos = transform.position;
-        dropTarget = GetRandomDropPosition();
+        // Gestohlen: ins eigene Feld (rechts) ablegen, sonst normal ins Gegnerfeld
+        dropTarget = isStealingMalus ? GetRandomOwnSidePosition() : GetRandomDropPosition();
         liftTarget = new Vector3(pos.x, flyHeight, pos.z);
         crossTarget = new Vector3(dropTarget.x, flyHeight, dropTarget.z);
         state = State.LiftUp;
 
-        Debug.Log($"[PlayerOrb] Aufgenommen: {targetCube.name}  Ziel: {dropTarget}");
+        Debug.Log($"[PlayerOrb] {(isStealingMalus ? "Klaue Malus" : "Transfer")}: {targetCube.name}  Ziel: {dropTarget}");
     }
 
     private void Drop()
@@ -288,9 +321,17 @@ public class PlayerOrbController : MonoBehaviour
         GameObject nearest = null;
         float bestDist = float.MaxValue;
 
-        GameObject[] allCubes = string.IsNullOrEmpty(cubeTag)
-            ? FindAllBlocksByName()
-            : GameObject.FindGameObjectsWithTag(cubeTag);
+        GameObject[] allCubes;
+        try
+        {
+            allCubes = string.IsNullOrEmpty(cubeTag)
+                ? FindAllBlocksByName()
+                : GameObject.FindGameObjectsWithTag(cubeTag);
+        }
+        catch
+        {
+            allCubes = FindAllBlocksByName();
+        }
 
         foreach (GameObject cube in allCubes)
         {
@@ -320,6 +361,29 @@ public class PlayerOrbController : MonoBehaviour
         return result.ToArray();
     }
 
+    // Zufällige Position auf der eigenen (Player-)Seite – für gestohlene rote Würfel
+    private Vector3 GetRandomOwnSidePosition()
+    {
+        Transform zone = playerOwnZone;
+        if (zone != null)
+        {
+            Collider col = zone.GetComponent<Collider>();
+            if (col != null)
+            {
+                Bounds b = col.bounds;
+                float insetX = Mathf.Max(0.05f, b.size.x * 0.2f);
+                float insetZ = Mathf.Max(0.05f, b.size.z * 0.2f);
+                return new Vector3(
+                    Random.Range(b.min.x + insetX, b.max.x - insetX),
+                    b.max.y + 0.02f,
+                    Random.Range(b.min.z + insetZ, b.max.z - insetZ)
+                );
+            }
+        }
+        // Fallback: rechts der Partition
+        return new Vector3(partitionX + 0.15f, partitionTopY + 0.05f, Random.Range(-0.1f, 0.1f));
+    }
+
     private Vector3 GetRandomDropPosition()
     {
         if (playerTargetZone != null)
@@ -328,16 +392,21 @@ public class PlayerOrbController : MonoBehaviour
             if (col != null)
             {
                 Bounds b = col.bounds;
+
+                // Inset: 20% der Größe von jeder Seite abziehen
+                float insetX = Mathf.Max(0.06f, b.size.x * 0.2f);
+                float insetZ = Mathf.Max(0.06f, b.size.z * 0.2f);
+
                 return new Vector3(
-                    Random.Range(b.min.x + 0.05f, b.max.x - 0.05f),
+                    Random.Range(b.min.x + insetX, b.max.x - insetX),
                     b.max.y + 0.02f,
-                    Random.Range(b.min.z + 0.05f, b.max.z - 0.05f)
+                    Random.Range(b.min.z + insetZ, b.max.z - insetZ)
                 );
             }
         }
 
         float fx = partitionX - 0.15f;
-        return new Vector3(fx, partitionTopY + 0.05f, Random.Range(-0.1f, 0.1f));
+        return new Vector3(fx, partitionTopY + 0.05f, Random.Range(-0.08f, 0.08f));
     }
 
     // -----------------------------------------------------------------------

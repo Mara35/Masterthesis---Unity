@@ -21,8 +21,12 @@ using UnityEngine;
 
 public class BonusCubeSpawner : MonoBehaviour
 {
-    [Header("Prefab")]
+    [Header("Prefabs")]
+    [Tooltip("Grüner Bonus-Würfel: -5 Punkte  (wenn im eigenen Feld)")]
     public GameObject bonusCubePrefab;
+
+    [Tooltip("Roter Malus-Würfel: +5 Punkte")]
+    public GameObject malusCubePrefab;
 
     [Header("Spawn-Zonen")]
     public Transform leftZone;
@@ -32,8 +36,6 @@ public class BonusCubeSpawner : MonoBehaviour
     public float spawnIntervalMin = 20f;
     public float spawnIntervalMax = 30f;
 
-    private GameObject activeBonusCubeLeft;
-    private GameObject activeBonusCubeRight;
     private bool isActive = false;
 
     // -----------------------------------------------------------------------
@@ -42,8 +44,8 @@ public class BonusCubeSpawner : MonoBehaviour
 
     private void Start()
     {
-        spawnIntervalMin = 5f; // TODO: auf 20f zurücksetzen
-        spawnIntervalMax = 8f; // TODO: auf 30f zurücksetzen
+        spawnIntervalMin = 12f; 
+        spawnIntervalMax = 20f; 
         StartSpawning();
     }
 
@@ -84,23 +86,20 @@ public class BonusCubeSpawner : MonoBehaviour
             return;
         }
 
-        bool spawnLeft = Random.value < 0.5f;
+        // Zufällig Bonus oder Malus wählen
+        bool isMalus = (malusCubePrefab != null) && (Random.value < 0.5f);
+        GameObject prefabToSpawn = isMalus ? malusCubePrefab : bonusCubePrefab;
+        string label = isMalus ? "Malus (-5)" : "Bonus (+5)";
 
-        if (spawnLeft && activeBonusCubeLeft == null)
-        {
-            Vector3 pos = GetRandomPositionInZone(leftZone);
-            if (pos == Vector3.zero) return;
-            activeBonusCubeLeft = Instantiate(bonusCubePrefab, pos, Quaternion.identity);
-            Debug.Log("[BonusCubeSpawner] Bonus-Würfel ? Ghost-Seite");
-        }
-        else if (!spawnLeft && activeBonusCubeRight == null)
-        {
-            Vector3 pos = GetRandomPositionInZone(rightZone);
-            if (pos == Vector3.zero) return;
-            activeBonusCubeRight = Instantiate(bonusCubePrefab, pos, Quaternion.identity);
-            Debug.Log("[BonusCubeSpawner] Bonus-Würfel ? XBot-Seite");
-        }
+        bool spawnLeft = Random.value < 0.5f;
+        Vector3 pos = GetRandomPositionInZone(spawnLeft ? leftZone : rightZone);
+        if (pos == Vector3.zero) return;
+
+        Instantiate(prefabToSpawn, pos, Quaternion.identity);
+        Debug.Log($"[BonusCubeSpawner] {label} ? {(spawnLeft ? "Ghost" : "XBot")}-Seite");
     }
+
+
 
     private Vector3 GetRandomPositionInZone(Transform zone)
     {
@@ -120,9 +119,5 @@ public class BonusCubeSpawner : MonoBehaviour
         );
     }
 
-    public void OnBonusCubeTransferred(GameObject cube)
-    {
-        if (cube == activeBonusCubeLeft) activeBonusCubeLeft = null;
-        if (cube == activeBonusCubeRight) activeBonusCubeRight = null;
-    }
+
 }
