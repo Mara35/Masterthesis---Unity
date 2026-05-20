@@ -22,10 +22,10 @@ using UnityEngine;
 public class BonusCubeSpawner : MonoBehaviour
 {
     [Header("Prefabs")]
-    [Tooltip("Grüner Bonus-Würfel: -5 Punkte  (wenn im eigenen Feld)")]
+    [Tooltip("Roter Bonus-Würfel: +5 Punkte")]
     public GameObject bonusCubePrefab;
 
-    [Tooltip("Roter Malus-Würfel: +5 Punkte")]
+    [Tooltip("Grüner Malus-Würfel: -5 Punkte (wenn im eigenen Feld)")]
     public GameObject malusCubePrefab;
 
     [Header("Spawn-Zonen")]
@@ -37,6 +37,8 @@ public class BonusCubeSpawner : MonoBehaviour
     public float spawnIntervalMax = 30f;
 
     private bool isActive = false;
+    private int spawnedBonus = 0;  // Anzahl gespawnter grüner Würfel
+    private int spawnedMalus = 0;  // Anzahl gespawnter roter Würfel
 
     // -----------------------------------------------------------------------
     // Unity Lifecycle – nur zum Testen, später von CompetitionGameManager steuern
@@ -44,8 +46,8 @@ public class BonusCubeSpawner : MonoBehaviour
 
     private void Start()
     {
-        spawnIntervalMin = 12f; 
-        spawnIntervalMax = 20f; 
+        spawnIntervalMin = 5f; // TODO: auf 20f zurücksetzen
+        spawnIntervalMax = 8f; // TODO: auf 30f zurücksetzen
         StartSpawning();
     }
 
@@ -86,8 +88,24 @@ public class BonusCubeSpawner : MonoBehaviour
             return;
         }
 
-        // Zufällig Bonus oder Malus wählen
-        bool isMalus = (malusCubePrefab != null) && (Random.value < 0.5f);
+        // Ausgeglichene Auswahl: wenn Differenz > 1, bevorzuge die seltenere Farbe
+        bool isMalus;
+        if (malusCubePrefab == null)
+        {
+            isMalus = false;
+        }
+        else if (spawnedBonus - spawnedMalus > 2)
+        {
+            isMalus = true;  // zu viele grüne ? roter kommt als nächstes
+        }
+        else if (spawnedMalus - spawnedBonus > 2)
+        {
+            isMalus = false; // zu viele rote ? grüner kommt als nächstes
+        }
+        else
+        {
+            isMalus = Random.value < 0.5f; // ausgeglichen ? zufällig
+        }
         GameObject prefabToSpawn = isMalus ? malusCubePrefab : bonusCubePrefab;
         string label = isMalus ? "Malus (-5)" : "Bonus (+5)";
 
@@ -95,7 +113,17 @@ public class BonusCubeSpawner : MonoBehaviour
         Vector3 pos = GetRandomPositionInZone(spawnLeft ? leftZone : rightZone);
         if (pos == Vector3.zero) return;
 
-        Instantiate(prefabToSpawn, pos, Quaternion.identity);
+        GameObject spawned = Instantiate(prefabToSpawn, pos, Quaternion.identity);
+        if (isMalus) spawnedMalus++; else spawnedBonus++;
+
+        // Sicherstellen dass der Würfel nicht durch den Tisch fällt
+        Rigidbody rb = spawned.GetComponent<Rigidbody>();
+        if (rb != null)
+        {
+            rb.isKinematic = false;
+            rb.useGravity = true;
+            rb.velocity = Vector3.zero;
+        }
         Debug.Log($"[BonusCubeSpawner] {label} ? {(spawnLeft ? "Ghost" : "XBot")}-Seite");
     }
 

@@ -82,12 +82,7 @@ public class GhostOrbController : MonoBehaviour
     private bool isActive = false;
     private bool isStealingMalus = false;
 
-    // Würfel die kürzlich abgelegt wurden – kurze Cooldown-Zeit
-    private static Dictionary<int, float> recentlyDropped = new Dictionary<int, float>();
-    public static float dropCooldown = 1.5f; // Sekunden bis Würfel wieder aufgenommen werden darf
 
-    // Würfel die gerade von einem Orb getragen werden – gesperrt für andere Orbs
-    public static HashSet<int> lockedCubes = new HashSet<int>();
 
     // -----------------------------------------------------------------------
     // Unity Lifecycle
@@ -207,8 +202,7 @@ public class GhostOrbController : MonoBehaviour
         {
             if (bc.pointValue > 0) continue; // nur negative (rote) Würfel
             if (!bc.gameObject.activeInHierarchy) continue;
-            if (lockedCubes.Contains(bc.gameObject.GetInstanceID())) continue;
-            if (recentlyDropped.TryGetValue(bc.gameObject.GetInstanceID(), out float cd) && Time.time < cd) continue;
+            if (!OrbSharedState.IsAvailable(bc.gameObject.GetInstanceID())) continue;
 
             // Gegnerische Seite = rechts der Partition (Ghost ist links)
             if (bc.transform.position.x <= partitionX) continue;
@@ -323,8 +317,7 @@ public class GhostOrbController : MonoBehaviour
             targetRb.isKinematic = true;
         }
 
-        // Würfel sperren damit kein anderer Orb ihn klauen kann
-        lockedCubes.Add(targetCube.GetInstanceID());
+        OrbSharedState.Lock(targetCube.GetInstanceID());
 
         Vector3 pos = transform.position;
         // Gestohlen: ins eigene Feld (links) ablegen, sonst normal ins Gegnerfeld
@@ -343,9 +336,7 @@ public class GhostOrbController : MonoBehaviour
         if (targetRb != null)
             targetRb.isKinematic = false;
 
-        // Würfel entsperren und Cooldown starten
-        lockedCubes.Remove(targetCube.GetInstanceID());
-        recentlyDropped[targetCube.GetInstanceID()] = Time.time + dropCooldown;
+        OrbSharedState.Unlock(targetCube.GetInstanceID());
 
         Debug.Log($"[GhostOrb] Abgelegt: {targetCube.name} an {dropTarget}");
 
@@ -395,10 +386,8 @@ public class GhostOrbController : MonoBehaviour
 
             // Würfel der gerade getragen wird überspringen
             if (cube == targetCube) continue;
-            // Gesperrte Würfel (gerade von einem Orb getragen) überspringen
-            if (lockedCubes.Contains(cube.GetInstanceID())) continue;
-            // Cooldown: kürzlich abgelegter Würfel nicht sofort wieder aufnehmen
-            if (!ignoreCooldown && recentlyDropped.TryGetValue(cube.GetInstanceID(), out float cooldownEnd) && Time.time < cooldownEnd) continue;
+            // Gesperrte oder kürzlich abgelegte Würfel überspringen (shared state)
+            if (ignoreCooldown ? !OrbSharedState.IsAvailableIgnoreCooldown(cube.GetInstanceID()) : !OrbSharedState.IsAvailable(cube.GetInstanceID())) continue;
 
             float d = Vector3.Distance(transform.position, cube.transform.position);
             if (d < bestDist) { bestDist = d; nearest = cube; }
