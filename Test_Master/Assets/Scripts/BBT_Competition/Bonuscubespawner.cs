@@ -138,15 +138,31 @@ public class BonusCubeSpawner : MonoBehaviour
     private IEnumerator FreezeSpawnRoutine()
     {
         // Erster Spawn: zufällig zwischen 5-15s
-        yield return new WaitForSeconds(Random.Range(8f, 20f));
+        yield return new WaitForSeconds(Random.Range(5f, 15f));
         if (isActive) SpawnFreezeCube();
 
-        // Zweiter Spawn: zufällig zwischen 30-40s nach Spielstart
-        // Warte die verbleibende Zeit bis in das 30-40s Fenster
-        float secondSpawnAt = Random.Range(30f, 40f);
-        float waitRemaining = secondSpawnAt - Time.timeSinceLevelLoad;
-        if (waitRemaining > 0)
-            yield return new WaitForSeconds(waitRemaining);
+        // Zweiter Spawn: erst wenn kein FreezeCube mehr existiert
+        // und frühestens nach 30s Spielzeit
+        float earliestSecond = 30f;
+        float latestSecond = 40f;
+
+        // Warten bis frühestens 30s
+        float waitUntil30 = earliestSecond - Time.timeSinceLevelLoad;
+        if (waitUntil30 > 0) yield return new UnityEngine.WaitForSeconds(waitUntil30);
+
+        // Warten bis kein FreezeCube mehr in der Szene ist
+        while (isActive)
+        {
+            bool anyFreeze = false;
+            try { anyFreeze = GameObject.FindGameObjectsWithTag("Freeze").Length > 0; } catch { }
+            if (!anyFreeze) break;
+            yield return null;
+        }
+
+        // Zufällige Verzögerung innerhalb des 30-40s Fensters
+        float remainingWindow = latestSecond - Time.timeSinceLevelLoad;
+        if (remainingWindow > 0)
+            yield return new UnityEngine.WaitForSeconds(Random.Range(0f, remainingWindow));
 
         if (isActive) SpawnFreezeCube();
     }

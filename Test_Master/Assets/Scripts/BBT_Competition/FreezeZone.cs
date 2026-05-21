@@ -47,39 +47,58 @@ public class FreezeZone : MonoBehaviour
     private void OnTriggerEnter(Collider other)
     {
         if (!other.CompareTag("Freeze")) return;
+        if (isFrozen) return;
 
         Debug.Log($"[FreezeZone] FreezeCube erkannt – friere {targetToFreeze?.name} ein.");
 
-        // Würfel sofort zerstören
-        Destroy(other.gameObject);
+        // Würfel in Zone fixieren
+        Rigidbody rb = other.GetComponent<Rigidbody>();
+        if (rb != null) { rb.isKinematic = true; rb.useGravity = false; }
+        other.transform.position = transform.position + Vector3.up * 0.05f;
 
-        // Gegner einfrieren
-        StartCoroutine(FreezeTarget());
+        // Gegner einfrieren und Würfel nach Freeze-Duration zerstören
+        StartCoroutine(FreezeTarget(other.gameObject));
     }
 
     // -----------------------------------------------------------------------
     // Freeze Coroutine
     // -----------------------------------------------------------------------
 
-    private IEnumerator FreezeTarget()
+    private IEnumerator FreezeTarget(GameObject freezeCube)
     {
-        if (targetToFreeze == null) yield break;
-        if (isFrozen) yield break; // nicht stapeln
+        if (targetToFreeze == null)
+        {
+            Debug.LogWarning("[FreezeZone] targetToFreeze ist nicht zugewiesen! Bitte im Inspector setzen.");
+            if (freezeCube != null) Destroy(freezeCube);
+            yield break;
+        }
 
         isFrozen = true;
         UpdateVisual(true);
+        Debug.Log($"[FreezeZone] Friere {targetToFreeze.name} für {freezeDuration}s ein.");
 
-        // Freeze aufrufen – funktioniert für beide Controller
         GhostOrbController ghost = targetToFreeze as GhostOrbController;
         PlayerOrbController player = targetToFreeze as PlayerOrbController;
 
         if (ghost != null) ghost.Freeze(freezeDuration);
         if (player != null) player.Freeze(freezeDuration);
 
+        if (ghost == null && player == null)
+            Debug.LogWarning("[FreezeZone] targetToFreeze ist weder GhostOrbController noch PlayerOrbController!");
+
+        // Würfel bleibt für die gesamte Freeze-Duration sichtbar in der Zone
         yield return new WaitForSeconds(freezeDuration);
 
+        // Würfel entsperren und zerstören
+        if (freezeCube != null)
+        {
+            OrbSharedState.Unlock(freezeCube.GetInstanceID());
+            Destroy(freezeCube);
+        }
         isFrozen = false;
         UpdateVisual(false);
+
+        Debug.Log("[FreezeZone] Freeze beendet – FreezeCube entfernt.");
     }
 
     // -----------------------------------------------------------------------

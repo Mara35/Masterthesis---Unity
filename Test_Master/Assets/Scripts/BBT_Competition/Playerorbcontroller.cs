@@ -160,6 +160,9 @@ public class PlayerOrbController : MonoBehaviour
         isCarryingFreeze = (freezeTarget != null);
         targetRb = targetCube.GetComponent<Rigidbody>();
 
+        // Sofort sperren damit kein anderer Orb denselben Würfel wählt
+        OrbSharedState.Lock(targetCube.GetInstanceID());
+
         // Orb auf falscher Seite ? erst zurückfliegen
         if (transform.position.x < partitionX)
         {
@@ -300,8 +303,6 @@ public class PlayerOrbController : MonoBehaviour
             targetRb.isKinematic = true;
         }
 
-        OrbSharedState.Lock(targetCube.GetInstanceID());
-
         Vector3 pos = transform.position;
         // Ablageposition bestimmen
         if (isCarryingFreeze)
@@ -396,36 +397,53 @@ public class PlayerOrbController : MonoBehaviour
     // Zufällige Position auf der eigenen (Player-)Seite – für gestohlene rote Würfel
     private GameObject FindFreezeCubeOnOwnSide()
     {
-        try
+        // Nur suchen wenn FreezeZone korrekt zugewiesen ist
+        if (freezeZone == null) return null;
+
+        GameObject nearest = null;
+        float bestDist = float.MaxValue;
+        GameObject[] freezeCubes = null;
+
+        try { freezeCubes = GameObject.FindGameObjectsWithTag("Freeze"); }
+        catch { Debug.LogWarning("[Orb] Tag 'Freeze' nicht registriert!"); return null; }
+
+        if (freezeCubes == null || freezeCubes.Length == 0) return null;
+
+        foreach (GameObject fc in freezeCubes)
         {
-            foreach (GameObject fc in GameObject.FindGameObjectsWithTag("Freeze"))
-            {
-                if (!fc.activeInHierarchy) continue;
-                if (!OrbSharedState.IsAvailable(fc.GetInstanceID())) continue;
-                if (fc.transform.position.x > partitionX) return fc;
-            }
+            if (!fc.activeInHierarchy) continue;
+            if (!OrbSharedState.IsAvailable(fc.GetInstanceID())) continue;
+            float d = Vector3.Distance(transform.position, fc.transform.position);
+            if (d < bestDist) { bestDist = d; nearest = fc; }
         }
-        catch { }
-        return null;
+
+        if (nearest != null)
+            Debug.Log($"[Orb] FreezeCube gefunden: {nearest.name} Dist={bestDist:F2}");
+
+        return nearest;
     }
 
     private Vector3 GetFreezeZonePosition()
     {
-        if (freezeZone != null)
+        if (freezeZone == null)
         {
-            Collider col = freezeZone.GetComponent<Collider>();
-            if (col != null)
-            {
-                Bounds b = col.bounds;
-                return new Vector3(
-                    Random.Range(b.min.x + 0.02f, b.max.x - 0.02f),
-                    b.max.y + 0.02f,
-                    Random.Range(b.min.z + 0.02f, b.max.z - 0.02f)
-                );
-            }
-            return freezeZone.position + Vector3.up * 0.05f;
+            Debug.LogWarning("[Orb] freezeZone nicht zugewiesen! Bitte im Inspector setzen.");
+            return transform.position;
         }
-        return transform.position; // Fallback
+
+        Debug.Log($"[Orb] Lege FreezeCube in {freezeZone.name} ab.");
+
+        Collider col = freezeZone.GetComponent<Collider>();
+        if (col != null)
+        {
+            Bounds b = col.bounds;
+            return new Vector3(
+                b.center.x,
+                b.max.y + 0.02f,
+                b.center.z
+            );
+        }
+        return freezeZone.position + Vector3.up * 0.05f;
     }
 
     private Vector3 GetRandomOwnSidePosition()
