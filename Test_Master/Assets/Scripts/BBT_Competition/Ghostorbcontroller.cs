@@ -140,7 +140,6 @@ public class GhostOrbController : MonoBehaviour
 
         flyHeight = partitionTopY + liftHeight;
 
-        isActive = true; // TODO: entfernen – nur zum Testen (wird später von CompetitionGameManager gesteuert)
     }
 
     private void Update()

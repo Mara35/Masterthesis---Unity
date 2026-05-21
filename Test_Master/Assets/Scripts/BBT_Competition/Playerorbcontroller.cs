@@ -115,7 +115,8 @@ public class PlayerOrbController : MonoBehaviour
 
         flyHeight = partitionTopY + liftHeight;
 
-        isActive = true; // TODO: entfernen – nur zum Testen (wird später von CompetitionGameManager gesteuert)
+        isActive = true; // PlayerOrb startet sofort
+
     }
 
     private void Update()

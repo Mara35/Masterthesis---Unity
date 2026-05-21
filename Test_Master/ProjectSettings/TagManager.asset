@@ -7,7 +7,7 @@ TagManager:
   - TargetZone
   - StartZone
   - Block
-  - FreezeCube
+  - Freeze
   layers:
   - Default
   - TransparentFX
