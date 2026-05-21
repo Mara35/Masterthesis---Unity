@@ -529,14 +529,8 @@ public class GhostOrbController : MonoBehaviour
 
     public void Freeze(float seconds)
     {
-        StartCoroutine(FreezeRoutine(seconds));
-    }
-
-    private System.Collections.IEnumerator FreezeRoutine(float seconds)
-    {
-        bool wasActive = isActive;
+        // Sofort einfrieren – nicht erst in der Coroutine
         isActive = false;
-        Debug.Log($"[GhostOrb] Eingefroren für {seconds}s.");
 
         // Würfel loslassen falls gerade getragen
         if (targetCube != null && targetRb != null)
@@ -547,9 +541,16 @@ public class GhostOrbController : MonoBehaviour
             targetRb = null;
         }
 
+        StopAllCoroutines(); // laufende Bewegungs-Coroutines stoppen
+        StartCoroutine(FreezeRoutine(seconds));
+        Debug.Log($"[GhostOrb] Eingefroren für {seconds}s.");
+    }
+
+    private System.Collections.IEnumerator FreezeRoutine(float seconds)
+    {
         yield return new UnityEngine.WaitForSeconds(seconds);
 
-        isActive = wasActive;
+        isActive = true;
         state = State.Idle;
         Debug.Log($"[GhostOrb] Freeze beendet.");
     }
