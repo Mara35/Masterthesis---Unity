@@ -37,6 +37,13 @@ public class BonusCubeSpawner : MonoBehaviour
     [Tooltip("Maximale Anzahl Bonus/Malus Cubes in 60s")]
     public int maxBonusCubesTotal = 5;
 
+    [Header("Reaction Cube")]
+    public GameObject reactionCubePrefab;
+    [Tooltip("Maximale Anzahl ReactionCubes in 60s")]
+    public int maxReactionCubesTotal = 3;
+    public float reactionSpawnMin = 20f;
+    public float reactionSpawnMax = 35f;
+
     [Header("Freeze Timing")]
     [Tooltip("Maximale Anzahl FreezeCubes in 60s")]
     public int maxFreezeCubesTotal = 3;
@@ -50,6 +57,7 @@ public class BonusCubeSpawner : MonoBehaviour
     private int spawnedMalus = 0;
     private int totalBonusSpawned = 0;
     private int totalFreezeSpawned = 0;
+    private int totalReactionSpawned = 0;
 
     // -----------------------------------------------------------------------
     // Public API
@@ -60,11 +68,14 @@ public class BonusCubeSpawner : MonoBehaviour
         isActive = true;
         totalBonusSpawned = 0;
         totalFreezeSpawned = 0;
+        totalReactionSpawned = 0;
         spawnedBonus = 0;
         spawnedMalus = 0;
         StartCoroutine(SpawnRoutine());
         if (freezeCubePrefab != null)
             StartCoroutine(FreezeSpawnRoutine());
+        if (reactionCubePrefab != null)
+            StartCoroutine(ReactionSpawnRoutine());
     }
 
     public void StopSpawning()
@@ -167,6 +178,47 @@ public class BonusCubeSpawner : MonoBehaviour
     // -----------------------------------------------------------------------
     // Hilfsmethoden
     // -----------------------------------------------------------------------
+
+    private IEnumerator ReactionSpawnRoutine()
+    {
+        yield return new WaitForSeconds(Random.Range(reactionSpawnMin, reactionSpawnMax));
+
+        while (isActive && totalReactionSpawned < maxReactionCubesTotal)
+        {
+            if (isActive) SpawnReactionCube();
+            yield return new WaitForSeconds(Random.Range(15f, 25f));
+        }
+    }
+
+    private void SpawnReactionCube()
+    {
+        if (reactionCubePrefab == null) return;
+
+        // Seite wählen – nicht auf gefreezte Seite spawnen
+        bool leftFrozen = OrbSharedState.ghostFrozen;   // Ghost ist links
+        bool rightFrozen = OrbSharedState.playerFrozen;  // Player ist rechts
+
+        bool canSpawnLeft = !leftFrozen;
+        bool canSpawnRight = !rightFrozen;
+
+        if (!canSpawnLeft && !canSpawnRight)
+        {
+            Debug.Log("[BonusCubeSpawner] Beide Seiten gefreezt – ReactionCube übersprungen.");
+            return;
+        }
+
+        bool spawnLeft;
+        if (!canSpawnLeft) spawnLeft = false;
+        else if (!canSpawnRight) spawnLeft = true;
+        else spawnLeft = Random.value < 0.5f;
+
+        Vector3 pos = GetRandomPositionInZone(spawnLeft ? leftZone : rightZone);
+        if (pos == Vector3.zero) return;
+
+        Instantiate(reactionCubePrefab, pos, Quaternion.identity);
+        totalReactionSpawned++;
+        Debug.Log($"[BonusCubeSpawner] ReactionCube gespawnt ({totalReactionSpawned}/{maxReactionCubesTotal}) auf {(spawnLeft ? "Ghost" : "Player")}-Seite");
+    }
 
     private Vector3 GetRandomPositionInZone(Transform zone)
     {

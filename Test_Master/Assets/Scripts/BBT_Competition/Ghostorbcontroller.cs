@@ -165,16 +165,28 @@ public class GhostOrbController : MonoBehaviour
     private void HandleIdle()
     {
         // FreezeCube auf eigener Seite hat höchste Priorität
-        // DEBUG – temporär entfernen
-        try
+        // Höchste Priorität: ReactionCube im eigenen Feld
+        GameObject reactionTarget = FindReactionCubeOnOwnSide();
+        if (reactionTarget != null)
         {
-            var fcs = GameObject.FindGameObjectsWithTag("Freeze");
-            if (fcs.Length > 0)
-                Debug.Log($"[GhostOrb] {fcs.Length} FreezeCube(s) mit Tag 'Freeze' gefunden.");
+            targetCube = reactionTarget;
+            targetRb = targetCube.GetComponent<Rigidbody>();
+            isStealingMalus = false;
+            isCarryingFreeze = false;
+            OrbSharedState.Lock(targetCube.GetInstanceID());
+            Debug.Log($"[GhostOrb] ReactionCube gefunden – höchste Priorität!");
+
+            if (transform.position.x > partitionX)
+            {
+                returnTarget = new Vector3(targetCube.transform.position.x, flyHeight, targetCube.transform.position.z);
+                liftTarget = new Vector3(transform.position.x, flyHeight, transform.position.z);
+                crossTarget = returnTarget;
+                state = State.ReturnLift;
+            }
             else
-                Debug.Log("[GhostOrb] Kein FreezeCube mit Tag 'Freeze' gefunden.");
+                state = State.MovingToCube;
+            return;
         }
-        catch { Debug.LogWarning("[Orb] Tag 'Freeze' nicht registriert!"); }
 
         GameObject freezeTarget = FindFreezeCubeOnOwnSide();
 
@@ -338,6 +350,10 @@ public class GhostOrbController : MonoBehaviour
             targetRb.isKinematic = true;
         }
 
+        // ReactionCube informieren wer ihn trägt
+        ReactionCube rc = targetCube.GetComponent<ReactionCube>();
+        if (rc != null) rc.RegisterCarrier(true);
+
         Vector3 pos = transform.position;
         // Ablageposition bestimmen
         if (isCarryingFreeze)
@@ -355,6 +371,15 @@ public class GhostOrbController : MonoBehaviour
 
     private void Drop()
     {
+        // Sicherheitscheck – Würfel könnte bereits zerstört sein (z.B. ReactionCube)
+        if (targetCube == null)
+        {
+            targetRb = null;
+            targetCube = null;
+            StartCoroutine(ReactionPause());
+            return;
+        }
+
         targetCube.transform.position = dropTarget;
 
         if (targetRb != null)
@@ -435,6 +460,29 @@ public class GhostOrbController : MonoBehaviour
     }
 
     // Zufällige Position auf der eigenen (Ghost-)Seite – für gestohlene rote Würfel
+    private GameObject FindReactionCubeOnOwnSide()
+    {
+        GameObject nearest = null;
+        float bestDist = float.MaxValue;
+        GameObject[] cubes = null;
+
+        try { cubes = GameObject.FindGameObjectsWithTag("Reaction"); }
+        catch { return null; }
+
+        if (cubes == null || cubes.Length == 0) return null;
+
+        foreach (GameObject rc in cubes)
+        {
+            if (!rc.activeInHierarchy) continue;
+            if (!OrbSharedState.IsAvailable(rc.GetInstanceID())) continue;
+            if (rc.transform.position.x > partitionX) continue; // Ghost-Seite = links
+
+            float d = Vector3.Distance(transform.position, rc.transform.position);
+            if (d < bestDist) { bestDist = d; nearest = rc; }
+        }
+        return nearest;
+    }
+
     private GameObject FindFreezeCubeOnOwnSide()
     {
         // FreezeCube auf beiden Seiten suchen – nächsten verfügbaren nehmen
@@ -540,10 +588,9 @@ public class GhostOrbController : MonoBehaviour
 
     public void Freeze(float seconds)
     {
-        // Sofort einfrieren – nicht erst in der Coroutine
         isActive = false;
+        OrbSharedState.ghostFrozen = true;
 
-        // Würfel loslassen falls gerade getragen
         if (targetCube != null && targetRb != null)
         {
             targetRb.isKinematic = false;
@@ -552,7 +599,7 @@ public class GhostOrbController : MonoBehaviour
             targetRb = null;
         }
 
-        StopAllCoroutines(); // laufende Bewegungs-Coroutines stoppen
+        StopAllCoroutines();
         StartCoroutine(FreezeRoutine(seconds));
         Debug.Log($"[GhostOrb] Eingefroren für {seconds}s.");
     }
@@ -563,6 +610,7 @@ public class GhostOrbController : MonoBehaviour
 
         isActive = true;
         state = State.Idle;
+        OrbSharedState.ghostFrozen = false;
         Debug.Log($"[GhostOrb] Freeze beendet.");
     }
 

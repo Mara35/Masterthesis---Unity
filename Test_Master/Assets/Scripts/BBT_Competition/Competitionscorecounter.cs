@@ -1,23 +1,3 @@
-/*
- * Project:    SensinGlove – Box & Block Rehab Game
- * File:       CompetitionScoreCounter.cs
- * Author:     Mari und Kiki (MCI – University of Applied Sciences)
- * Supervisor: Simon Winkler, BSc MSc
- * Year:       2025
- *
- * Zählt Würfel per POSITION relativ zur CenterPartition.
- * Kein Collider-Overlap-Problem möglich.
- *
- * Setup:
- *   Zwei Instanzen dieses Scripts – eine für jeden Score:
- *
- *   GameObject (beliebig, z.B. CompetitionGameManager):
- *     CompetitionScoreCounter #1: side = RightSide  ? scoreText = ScoreText_Player
- *     CompetitionScoreCounter #2: side = LeftSide   ? scoreText = ScoreText_Ghost
- *
- *   ODER direkt auf StartZone / TargetZone legen (ohne BoxCollider-Abhängigkeit).
- */
-
 using UnityEngine;
 using TMPro;
 

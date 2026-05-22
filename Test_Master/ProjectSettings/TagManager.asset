@@ -8,6 +8,7 @@ TagManager:
   - StartZone
   - Block
   - Freeze
+  - Reaction
   layers:
   - Default
   - TransparentFX

@@ -1,3 +1,15 @@
+/*
+ * Project:    SensinGlove – Box & Block Rehab Game
+ * File:       OrbSharedState.cs
+ * Author:     Mari und Kiki (MCI – University of Applied Sciences)
+ * Supervisor: Simon Winkler, BSc MSc
+ * Year:       2025
+ *
+ * Geteilter Zustand zwischen GhostOrbController und PlayerOrbController.
+ * Stellt sicher dass lockedCubes und recentlyDropped wirklich von beiden
+ * Controllern geteilt werden – unabhängig von static-Klassen-Grenzen.
+ */
+
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -34,6 +46,10 @@ public static class OrbSharedState
     {
         return !lockedCubes.Contains(instanceId);
     }
+
+    // Welche Seite gerade gefreezt ist (verhindert ReactionCube-Spawn dort)
+    public static bool ghostFrozen = false;
+    public static bool playerFrozen = false;
 
     public static void Reset()
     {

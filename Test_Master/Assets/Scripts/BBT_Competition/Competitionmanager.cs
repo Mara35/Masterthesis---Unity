@@ -47,6 +47,11 @@ public class CompetitionGameManager : MonoBehaviour
     [Tooltip("BoxBoundaryTrigger – Spiel startet wenn PlayerOrb diesen berührt")]
     public Collider startTrigger;
 
+    [Header("Live Score (wird bei Spielende ausgeblendet)")]
+    public GameObject liveScoreGhost;
+    public GameObject liveScorePlayer;
+    public TextMeshProUGUI timerText;
+
     [Header("Result Screen")]
     public GameObject gameOverPanel;
     public TextMeshProUGUI playerScoreText;
@@ -68,6 +73,8 @@ public class CompetitionGameManager : MonoBehaviour
 
     private bool gameStarted = false;
     private bool gameFinished = false;
+    private int frozenPlayerScore = 0;
+    private int frozenGhostScore = 0;
 
     // Bonus-Punkte die am Ende abgezogen werden
     // (werden später von Reaktions-Würfel / Farb-Matching befüllt)
@@ -135,11 +142,16 @@ public class CompetitionGameManager : MonoBehaviour
 
         Debug.Log("[CompetitionGameManager] Spiel beendet!");
 
-        // Orbs stoppen
-        if (ghostOrb != null) ghostOrb.StopPlaying(); // Ghost wartet auf Trigger
-
-        // Spawner stoppen
+        // Alles sofort stoppen
+        if (ghostOrb != null) ghostOrb.StopPlaying();
+        if (playerOrb != null) playerOrb.StopPlaying();
         if (bonusCubeSpawner != null) bonusCubeSpawner.StopSpawning();
+
+        // Score sofort einfrieren – Orbs bewegen sich nicht mehr
+        frozenPlayerScore = playerScoreCounter != null ? playerScoreCounter.GetScore() : 0;
+        frozenGhostScore = ghostScoreCounter != null ? ghostScoreCounter.GetScore() : 0;
+
+        Debug.Log($"[CompetitionGameManager] Scores eingefroren: Player={frozenPlayerScore}, Ghost={frozenGhostScore}");
 
         // Kurze Pause dann Result-Screen
         StartCoroutine(ShowResultAfterDelay(1.0f));
@@ -154,17 +166,19 @@ public class CompetitionGameManager : MonoBehaviour
     private void ShowResult()
     {
         if (gameOverPanel != null) gameOverPanel.SetActive(true);
+
+        // Live-Score und Timer ausblenden
+        if (liveScoreGhost != null) liveScoreGhost.SetActive(false);
+        if (liveScorePlayer != null) liveScorePlayer.SetActive(false);
+        if (timerText != null) timerText.gameObject.SetActive(false);
+
         StartCoroutine(RevealSequence());
     }
 
     private IEnumerator RevealSequence()
     {
-        // TODO: Testweise Bonuspunkte – entfernen wenn echte Bonus-Würfel implementiert
-        playerBonusPoints = 3;
-        ghostBonusPoints = 5;
-
-        int playerRaw = playerScoreCounter != null ? playerScoreCounter.GetScore() : 0;
-        int ghostRaw = ghostScoreCounter != null ? ghostScoreCounter.GetScore() : 0;
+        int playerRaw = frozenPlayerScore;
+        int ghostRaw = frozenGhostScore;
         int playerFinal = Mathf.Max(0, playerRaw - playerBonusPoints);
         int ghostFinal = Mathf.Max(0, ghostRaw - ghostBonusPoints);
 
@@ -179,10 +193,17 @@ public class CompetitionGameManager : MonoBehaviour
         yield return new WaitForSecondsRealtime(1.5f);
 
         // Schritt 2: Bonus-Punkte einblenden
+        // +X = Erfolg (Score sinkt), -X = Misserfolg (Score steigt)
         if (playerBonusText != null)
-            playerBonusText.text = $"Du: -{playerBonusPoints} Bonus";
+        {
+            string pSign = playerBonusPoints > 0 ? "+" : "";
+            playerBonusText.text = $"Du: {pSign}{playerBonusPoints} Bonus";
+        }
         if (ghostBonusText != null)
-            ghostBonusText.text = $"Ghost: -{ghostBonusPoints} Bonus";
+        {
+            string gSign = ghostBonusPoints > 0 ? "+" : "";
+            ghostBonusText.text = $"Ghost: {gSign}{ghostBonusPoints} Bonus";
+        }
         yield return new WaitForSecondsRealtime(1.5f);
 
         // Schritt 3: Score-Countdown von Raw zu Final
