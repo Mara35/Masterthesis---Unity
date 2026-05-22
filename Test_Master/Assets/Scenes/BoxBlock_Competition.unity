@@ -1399,7 +1399,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_SizeDelta: {x: 100, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &293837351
 CanvasRenderer:
@@ -2059,8 +2059,12 @@ MonoBehaviour:
   freezeCubePrefab: {fileID: 4517981615047357892, guid: e1dd82cd935f6884bb37cccf290d7275, type: 3}
   leftZone: {fileID: 883463735}
   rightZone: {fileID: 1482934707}
+  firstSpawnMin: 8
+  firstSpawnMax: 15
   spawnIntervalMin: 20
   spawnIntervalMax: 30
+  maxBonusCubesTotal: 5
+  maxFreezeCubesTotal: 3
 --- !u!114 &435120649
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4399,7 +4403,7 @@ Transform:
   m_GameObject: {fileID: 1065084834}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.342, y: 0.95, z: -0.229}
+  m_LocalPosition: {x: 0.373, y: 0.95, z: -0.229}
   m_LocalScale: {x: 0.075, y: 0.075, z: 0.075}
   m_ConstrainProportionsScale: 1
   m_Children: []
@@ -9613,7 +9617,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_SizeDelta: {x: 100, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &2111255353
 CanvasRenderer:

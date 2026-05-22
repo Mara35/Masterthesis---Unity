@@ -153,46 +153,68 @@ public class CompetitionGameManager : MonoBehaviour
 
     private void ShowResult()
     {
-        // Scores holen
+        if (gameOverPanel != null) gameOverPanel.SetActive(true);
+        StartCoroutine(RevealSequence());
+    }
+
+    private IEnumerator RevealSequence()
+    {
+        // TODO: Testweise Bonuspunkte – entfernen wenn echte Bonus-Würfel implementiert
+        playerBonusPoints = 3;
+        ghostBonusPoints = 5;
+
         int playerRaw = playerScoreCounter != null ? playerScoreCounter.GetScore() : 0;
         int ghostRaw = ghostScoreCounter != null ? ghostScoreCounter.GetScore() : 0;
-
-        // Bonus-Punkte abziehen (werden später von Reaktions/Farb-Würfeln befüllt)
         int playerFinal = Mathf.Max(0, playerRaw - playerBonusPoints);
         int ghostFinal = Mathf.Max(0, ghostRaw - ghostBonusPoints);
 
-        // UI befüllen – Value zeigt nur die Zahl, Label bleibt unverändert
-        if (playerScoreText != null)
-            playerScoreText.text = playerRaw.ToString();
-        if (ghostScoreText != null)
-            ghostScoreText.text = ghostRaw.ToString();
+        // Alles verstecken
+        if (resultText != null) resultText.text = "";
+        if (playerBonusText != null) playerBonusText.text = "";
+        if (ghostBonusText != null) ghostBonusText.text = "";
 
+        // Schritt 1: Rohe Scores anzeigen
+        if (playerScoreText != null) playerScoreText.text = playerRaw.ToString();
+        if (ghostScoreText != null) ghostScoreText.text = ghostRaw.ToString();
+        yield return new WaitForSecondsRealtime(1.5f);
+
+        // Schritt 2: Bonus-Punkte einblenden
         if (playerBonusText != null)
-            playerBonusText.text = playerBonusPoints > 0
-                ? $"- {playerBonusPoints} Bonus ? {playerFinal}"
-                : "";
+            playerBonusText.text = $"Du: -{playerBonusPoints} Bonus";
         if (ghostBonusText != null)
-            ghostBonusText.text = ghostBonusPoints > 0
-                ? $"- {ghostBonusPoints} Bonus ? {ghostFinal}"
-                : "";
+            ghostBonusText.text = $"Ghost: -{ghostBonusPoints} Bonus";
+        yield return new WaitForSecondsRealtime(1.5f);
 
-        // Ergebnis
+        // Schritt 3: Score-Countdown von Raw zu Final
+        yield return StartCoroutine(CountdownScore(playerScoreText, playerRaw, playerFinal));
+        yield return StartCoroutine(CountdownScore(ghostScoreText, ghostRaw, ghostFinal));
+        yield return new WaitForSecondsRealtime(0.5f);
+
+        // Schritt 4: Win/Lose anzeigen
         if (resultText != null)
         {
             if (playerFinal < ghostFinal)
-                resultText.text = "?? You Win!";
+                resultText.text = "You Win!";
             else if (playerFinal > ghostFinal)
                 resultText.text = "You Lose!";
             else
                 resultText.text = "Draw!";
         }
 
-        // Panel anzeigen
-        if (gameOverPanel != null)
-            gameOverPanel.SetActive(true);
-
-
         Time.timeScale = 0f;
+    }
+
+    // Zählt einen Score-Text schrittweise von start zu end
+    private IEnumerator CountdownScore(TextMeshProUGUI text, int start, int end)
+    {
+        if (text == null) yield break;
+        int steps = Mathf.Abs(start - end);
+        int direction = start > end ? -1 : 1;
+        for (int i = 0; i <= steps; i++)
+        {
+            text.text = (start + i * direction).ToString();
+            yield return new WaitForSecondsRealtime(0.08f);
+        }
     }
 
     // -----------------------------------------------------------------------

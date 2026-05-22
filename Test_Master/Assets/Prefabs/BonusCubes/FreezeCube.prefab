@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: -1697763391191164909}
   m_Layer: 0
   m_Name: FreezeCube
-  m_TagString: FreezeCube
+  m_TagString: Freeze
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

@@ -20,11 +20,12 @@ public class BoxStartTrigger : MonoBehaviour
     {
         if (other.GetComponent<PlayerOrbController>() == null) return;
 
-        Debug.Log("[BoxStartTrigger] PlayerOrb hat Box berührt – Spiel startet!");
+        Debug.Log("[BoxStartTrigger] PlayerOrb hat Box berührt – Ghost startet!");
 
         if (gameManager != null) gameManager.StartGame();
         if (competitionTimer != null) competitionTimer.StartTimer();
 
-        enabled = false; // nur einmal auslösen
+        // Trigger deaktivieren – nur einmal auslösen
+        gameObject.SetActive(false);
     }
 }

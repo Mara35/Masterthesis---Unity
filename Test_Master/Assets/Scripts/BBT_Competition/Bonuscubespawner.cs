@@ -7,13 +7,10 @@
  *
  * Attach to:  CompetitionGameManager
  *
- * Spawnt alle 20-30 Sekunden einen Bonus-Würfel zufällig auf einer der
- * beiden Seiten. Maximal ein Bonus-Würfel pro Seite gleichzeitig.
- *
- * Setup im Inspector:
- *   - bonusCubePrefab ? BonusCube Prefab
- *   - leftZone        ? TargetZone  (Ghost-Seite, linke Box-Hälfte)
- *   - rightZone       ? StartZone   (XBot-Seite, rechte Box-Hälfte)
+ * Limits:
+ *   - Max 5 BonusCubes (grün/rot) in 60s
+ *   - Max 2-3 FreezeCubes in 60s, max 1 gleichzeitig im Feld
+ *   - Erster Spawn nach 8-15s nach Spielstart
  */
 
 using System.Collections;
@@ -22,38 +19,37 @@ using UnityEngine;
 public class BonusCubeSpawner : MonoBehaviour
 {
     [Header("Prefabs")]
-    [Tooltip("Roter Bonus-Würfel: +5 Punkte")]
     public GameObject bonusCubePrefab;
-
-    [Tooltip("Grüner Malus-Würfel: -5 Punkte (wenn im eigenen Feld)")]
     public GameObject malusCubePrefab;
-
-    [Tooltip("Blauer Freeze-Würfel: friert den Gegner für 5s ein")]
     public GameObject freezeCubePrefab;
-
 
     [Header("Spawn-Zonen")]
     public Transform leftZone;
     public Transform rightZone;
 
-    [Header("Timing")]
-    public float spawnIntervalMin = 20f;
-    public float spawnIntervalMax = 30f;
+    [Header("Bonus/Malus Timing")]
+    [Tooltip("Erster Spawn nach X Sekunden (nach Spielstart)")]
+    public float firstSpawnMin = 8f;
+    public float firstSpawnMax = 15f;
+    [Tooltip("Intervall zwischen weiteren Spawns")]
+    public float spawnIntervalMin = 10f;
+    public float spawnIntervalMax = 15f;
+    [Tooltip("Maximale Anzahl Bonus/Malus Cubes in 60s")]
+    public int maxBonusCubesTotal = 5;
+
+    [Header("Freeze Timing")]
+    [Tooltip("Maximale Anzahl FreezeCubes in 60s")]
+    public int maxFreezeCubesTotal = 3;
+
+    // -----------------------------------------------------------------------
+    // Private
+    // -----------------------------------------------------------------------
 
     private bool isActive = false;
     private int spawnedBonus = 0;
     private int spawnedMalus = 0;
-
-    // -----------------------------------------------------------------------
-    // Unity Lifecycle – nur zum Testen, später von CompetitionGameManager steuern
-    // -----------------------------------------------------------------------
-
-    private void Start()
-    {
-        spawnIntervalMin = 5f; // TODO: auf 20f zurücksetzen
-        spawnIntervalMax = 8f; // TODO: auf 30f zurücksetzen
-        StartSpawning();
-    }
+    private int totalBonusSpawned = 0;
+    private int totalFreezeSpawned = 0;
 
     // -----------------------------------------------------------------------
     // Public API
@@ -62,6 +58,10 @@ public class BonusCubeSpawner : MonoBehaviour
     public void StartSpawning()
     {
         isActive = true;
+        totalBonusSpawned = 0;
+        totalFreezeSpawned = 0;
+        spawnedBonus = 0;
+        spawnedMalus = 0;
         StartCoroutine(SpawnRoutine());
         if (freezeCubePrefab != null)
             StartCoroutine(FreezeSpawnRoutine());
@@ -74,97 +74,78 @@ public class BonusCubeSpawner : MonoBehaviour
     }
 
     // -----------------------------------------------------------------------
-    // Spawn Routine
+    // Bonus/Malus Spawn Routine
     // -----------------------------------------------------------------------
 
     private IEnumerator SpawnRoutine()
     {
-        while (isActive)
+        // Erster Spawn nach 8-15s
+        yield return new WaitForSeconds(Random.Range(firstSpawnMin, firstSpawnMax));
+
+        while (isActive && totalBonusSpawned < maxBonusCubesTotal)
         {
-            yield return new WaitForSeconds(Random.Range(spawnIntervalMin, spawnIntervalMax));
             if (isActive) SpawnBonusCube();
+            yield return new WaitForSeconds(Random.Range(spawnIntervalMin, spawnIntervalMax));
         }
     }
 
     private void SpawnBonusCube()
     {
-        if (bonusCubePrefab == null)
-        {
-            Debug.LogWarning("[BonusCubeSpawner] Kein Prefab zugewiesen!");
-            return;
-        }
+        if (bonusCubePrefab == null) return;
 
-        // Ausgeglichene Auswahl: wenn Differenz > 1, bevorzuge die seltenere Farbe
         bool isMalus;
         if (malusCubePrefab == null)
-        {
             isMalus = false;
-        }
         else if (spawnedBonus - spawnedMalus > 1)
-        {
-            isMalus = true;  // zu viele grüne ? roter kommt als nächstes
-        }
+            isMalus = true;
         else if (spawnedMalus - spawnedBonus > 1)
-        {
-            isMalus = false; // zu viele rote ? grüner kommt als nächstes
-        }
+            isMalus = false;
         else
-        {
-            isMalus = Random.value < 0.5f; // ausgeglichen ? zufällig
-        }
-        GameObject prefabToSpawn = isMalus ? malusCubePrefab : bonusCubePrefab;
-        string label = isMalus ? "Malus (-5)" : "Bonus (+5)";
+            isMalus = Random.value < 0.5f;
 
+        GameObject prefab = isMalus ? malusCubePrefab : bonusCubePrefab;
         bool spawnLeft = Random.value < 0.5f;
         Vector3 pos = GetRandomPositionInZone(spawnLeft ? leftZone : rightZone);
         if (pos == Vector3.zero) return;
 
-        GameObject spawned = Instantiate(prefabToSpawn, pos, Quaternion.identity);
-        if (isMalus) spawnedMalus++; else spawnedBonus++;
-
-        // Sicherstellen dass der Würfel nicht durch den Tisch fällt
+        GameObject spawned = Instantiate(prefab, pos, Quaternion.identity);
         Rigidbody rb = spawned.GetComponent<Rigidbody>();
-        if (rb != null)
-        {
-            rb.isKinematic = false;
-            rb.useGravity = true;
-            rb.velocity = Vector3.zero;
-        }
-        Debug.Log($"[BonusCubeSpawner] {label} ? {(spawnLeft ? "Ghost" : "XBot")}-Seite");
+        if (rb != null) { rb.velocity = Vector3.zero; rb.isKinematic = false; rb.useGravity = true; }
+
+        if (isMalus) spawnedMalus++; else spawnedBonus++;
+        totalBonusSpawned++;
+
+        string label = isMalus ? "Malus" : "Bonus";
+        Debug.Log($"[BonusCubeSpawner] {label} gespawnt ({totalBonusSpawned}/{maxBonusCubesTotal})");
     }
 
-
+    // -----------------------------------------------------------------------
+    // Freeze Spawn Routine
+    // -----------------------------------------------------------------------
 
     private IEnumerator FreezeSpawnRoutine()
     {
-        // Erster Spawn: zufällig zwischen 5-15s
-        yield return new WaitForSeconds(Random.Range(5f, 15f));
-        if (isActive) SpawnFreezeCube();
+        // Erster Freeze: zwischen 15-25s
+        yield return new WaitForSeconds(Random.Range(15f, 25f));
 
-        // Zweiter Spawn: erst wenn kein FreezeCube mehr existiert
-        // und frühestens nach 30s Spielzeit
-        float earliestSecond = 30f;
-        float latestSecond = 40f;
-
-        // Warten bis frühestens 30s
-        float waitUntil30 = earliestSecond - Time.timeSinceLevelLoad;
-        if (waitUntil30 > 0) yield return new UnityEngine.WaitForSeconds(waitUntil30);
-
-        // Warten bis kein FreezeCube mehr in der Szene ist
-        while (isActive)
+        while (isActive && totalFreezeSpawned < maxFreezeCubesTotal)
         {
-            bool anyFreeze = false;
-            try { anyFreeze = GameObject.FindGameObjectsWithTag("Freeze").Length > 0; } catch { }
-            if (!anyFreeze) break;
-            yield return null;
+            // Warten bis kein FreezeCube mehr im Feld ist
+            yield return new WaitUntil(() => !FreezeCubeExistsInScene());
+
+            if (!isActive) yield break;
+
+            SpawnFreezeCube();
+
+            // Pause zwischen Freeze-Spawns
+            yield return new WaitForSeconds(Random.Range(15f, 25f));
         }
+    }
 
-        // Zufällige Verzögerung innerhalb des 30-40s Fensters
-        float remainingWindow = latestSecond - Time.timeSinceLevelLoad;
-        if (remainingWindow > 0)
-            yield return new UnityEngine.WaitForSeconds(Random.Range(0f, remainingWindow));
-
-        if (isActive) SpawnFreezeCube();
+    private bool FreezeCubeExistsInScene()
+    {
+        try { return GameObject.FindGameObjectsWithTag("Freeze").Length > 0; }
+        catch { return false; }
     }
 
     private void SpawnFreezeCube()
@@ -179,13 +160,17 @@ public class BonusCubeSpawner : MonoBehaviour
         Rigidbody rb = spawned.GetComponent<Rigidbody>();
         if (rb != null) { rb.velocity = Vector3.zero; rb.isKinematic = false; rb.useGravity = true; }
 
-        Debug.Log($"[BonusCubeSpawner] Freeze-Würfel gespawnt auf {(spawnLeft ? "Ghost" : "XBot")}-Seite.");
+        totalFreezeSpawned++;
+        Debug.Log($"[BonusCubeSpawner] FreezeCube gespawnt ({totalFreezeSpawned}/{maxFreezeCubesTotal})");
     }
+
+    // -----------------------------------------------------------------------
+    // Hilfsmethoden
+    // -----------------------------------------------------------------------
 
     private Vector3 GetRandomPositionInZone(Transform zone)
     {
         if (zone == null) return Vector3.zero;
-
         Collider col = zone.GetComponent<Collider>();
         if (col == null) return Vector3.zero;
 
@@ -199,6 +184,4 @@ public class BonusCubeSpawner : MonoBehaviour
             Random.Range(b.min.z + insetZ, b.max.z - insetZ)
         );
     }
-
-
 }

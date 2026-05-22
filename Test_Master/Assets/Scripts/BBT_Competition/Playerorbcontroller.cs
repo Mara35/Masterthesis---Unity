@@ -142,6 +142,17 @@ public class PlayerOrbController : MonoBehaviour
     private void HandleIdle()
     {
         // FreezeCube auf eigener Seite hat höchste Priorität
+        // DEBUG – temporär entfernen
+        try
+        {
+            var fcs = GameObject.FindGameObjectsWithTag("Freeze");
+            if (fcs.Length > 0)
+                Debug.Log($"[PlayerOrb] {fcs.Length} FreezeCube(s) mit Tag 'Freeze' gefunden.");
+            else
+                Debug.Log("[PlayerOrb] Kein FreezeCube mit Tag 'Freeze' gefunden.");
+        }
+        catch { Debug.LogWarning("[Orb] Tag 'Freeze' nicht registriert!"); }
+
         GameObject freezeTarget = FindFreezeCubeOnOwnSide();
 
         // 50% Chance: versuche roten Würfel vom Gegner zu klauen
@@ -327,6 +338,8 @@ public class PlayerOrbController : MonoBehaviour
             targetRb.isKinematic = false;
 
         OrbSharedState.Unlock(targetCube.GetInstanceID());
+        isCarryingFreeze = false;
+        isStealingMalus = false;
 
         Debug.Log($"[PlayerOrb] Abgelegt: {targetCube.name} an {dropTarget}");
 
@@ -398,9 +411,8 @@ public class PlayerOrbController : MonoBehaviour
     // Zufällige Position auf der eigenen (Player-)Seite – für gestohlene rote Würfel
     private GameObject FindFreezeCubeOnOwnSide()
     {
-        // Nur suchen wenn FreezeZone korrekt zugewiesen ist
-        if (freezeZone == null) return null;
-
+        // FreezeCube auf beiden Seiten suchen – nächsten verfügbaren nehmen
+        // (freezeZone wird nur für Ablage gebraucht, nicht für die Suche)
         GameObject nearest = null;
         float bestDist = float.MaxValue;
         GameObject[] freezeCubes = null;
@@ -419,7 +431,7 @@ public class PlayerOrbController : MonoBehaviour
         }
 
         if (nearest != null)
-            Debug.Log($"[Orb] FreezeCube gefunden: {nearest.name} Dist={bestDist:F2}");
+            Debug.Log($"[PlayerOrb] FreezeCube gefunden: {nearest.name}");
 
         return nearest;
     }
