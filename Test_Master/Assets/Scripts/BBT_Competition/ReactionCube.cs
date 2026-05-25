@@ -1,14 +1,14 @@
-/*
- * Project:    SensinGlove – Box & Block Rehab Game
+ï»¿/*
+ * Project:    SensinGlove â€“ Box & Block Rehab Game
  * File:       ReactionCube.cs
- * Author:     Mari und Kiki (MCI – University of Applied Sciences)
+ * Author:     Mari und Kiki (MCI â€“ University of Applied Sciences)
  * Supervisor: Simon Winkler, BSc MSc
  * Year:       2025
  *
  * Attach to:  ReactionCube Prefab
  *
  * Erfolg = Aufheben innerhalb von timeLimit
- * Würfel bleibt 1s nach Ablegen liegen, dann Destroy
+ * WÃ¼rfel bleibt 1s nach Ablegen liegen, dann Destroy
  * Bonuspunkte werden dem richtigen Spieler zugeordnet
  */
 
@@ -19,9 +19,13 @@ public class ReactionCube : MonoBehaviour
 {
     [Header("Einstellungen")]
     public float timeLimit = 3f;
-    public float lingerDuration = 1f;  // wie lange nach Ablegen liegen bleibt
-    public int bonusSuccess = 2;   // Score sinkt um diesen Wert (gut)
-    public int bonusFail = 2;   // Score steigt um diesen Wert (schlecht)
+    public float lingerDuration = 1f;
+
+    [Tooltip("Bonuspunkte bei Erfolg (positiv)")]
+    public int bonusSuccess = 2;
+
+    [Tooltip("Bonuspunkte bei Misserfolg (wird als negativer Wert addiert)")]
+    public int bonusFail = 2;
 
     [Header("Visuell")]
     public GameObject progressBarGO;
@@ -36,6 +40,7 @@ public class ReactionCube : MonoBehaviour
     private Renderer cubeRenderer;
     private Vector3 barOriginalScale;
     private float partitionX;
+    private bool spawnedOnGhostSide; // gespeichert beim Spawn
 
     // Wer hat aufgenommen? (wird in PickUp gesetzt)
     private bool pickedUpByGhost = false;
@@ -46,14 +51,24 @@ public class ReactionCube : MonoBehaviour
 
     private void Start()
     {
+        // Sicherstellen dass bonusFail immer positiv ist
+        bonusFail = Mathf.Abs(bonusFail);
+
         timeRemaining = timeLimit;
         cubeRenderer = GetComponent<Renderer>();
 
         GameObject cp = GameObject.Find("CenterPartition");
         partitionX = cp != null ? cp.transform.position.x : 0f;
+        spawnedOnGhostSide = transform.position.x < partitionX; // beim Spawn merken
 
         if (progressBarGO != null)
             barOriginalScale = progressBarGO.transform.localScale;
+
+        // Flag setzen damit kein weiterer Spawn auf dieser Seite
+        if (transform.position.x < partitionX)
+            OrbSharedState.ghostSideHasReaction = true;
+        else
+            OrbSharedState.playerSideHasReaction = true;
 
         StartCoroutine(CountdownRoutine());
         StartCoroutine(BlinkRoutine());
@@ -77,7 +92,7 @@ public class ReactionCube : MonoBehaviour
         }
     }
 
-    // Wird vom Orb direkt aufgerufen wenn er den Würfel aufnimmt
+    // Wird vom Orb direkt aufgerufen wenn er den WÃ¼rfel aufnimmt
     private bool carrierRegistered = false;
 
     public void RegisterCarrier(bool isGhost)
@@ -136,6 +151,14 @@ public class ReactionCube : MonoBehaviour
     // Events
     // -----------------------------------------------------------------------
 
+    private void ClearReactionFlag()
+    {
+        if (spawnedOnGhostSide)
+            OrbSharedState.ghostSideHasReaction = false;
+        else
+            OrbSharedState.playerSideHasReaction = false;
+    }
+
     private void OnPickedUp()
     {
         if (isPickedUp || isExpired) return;
@@ -145,27 +168,27 @@ public class ReactionCube : MonoBehaviour
         StopAllCoroutines();
         if (progressBarGO != null) progressBarGO.SetActive(false);
         if (cubeRenderer != null) cubeRenderer.enabled = true;
+        ClearReactionFlag();
 
-        // Bonuspunkte dem richtigen Spieler zuordnen
-        // bonusPoints wird am Ende VOM Score abgezogen ? positiv = Score sinkt (gut)
+        // Erfolg: +bonusSuccess (positiv â†’ Score sinkt am Ende)
         if (pickedUpByGhost)
         {
             CompetitionGameManager.ghostBonusPoints += bonusSuccess;
-            Debug.Log($"[ReactionCube] Ghost erfolgreich! Ghost +{bonusSuccess} Bonus.");
+            Debug.Log($"[ReactionCube] Ghost erfolgreich! BonusPoints Ghost = {CompetitionGameManager.ghostBonusPoints}");
         }
         else
         {
             CompetitionGameManager.playerBonusPoints += bonusSuccess;
-            Debug.Log($"[ReactionCube] Player erfolgreich! Player +{bonusSuccess} Bonus.");
+            Debug.Log($"[ReactionCube] Player erfolgreich! BonusPoints Player = {CompetitionGameManager.playerBonusPoints}");
         }
 
-        // 1s nach Ablegen warten dann zerstören
+        // 1s nach Ablegen warten dann zerstÃ¶ren
         StartCoroutine(LingerAndDestroy());
     }
 
     private IEnumerator LingerAndDestroy()
     {
-        // Warten bis der Würfel abgelegt wird (isKinematic wird false)
+        // Warten bis der WÃ¼rfel abgelegt wird (isKinematic wird false)
         Rigidbody rb = GetComponent<Rigidbody>();
         while (rb != null && rb.isKinematic)
             yield return null;
@@ -182,20 +205,21 @@ public class ReactionCube : MonoBehaviour
         isExpired = true;
 
         StopAllCoroutines();
+        ClearReactionFlag();
 
-        // Strafpunkte für beide Seiten (keiner hat rechtzeitig reagiert)
+        // Strafpunkte fÃ¼r beide Seiten (keiner hat rechtzeitig reagiert)
         // Nur dem Spieler auf dessen Seite er lag
-        bool wasOnGhostSide = transform.position.x < partitionX;
+        bool wasOnGhostSide = spawnedOnGhostSide;
         if (wasOnGhostSide)
         {
-            // Misserfolg: Score steigt ? bonusPoints sinkt (wird weniger abgezogen)
+            // Misserfolg: -bonusFail (negativ â†’ Score steigt am Ende)
             CompetitionGameManager.ghostBonusPoints -= bonusFail;
-            Debug.Log($"[ReactionCube] Ghost zu langsam! Ghost +{bonusFail} Strafpunkte.");
+            Debug.Log($"[ReactionCube] Ghost zu langsam! BonusPoints Ghost = {CompetitionGameManager.ghostBonusPoints}");
         }
         else
         {
             CompetitionGameManager.playerBonusPoints -= bonusFail;
-            Debug.Log($"[ReactionCube] Player zu langsam! Player +{bonusFail} Strafpunkte.");
+            Debug.Log($"[ReactionCube] Player zu langsam! BonusPoints Player = {CompetitionGameManager.playerBonusPoints}");
         }
 
         if (cubeRenderer != null)

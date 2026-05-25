@@ -89,6 +89,11 @@ public class PlayerOrbController : MonoBehaviour
     private bool isActive = false;
     private bool isStealingMalus = false;
     private bool isCarryingFreeze = false;
+    private bool isPegChallenge = false;
+
+    // Peg Challenge State
+    private List<GameObject> pendingPegs = new List<GameObject>();
+    private List<Vector3> pegZoneTargets = new List<Vector3>();
 
 
 
@@ -123,6 +128,23 @@ public class PlayerOrbController : MonoBehaviour
     {
         if (!isActive) return;
 
+        // Peg Challenge Interrupt: nur einmal unterbrechen wenn Challenge startet
+        if (isPegChallenge && state != State.Idle && targetCube != null)
+        {
+            PegChallengeCube currentPeg = targetCube.GetComponent<PegChallengeCube>();
+            // Nur unterbrechen wenn aktuell kein Peg getragen wird
+            if (currentPeg == null)
+            {
+                targetRb.isKinematic = false;
+                OrbSharedState.Unlock(targetCube.GetInstanceID());
+                targetCube = null;
+                targetRb = null;
+                isStealingMalus = false;
+                isCarryingFreeze = false;
+                state = State.Idle;
+            }
+        }
+
         switch (state)
         {
             case State.Idle: HandleIdle(); break;
@@ -141,7 +163,27 @@ public class PlayerOrbController : MonoBehaviour
 
     private void HandleIdle()
     {
-        // FreezeCube auf eigener Seite hat höchste Priorität
+        // Höchste Priorität: Peg Challenge
+        if (isPegChallenge)
+        {
+            GameObject nextPeg = FindNextUnplacedPeg();
+            if (nextPeg != null && OrbSharedState.IsAvailable(nextPeg.GetInstanceID()))
+            {
+                targetCube = nextPeg;
+                targetRb = nextPeg.GetComponent<Rigidbody>();
+                isStealingMalus = false;
+                isCarryingFreeze = false;
+                OrbSharedState.Lock(nextPeg.GetInstanceID());
+
+                if (targetRb != null)
+                    targetRb.constraints = RigidbodyConstraints.FreezeRotation;
+
+                // Erst zum Peg fahren (MovingToCube), dropTarget wird in PickUp gesetzt
+                state = State.MovingToCube;
+                return;
+            }
+        }
+
         // Höchste Priorität: ReactionCube im eigenen Feld
         GameObject reactionTarget = FindReactionCubeOnOwnSide();
         if (reactionTarget != null)
@@ -333,17 +375,22 @@ public class PlayerOrbController : MonoBehaviour
 
         Vector3 pos = transform.position;
         // Ablageposition bestimmen
-        if (isCarryingFreeze)
+        PegChallengeCube pegComp = targetCube.GetComponent<PegChallengeCube>();
+        if (pegComp != null && isPegChallenge)
+            dropTarget = FindMatchingZonePosition(pegComp.colorId);
+        else if (isCarryingFreeze)
             dropTarget = GetFreezeZonePosition();
         else if (isStealingMalus)
             dropTarget = GetRandomOwnSidePosition();
         else
             dropTarget = GetRandomDropPosition();
+
         liftTarget = new Vector3(pos.x, flyHeight, pos.z);
         crossTarget = new Vector3(dropTarget.x, flyHeight, dropTarget.z);
         state = State.LiftUp;
 
-        Debug.Log($"[PlayerOrb] {(isStealingMalus ? "Klaue Malus" : "Transfer")}: {targetCube.name}  Ziel: {dropTarget}");
+        string actionLabel = pegComp != null ? "Peg " + pegComp.colorId : isStealingMalus ? "Klaue Malus" : "Transfer";
+        Debug.Log($"[PlayerOrb] {actionLabel}: {targetCube.name} ? {dropTarget}");
     }
 
     private void Drop()
@@ -357,12 +404,31 @@ public class PlayerOrbController : MonoBehaviour
             return;
         }
 
-        targetCube.transform.position = dropTarget;
+        // Peg Challenge: Zylinder senkrecht in Zone stecken und fixieren
+        PegChallengeCube peg = targetCube.GetComponent<PegChallengeCube>();
+        if (peg != null && isPegChallenge)
+        {
+            targetCube.transform.position = dropTarget;
+            targetCube.transform.rotation = Quaternion.identity;
+            if (targetRb != null)
+            {
+                targetRb.constraints = RigidbodyConstraints.None;
+                targetRb.isKinematic = true;
+                targetRb.useGravity = false;
+                targetRb.velocity = Vector3.zero;
+            }
+            peg.IsPlaced = true;
+            // Peg NICHT entsperren – bleibt gesperrt damit er nicht nochmal aufgenommen wird
+            Debug.Log($"[PlayerOrb] Peg {peg.colorId} abgelegt und gesperrt.");
+        }
+        else
+        {
+            targetCube.transform.position = dropTarget;
+            if (targetRb != null)
+                targetRb.isKinematic = false;
+            OrbSharedState.Unlock(targetCube.GetInstanceID());
+        }
 
-        if (targetRb != null)
-            targetRb.isKinematic = false;
-
-        OrbSharedState.Unlock(targetCube.GetInstanceID());
         isCarryingFreeze = false;
         isStealingMalus = false;
 
@@ -586,6 +652,49 @@ public class PlayerOrbController : MonoBehaviour
         state = State.Idle;
         OrbSharedState.playerFrozen = false;
         Debug.Log($"[PlayerOrb] Freeze beendet.");
+    }
+
+    private GameObject FindNextUnplacedPeg()
+    {
+        foreach (GameObject peg in pendingPegs)
+        {
+            if (peg == null) continue;
+            PegChallengeCube comp = peg.GetComponent<PegChallengeCube>();
+            if (comp != null && !comp.IsPlaced && OrbSharedState.IsAvailable(peg.GetInstanceID()))
+                return peg;
+        }
+        return null;
+    }
+
+    private Vector3 FindMatchingZonePosition(int colorId)
+    {
+        foreach (PegChallengeZone zone in FindObjectsOfType<PegChallengeZone>())
+        {
+            if (zone.colorId == colorId && !zone.IsOccupied)
+            {
+                // Exakte Zone-Mitte nehmen, leicht über dem Tisch
+                Vector3 pos = zone.transform.position;
+                pos.y = zone.transform.position.y + 0.02f;
+                return pos;
+            }
+        }
+        return pegZoneTargets.Count > 0 ? pegZoneTargets[0] : GetRandomDropPosition();
+    }
+
+    public void StartPegChallenge(List<GameObject> pegs, List<Vector3> zonePositions)
+    {
+        pendingPegs = new List<GameObject>(pegs);
+        pegZoneTargets = new List<Vector3>(zonePositions);
+        isPegChallenge = true;
+        Debug.Log("[PlayerOrb] Peg Challenge gestartet!");
+    }
+
+    public void EndPegChallenge()
+    {
+        isPegChallenge = false;
+        pendingPegs.Clear();
+        pegZoneTargets.Clear();
+        Debug.Log("[PlayerOrb] Peg Challenge beendet.");
     }
 
     public void StopPlaying()

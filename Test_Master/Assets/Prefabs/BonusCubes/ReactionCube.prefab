@@ -240,8 +240,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   timeLimit: 5
+  lingerDuration: 1
   bonusSuccess: 2
-  bonusFail: -2
+  bonusFail: 2
   progressBarGO: {fileID: 720342057626581358}
 --- !u!54 &2080809618017783971
 Rigidbody:

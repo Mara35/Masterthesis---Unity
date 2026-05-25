@@ -51,6 +51,12 @@ public static class OrbSharedState
     public static bool ghostFrozen = false;
     public static bool playerFrozen = false;
 
+    // Aktive Challenge-Flags pro Seite
+    // true = diese Seite hat gerade eine aktive Challenge
+    public static bool playerSideHasReaction = false;
+    public static bool ghostSideHasReaction = false;
+    public static bool playerSideHasPeg = false;
+
     public static void Reset()
     {
         lockedCubes.Clear();

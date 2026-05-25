@@ -37,6 +37,9 @@ public class BonusCubeSpawner : MonoBehaviour
     [Tooltip("Maximale Anzahl Bonus/Malus Cubes in 60s")]
     public int maxBonusCubesTotal = 5;
 
+    [Header("Peg Challenge")]
+    public PegChallengeManager pegChallengeManager;
+
     [Header("Reaction Cube")]
     public GameObject reactionCubePrefab;
     [Tooltip("Maximale Anzahl ReactionCubes in 60s")]
@@ -76,12 +79,16 @@ public class BonusCubeSpawner : MonoBehaviour
             StartCoroutine(FreezeSpawnRoutine());
         if (reactionCubePrefab != null)
             StartCoroutine(ReactionSpawnRoutine());
+        if (pegChallengeManager != null)
+            pegChallengeManager.StartChallengeSystem();
     }
 
     public void StopSpawning()
     {
         isActive = false;
         StopAllCoroutines();
+        if (pegChallengeManager != null)
+            pegChallengeManager.StopChallengeSystem();
     }
 
     // -----------------------------------------------------------------------
@@ -141,8 +148,13 @@ public class BonusCubeSpawner : MonoBehaviour
 
         while (isActive && totalFreezeSpawned < maxFreezeCubesTotal)
         {
-            // Warten bis kein FreezeCube mehr im Feld ist
-            yield return new WaitUntil(() => !FreezeCubeExistsInScene());
+            // Warten bis kein FreezeCube im Feld, kein Spieler gefreezt und keine Peg Challenge
+            yield return new WaitUntil(() =>
+                !FreezeCubeExistsInScene() &&
+                !OrbSharedState.playerFrozen &&
+                !OrbSharedState.ghostFrozen &&
+                !OrbSharedState.playerSideHasPeg
+            );
 
             if (!isActive) yield break;
 
@@ -194,16 +206,19 @@ public class BonusCubeSpawner : MonoBehaviour
     {
         if (reactionCubePrefab == null) return;
 
-        // Seite wählen – nicht auf gefreezte Seite spawnen
-        bool leftFrozen = OrbSharedState.ghostFrozen;   // Ghost ist links
-        bool rightFrozen = OrbSharedState.playerFrozen;  // Player ist rechts
+        // Seiten-Checks:
+        // - Nicht auf gefreezte Seite (Spieler kann nicht reagieren)
+        // - Nicht auf Seite die bereits Reaction oder Peg hat
+        bool canSpawnLeft = !OrbSharedState.ghostFrozen
+                          && !OrbSharedState.ghostSideHasReaction;
 
-        bool canSpawnLeft = !leftFrozen;
-        bool canSpawnRight = !rightFrozen;
+        bool canSpawnRight = !OrbSharedState.playerFrozen
+                          && !OrbSharedState.playerSideHasReaction
+                          && !OrbSharedState.playerSideHasPeg; // Peg und Reaction nicht gleichzeitig
 
         if (!canSpawnLeft && !canSpawnRight)
         {
-            Debug.Log("[BonusCubeSpawner] Beide Seiten gefreezt – ReactionCube übersprungen.");
+            Debug.Log("[BonusCubeSpawner] Keine freie Seite für ReactionCube.");
             return;
         }
 
