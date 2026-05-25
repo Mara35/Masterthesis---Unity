@@ -26,7 +26,7 @@ public class TargetZoneCounter : MonoBehaviour
         // Nur zählen wenn der Transfer als gültig markiert wurde
         if (!block.IsValidlyTransferred)
         {
-            Debug.Log("[TargetZone] Block abgelehnt – kein gültiger Transfer.");
+            Debug.Log("[TargetZone] Block rejected – invalid transfer.");
             return;
         }
 

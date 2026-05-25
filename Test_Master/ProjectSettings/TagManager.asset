@@ -9,6 +9,8 @@ TagManager:
   - Block
   - Freeze
   - Reaction
+  - Peg
+  - Sequence
   layers:
   - Default
   - TransparentFX

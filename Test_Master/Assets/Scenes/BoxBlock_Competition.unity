@@ -1995,6 +1995,7 @@ GameObject:
   - component: {fileID: 435120648}
   - component: {fileID: 435120649}
   - component: {fileID: 435120650}
+  - component: {fileID: 435120651}
   m_Layer: 0
   m_Name: CompetitionGameManager
   m_TagString: Untagged
@@ -2039,6 +2040,7 @@ MonoBehaviour:
   spawnIntervalMin: 20
   spawnIntervalMax: 30
   maxBonusCubesTotal: 5
+  pegChallengeManager: {fileID: 435120651}
   reactionCubePrefab: {fileID: 3377063124748562518, guid: 0814529600a6df740a49102d96a76c79, type: 3}
   maxReactionCubesTotal: 3
   reactionSpawnMin: 20
@@ -2091,6 +2093,26 @@ MonoBehaviour:
   settingsButton: {fileID: 72321954}
   mainMenuSceneName: MainMenu
   settingsSceneName: Settings
+--- !u!114 &435120651
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 435120646}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5db5d2536e9410941980fa46953ed91e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  pegPrefab: {fileID: 8938303750217956302, guid: aff12c40568496c4982cbd9c5674a4f1, type: 3}
+  zonePrefab: {fileID: 8055725605675394286, guid: 55afc97a196814e4fb534a0465ea2fb1, type: 3}
+  playerSpawnZone: {fileID: 1482934707}
+  tableInFrontOfBox: {fileID: 1070739669}
+  challengeDuration: 10
+  firstChallengeMin: 25
+  firstChallengeMax: 35
+  zoneSpacing: 0.1
 --- !u!1 &439183746
 GameObject:
   m_ObjectHideFlags: 0
@@ -4297,6 +4319,37 @@ MonoBehaviour:
   pickupRadius: 0.05
   waypointRadius: 0.05
   reactionDelay: 0.5
+--- !u!1 &1070739668
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1070739669}
+  m_Layer: 0
+  m_Name: PegZoneSpawnPoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1070739669
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1070739668}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.76, z: -0.25}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1071444725
 GameObject:
   m_ObjectHideFlags: 0
@@ -9599,3 +9652,4 @@ SceneRoots:
   - {fileID: 1830553542}
   - {fileID: 1065084839}
   - {fileID: 435120647}
+  - {fileID: 1070739669}

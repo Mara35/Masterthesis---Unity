@@ -53,7 +53,7 @@ public class BlockItem : MonoBehaviour
         if (isHeld)
         {
             passedThroughPartitionZone = true;
-            Debug.Log("[BlockItem] PartitionZone passiert");
+            Debug.Log("[BlockItem] PartitionZone crossed");
         }
     }
 
@@ -89,11 +89,11 @@ public class BlockItem : MonoBehaviour
         {
             transform.position = grabPosition;
             transform.rotation = grabRotation;
-            Debug.Log($"[BlockItem] Ungueltig - Reset.");
+            Debug.Log($"[BlockItem] Invalid - Reset.");
         }
         else
         {
-            Debug.Log("[BlockItem] GUELTIGER Transfer");
+            Debug.Log("[BlockItem] valid Transfer");
         }
 
         return valid;

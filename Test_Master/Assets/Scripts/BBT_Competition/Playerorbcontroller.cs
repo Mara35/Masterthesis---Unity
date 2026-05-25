@@ -90,6 +90,10 @@ public class PlayerOrbController : MonoBehaviour
     private bool isStealingMalus = false;
     private bool isCarryingFreeze = false;
     private bool isPegChallenge = false;
+    private bool isSequenceChallenge = false;
+    private List<SequenceCube> sequenceCubes = new List<SequenceCube>();
+    private float sequenceMistakeChance = 0.3f;
+    private int sequenceNextIdx = 0;
 
     // Peg Challenge State
     private List<GameObject> pendingPegs = new List<GameObject>();
@@ -184,7 +188,38 @@ public class PlayerOrbController : MonoBehaviour
             }
         }
 
-        // Höchste Priorität: ReactionCube im eigenen Feld
+        // Priorität 2: Sequence Challenge
+        if (isSequenceChallenge && sequenceNextIdx < sequenceCubes.Count)
+        {
+            // Mit mistakeChance falsche Reihenfolge wählen
+            int pickIdx = sequenceNextIdx;
+            if (Random.value < sequenceMistakeChance && sequenceCubes.Count > 1)
+            {
+                // Zufälligen noch nicht transferierten Würfel nehmen
+                List<int> available = new List<int>();
+                for (int i = 0; i < sequenceCubes.Count; i++)
+                    if (sequenceCubes[i] != null && !sequenceCubes[i].IsTransferred && i != sequenceNextIdx)
+                        available.Add(i);
+                if (available.Count > 0)
+                    pickIdx = available[Random.Range(0, available.Count)];
+            }
+
+            SequenceCube sc = sequenceCubes[pickIdx];
+            if (sc != null && !sc.IsTransferred && OrbSharedState.IsAvailable(sc.gameObject.GetInstanceID()))
+            {
+                targetCube = sc.gameObject;
+                targetRb = targetCube.GetComponent<Rigidbody>();
+                isStealingMalus = false;
+                isCarryingFreeze = false;
+                OrbSharedState.Lock(targetCube.GetInstanceID());
+                sequenceNextIdx++;
+                state = State.MovingToCube;
+                Debug.Log($"[PlayerOrb] Sequence Würfel #{sc.sequenceNumber} aufnehmen.");
+                return;
+            }
+        }
+
+        // Priorität 3: ReactionCube im eigenen Feld
         GameObject reactionTarget = FindReactionCubeOnOwnSide();
         if (reactionTarget != null)
         {
@@ -695,6 +730,23 @@ public class PlayerOrbController : MonoBehaviour
         pendingPegs.Clear();
         pegZoneTargets.Clear();
         Debug.Log("[PlayerOrb] Peg Challenge beendet.");
+    }
+
+    public void StartSequenceChallenge(List<SequenceCube> cubes, float mistakeChance)
+    {
+        sequenceCubes = new List<SequenceCube>(cubes);
+        sequenceMistakeChance = mistakeChance;
+        sequenceNextIdx = 0;
+        isSequenceChallenge = true;
+        Debug.Log($"[PlayerOrb] Sequence Challenge gestartet! MistakeChance={mistakeChance}");
+    }
+
+    public void EndSequenceChallenge()
+    {
+        isSequenceChallenge = false;
+        sequenceCubes.Clear();
+        sequenceNextIdx = 0;
+        Debug.Log($"[PlayerOrb] Sequence Challenge beendet.");
     }
 
     public void StopPlaying()

@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class PartitionZone : MonoBehaviour
 {
-    [Tooltip("Namen der GameObjects die diese Zone auslösen")]
+    [Tooltip("Names of GameObjects that trigger this zone")]
     public string[] triggerObjectNames = { "HandProxy", "GrabTrigger", "HandTarget", "HandMoverGhost" };
 
     private SimpleGrabber simpleGrabber;
@@ -31,7 +31,7 @@ public class PartitionZone : MonoBehaviour
         bool isHandObject = System.Array.IndexOf(triggerObjectNames, other.name) >= 0;
         if (!isHandObject) return;
 
-        // AutoHandMover: wenn nicht idle = Block wird getragen
+        // AutoHandMover: if not idle = block is being carried
         if (autoHandMover != null && !autoHandMover.IsIdle)
         {
             autoHandMover.NotifyPartitionPassed();
@@ -42,7 +42,7 @@ public class PartitionZone : MonoBehaviour
         if (gloveGrabber != null && gloveGrabber.HeldBlock != null)
         {
             gloveGrabber.HeldBlock.OnPassedThroughPartitionZone();
-            Debug.Log($"[PartitionZone] GloveGrabber: '{gloveGrabber.HeldBlock.name}' Zone passiert ?");
+            Debug.Log($"[PartitionZone] GloveGrabber: '{gloveGrabber.HeldBlock.name}' Crossed the zone?");
             return;
         }
 
@@ -50,7 +50,7 @@ public class PartitionZone : MonoBehaviour
         if (simpleGrabber != null && simpleGrabber.HeldBlock != null)
         {
             simpleGrabber.HeldBlock.OnPassedThroughPartitionZone();
-            Debug.Log($"[PartitionZone] SimpleGrabber: '{simpleGrabber.HeldBlock.name}' Zone passiert ?");
+            Debug.Log($"[PartitionZone] SimpleGrabber: '{simpleGrabber.HeldBlock.name}' Crossed the zone?");
         }
     }
 }

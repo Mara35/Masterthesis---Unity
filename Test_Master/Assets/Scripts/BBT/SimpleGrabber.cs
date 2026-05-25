@@ -11,7 +11,6 @@ public class SimpleGrabber : MonoBehaviour
     private BlockItem heldBlock;
     private TestTimer timer;
 
-    // NEU: öffentlich lesbar für PartitionZone
     public BlockItem HeldBlock => heldBlock;
 
     private void Start()

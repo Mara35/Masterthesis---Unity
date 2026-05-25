@@ -5,19 +5,17 @@ using System.IO;
 using System.Globalization;
 
 /// <summary>
-/// Liest CSV-Daten ein und steuert den XBot.
-/// DATEIEN: Assets/Data/synthetic_glove.csv + synthetic_imu.csv
-///
-/// WICHTIG: Two Bone IK Constraint Weight = 0 setzen wenn CSV aktiv!
+/// Reads CSV data and controls the XBot.
+/// FILES: Assets/Data/synthetic_glove.csv + synthetic_imu.csv
 /// </summary>
 public class CSVReplayController : MonoBehaviour
 {
-    [Header("--- Aktivierung ---")]
+    [Header("--- Activation ---")]
     public bool useCSVReplay = true;
-    [Tooltip("Keyboard-Control Script – wird deaktiviert wenn CSV aktiv")]
+    [Tooltip("Keyboard Control Script – is disabled when CSV is active")]
     public HandTargetKeyboardControl keyboardControl;
 
-    [Header("--- CSV Dateien (Assets/Data/) ---")]
+    [Header("--- CSV files (Assets/Data/) ---")]
     public string gloveFileName = "synthetic_glove.csv";
     public string imuFileName = "synthetic_imu.csv";
 
@@ -28,27 +26,27 @@ public class CSVReplayController : MonoBehaviour
     public Transform torsoBone;      // mixamorig:Spine2
     public Transform headBone;       // mixamorig:Head
 
-    [Header("--- Finger Bones (je Finger: [0]=MCP [1]=PIP) ---")]
+    [Header("--- Finger Bones (each finger: [0]=MCP [1]=PIP) ---")]
     public Transform[] thumbBones;
     public Transform[] indexBones;
     public Transform[] middleBones;
     public Transform[] ringBones;
     public Transform[] pinkyBones;
 
-    [Header("--- Finger Achsen (im Inspector tunen) ---")]
-    [Tooltip("Lokale Achse um die Finger gebeugt werden. XBot Generic: meist Vector3.right")]
+    [Header("--- Finger Axis ---")]
+    [Tooltip("Local axis around which the fingers are bent.")]
     public Vector3 fingerFlexAxis = Vector3.right;
-    [Tooltip("Separate Achse für den Daumen. Testen mit (0,0,1) oder (0,1,0)")]
+    [Tooltip("Separate axis for the thumb.")]
     public Vector3 thumbFlexAxis = new Vector3(0, 0, 1);
 
     [Header("--- HandTarget (IK Target) ---")]
     public Transform handTarget;
 
-    [Header("--- Automatisches Greifen ---")]
-    [Tooltip("GloveGrabber Script auf HandTarget – bekommt Fingerwinkel")]
+    [Header("--- Automatic Gripping ---")]
+    [Tooltip("GloveGrabber script on HandTarget – calculates finger angles")]
     public GloveGrabber gloveGrabber;
 
-    [Header("--- Wiedergabe ---")]
+    [Header("--- Playback ---")]
     public float playbackSpeed = 1f;
     public bool loop = true;
     public float loopPauseSeconds = 1f;
@@ -56,11 +54,11 @@ public class CSVReplayController : MonoBehaviour
     [Header("--- Debug ---")]
     public bool showDebugGUI = true;
 
-    // ---- interne Daten ----
+    // ---- Internal data ----
     struct GloveFrame
     {
         public float t;
-        public float[] angles; // 15 Werte
+        public float[] angles; 
     }
 
     struct ImuFrame
@@ -79,7 +77,7 @@ public class CSVReplayController : MonoBehaviour
     int currentGloveIdx = 0;
     int currentImuIdx = 0;
 
-    // T-Pose Referenz-Rotationen (werden in Start() gespeichert)
+    // T-Pose Reference Rotations (saved in Start())
     Quaternion upperArmRest, foreArmRest, torsoRest, headRest;
     Dictionary<Transform, Quaternion> fingerRestPose = new Dictionary<Transform, Quaternion>();
 
@@ -90,13 +88,13 @@ public class CSVReplayController : MonoBehaviour
         if (keyboardControl != null)
             keyboardControl.enabled = false;
 
-        // T-Pose Rotationen merken
+        // Remember T-pose rotations
         if (upperArmBone) upperArmRest = upperArmBone.localRotation;
         if (foreArmBone) foreArmRest = foreArmBone.localRotation;
         if (torsoBone) torsoRest = torsoBone.localRotation;
         if (headBone) headRest = headBone.localRotation;
 
-        // Finger-Ruhe-Posen merken
+        // Remember finger-rest positions
         StoreFingerRest(thumbBones);
         StoreFingerRest(indexBones);
         StoreFingerRest(middleBones);
@@ -111,12 +109,12 @@ public class CSVReplayController : MonoBehaviour
                 gloveFrames[gloveFrames.Count - 1].t,
                 imuFrames[imuFrames.Count - 1].t);
             isPlaying = true;
-            Debug.Log($"[CSVReplay] Geladen: {gloveFrames.Count} Glove-Frames, " +
-                      $"{imuFrames.Count} IMU-Frames, Dauer={maxTime:F1}s");
+            Debug.Log($"[CSVReplay] Loaded: {gloveFrames.Count} Glove-Frames, " +
+                      $"{imuFrames.Count} IMU-Frames, Duration={maxTime:F1}s");
         }
         else
         {
-            Debug.LogError("[CSVReplay] CSV-Dateien nicht gefunden! ? Assets/Data/");
+            Debug.LogError("[CSVReplay] CSV files not found! Assets/Data");
         }
     }
 
@@ -155,7 +153,7 @@ public class CSVReplayController : MonoBehaviour
                 gloveFrames.Add(frame);
             }
         }
-        else Debug.LogError("[CSVReplay] Glove CSV nicht gefunden: " + glovePath);
+        else Debug.LogError("[CSVReplay] Glove CSV not found: " + glovePath);
 
         // IMU CSV
         if (File.Exists(imuPath))
@@ -191,7 +189,7 @@ public class CSVReplayController : MonoBehaviour
                 });
             }
         }
-        else Debug.LogError("[CSVReplay] IMU CSV nicht gefunden: " + imuPath);
+        else Debug.LogError("[CSVReplay] IMU CSV not found: " + imuPath);
     }
 
     void Update()
@@ -207,7 +205,7 @@ public class CSVReplayController : MonoBehaviour
         }
     }
 
-    // LateUpdate läuft NACH dem Animator ? Bone-Rotationen werden nicht überschrieben
+    // Does LateUpdate run AFTER the Animator? Bone rotations are not overwritten
     void LateUpdate()
     {
         if (!useCSVReplay || !isPlaying || isPaused) return;
@@ -217,7 +215,7 @@ public class CSVReplayController : MonoBehaviour
         UpdateHandTarget();
     }
 
-    // ---- Arm / Torso / Kopf ----
+    // ---- Arm / Torso / Head ----
     void ApplyImuFrame()
     {
         while (currentImuIdx < imuFrames.Count - 2 &&
@@ -229,8 +227,6 @@ public class CSVReplayController : MonoBehaviour
         float span = imuFrames[i1].t - imuFrames[i0].t;
         float a = span > 0.0001f ? (playbackTime - imuFrames[i0].t) / span : 1f;
 
-        // CSV enthält absolute localRotation-Quaternionen (Unity YXZ Euler-basiert)
-        // Direkt setzen, keine T-Pose Multiplikation nötig
         if (upperArmBone)
             upperArmBone.localRotation =
                 Quaternion.Slerp(imuFrames[i0].upperArm, imuFrames[i1].upperArm, a);
@@ -265,14 +261,14 @@ public class CSVReplayController : MonoBehaviour
             angles[i] = Mathf.Lerp(gloveFrames[i0].angles[i], gloveFrames[i1].angles[i], a);
 
         // Layout: Thumb(0-2), Index(3-5), Middle(6-8), Ring(9-11), Pinky(12-14)
-        // Je Finger: [MCP_Flex, AbAd, PIP_Flex]
+        // each Finger: [MCP_Flex, AbAd, PIP_Flex]
         ApplyFinger(thumbBones, angles[0], angles[2], thumbFlexAxis);
         ApplyFinger(indexBones, angles[3], angles[5], fingerFlexAxis);
         ApplyFinger(middleBones, angles[6], angles[8], fingerFlexAxis);
         ApplyFinger(ringBones, angles[9], angles[11], fingerFlexAxis);
         ApplyFinger(pinkyBones, angles[12], angles[14], fingerFlexAxis);
 
-        // Winkel an GloveGrabber weitergeben für automatisches Greifen
+        // Pass the angle to GloveGrabber for automatic gripping
         if (gloveGrabber != null)
         {
             gloveGrabber.currentIndexMcp = angles[3];
@@ -290,8 +286,7 @@ public class CSVReplayController : MonoBehaviour
     {
         if (bones == null) return;
 
-        // Ruhe-Pose + Flexion um konfigurierbare Achse
-        // mcpDeg ist negativ (0=gestreckt, -90=gebeugt) -> negieren für Rotation
+        // Resting pose + flexion around a configurable axis
         if (bones.Length > 0 && bones[0] != null)
         {
             Quaternion rest = fingerRestPose.ContainsKey(bones[0])

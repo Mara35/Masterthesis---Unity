@@ -65,10 +65,10 @@ public class TestTimer : MonoBehaviour
     {
         Debug.Log("Test finished");
 
-        // Score aus TargetZoneCounter holen
+        // Get the score from TargetZoneCounter
         int finalScore = (targetZoneCounter != null) ? targetZoneCounter.CurrentCount : 0;
 
-        // End-Screen anzeigen
+        // Show end screen
         if (gameOverUI != null)
             gameOverUI.ShowEndScreen(finalScore);
 

@@ -37,6 +37,9 @@ public class BonusCubeSpawner : MonoBehaviour
     [Tooltip("Maximale Anzahl Bonus/Malus Cubes in 60s")]
     public int maxBonusCubesTotal = 5;
 
+    [Header("Sequence Challenge")]
+    public SequenceChallengeManager sequenceChallengeManager;
+
     [Header("Peg Challenge")]
     public PegChallengeManager pegChallengeManager;
 
@@ -81,6 +84,8 @@ public class BonusCubeSpawner : MonoBehaviour
             StartCoroutine(ReactionSpawnRoutine());
         if (pegChallengeManager != null)
             pegChallengeManager.StartChallengeSystem();
+        if (sequenceChallengeManager != null)
+            sequenceChallengeManager.StartChallengeSystem();
     }
 
     public void StopSpawning()
@@ -89,6 +94,8 @@ public class BonusCubeSpawner : MonoBehaviour
         StopAllCoroutines();
         if (pegChallengeManager != null)
             pegChallengeManager.StopChallengeSystem();
+        if (sequenceChallengeManager != null)
+            sequenceChallengeManager.StopChallengeSystem();
     }
 
     // -----------------------------------------------------------------------

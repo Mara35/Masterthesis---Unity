@@ -1,27 +1,19 @@
 using UnityEngine;
 
 /// <summary>
-/// Unsichtbare Trigger-Zone über dem Box-Rand.
-/// Startet den Timer sobald die Hand (HandTarget) die Box betritt —
-/// egal von welcher Seite.
-///
-/// SETUP:
-///   1. Leeres GO "BoxBoundaryTrigger" erstellen
-///   2. Box Collider hinzufügen ? Is Trigger = true
-///   3. Collider so einstellen dass er die gesamte Box-Öffnung abdeckt
-///      (etwas größer als die Box, Y-Position auf Rand-Höhe)
-///   4. Dieses Script drauflegen
-///   5. TestTimer zuweisen
+/// Invisible trigger zone above the edge of the box.
+/// Starts the timer as soon as the hand (HandTarget) enters the box —
+/// regardless of which side.
 /// </summary>
 public class BoxBoundaryTrigger : MonoBehaviour
 {
-    [Tooltip("TestTimer zuweisen")]
+    [Tooltip("Assign TestTimer")]
     public Timer testTimer;
 
-    [Tooltip("Name des Hand-Objekts")]
+    [Tooltip("Name of the Hand object")]
     public string handObjectName = "HandTarget";
 
-    [Tooltip("Nur einmal triggern?")]
+    [Tooltip("Trigger only once?")]
     public bool triggerOnce = true;
 
     private bool hasTriggered = false;
@@ -32,12 +24,12 @@ public class BoxBoundaryTrigger : MonoBehaviour
         if (other.name != handObjectName) return;
 
         hasTriggered = true;
-        Debug.Log($"[BoxBoundaryTrigger] Hand '{other.name}' hat Box betreten ? Timer startet!");
+        Debug.Log($"Has the hand ‘{other.name}’ entered the box? The timer starts!");
 
         if (testTimer != null)
             testTimer.StartTimer();
         else
-            Debug.LogWarning("[BoxBoundaryTrigger] TestTimer nicht zugewiesen!");
+            Debug.LogWarning("[BoxBoundaryTrigger] TestTimer not assigned!");
     }
 
     public void Reset()
@@ -45,7 +37,7 @@ public class BoxBoundaryTrigger : MonoBehaviour
         hasTriggered = false;
     }
 
-    // Collider im Editor sichtbar machen
+    // Make colliders visible in the editor
     private void OnDrawGizmos()
     {
         BoxCollider bc = GetComponent<BoxCollider>();
