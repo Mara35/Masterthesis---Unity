@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 6008572656803650049}
   - component: {fileID: 1764013329681721642}
   - component: {fileID: 3528700352937286218}
+  - component: {fileID: 2457833994196620457}
   m_Layer: 0
   m_Name: SequenceCube
   m_TagString: Sequence
@@ -133,3 +134,16 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!114 &2457833994196620457
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4238716761512515958}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e77d4418bdcefd545a3ef4aa7b334692, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  numberDisplayTime: 3

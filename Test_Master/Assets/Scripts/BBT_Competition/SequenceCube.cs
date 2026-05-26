@@ -1,79 +1,95 @@
+/*
+ * Project:    SensinGlove – Box & Block Rehab Game
+ * File:       SequenceCube.cs
+ * Author:     Mari und Kiki (MCI – University of Applied Sciences)
+ * Supervisor: Simon Winkler, BSc MSc
+ * Year:       2025
+ */
+
 using System.Collections;
 using UnityEngine;
 
 public class SequenceCube : MonoBehaviour
 {
-    [Tooltip("Reihenfolge dieses Würfels (1, 2 oder 3)")]
-    public int sequenceNumber = 1;
+    public float numberDisplayTime = 3f;
 
-    [Tooltip("Wie lange die Zahl sichtbar ist (Sekunden)")]
-    public float numberDisplayTime = 2f;
-
+    public int sequenceNumber { get; private set; } = 1;
     public bool IsTransferred { get; set; } = false;
-
-    // -----------------------------------------------------------------------
-    // Private
-    // -----------------------------------------------------------------------
 
     private TextMesh numberText;
     private Camera mainCam;
     private float partitionX;
     private bool spawnedOnGhostSide;
+    private bool initialized = false;
+    private Color originalColor;
 
-    // -----------------------------------------------------------------------
-    // Unity Lifecycle
-    // -----------------------------------------------------------------------
-
-    private void Start()
+    public void Init(int number)
     {
+        sequenceNumber = number;
+        initialized = true;
         mainCam = Camera.main;
 
         GameObject cp = GameObject.Find("CenterPartition");
         partitionX = cp != null ? cp.transform.position.x : 0f;
         spawnedOnGhostSide = transform.position.x < partitionX;
 
+        // Originalfarbe merken – keine Änderung beim Spawn
+        Renderer r = GetComponent<Renderer>();
+        if (r != null) originalColor = r.material.color;
+
         CreateNumberText();
         StartCoroutine(HideNumberAfterDelay());
     }
 
+    private void Start()
+    {
+        if (!initialized) Init(sequenceNumber);
+    }
+
     private void LateUpdate()
     {
-        // Zahl immer zur Kamera drehen
         if (numberText != null && numberText.gameObject.activeSelf && mainCam != null)
             numberText.transform.rotation = mainCam.transform.rotation;
     }
 
-    // -----------------------------------------------------------------------
-    // Nummer anzeigen
-    // -----------------------------------------------------------------------
-
     private void CreateNumberText()
     {
+        Transform existing = transform.Find("SequenceNumber");
+        if (existing != null) Destroy(existing.gameObject);
+
         GameObject textGo = new GameObject("SequenceNumber");
         textGo.transform.SetParent(transform);
-        textGo.transform.localPosition = new Vector3(0, 0.12f, 0);
+        textGo.transform.localPosition = new Vector3(0, 0.15f, 0);
+        textGo.transform.localScale = Vector3.one;
 
         numberText = textGo.AddComponent<TextMesh>();
         numberText.text = sequenceNumber.ToString();
-        numberText.fontSize = 100;
-        numberText.characterSize = 0.15f;
+        numberText.fontSize = 150;
+        numberText.characterSize = 0.12f;
         numberText.color = Color.white;
         numberText.anchor = TextAnchor.MiddleCenter;
         numberText.alignment = TextAlignment.Center;
         numberText.fontStyle = FontStyle.Bold;
+
+        Debug.Log($"[SequenceCube] Zahl {sequenceNumber} angezeigt.");
     }
 
     private IEnumerator HideNumberAfterDelay()
     {
         yield return new WaitForSeconds(numberDisplayTime);
         if (numberText != null)
+        {
             numberText.gameObject.SetActive(false);
+            Debug.Log($"[SequenceCube] Zahl {sequenceNumber} ausgeblendet.");
+        }
     }
 
-    // -----------------------------------------------------------------------
-    // Public
-    // -----------------------------------------------------------------------
+    /// Nach Transfer: 1s liegen lassen dann verschwinden
+    public IEnumerator LingerAndDestroy()
+    {
+        yield return new WaitForSeconds(1f);
+        Destroy(gameObject);
+    }
 
-    public bool IsOnGhostSide() => transform.position.x < partitionX;
     public bool SpawnedOnGhostSide() => spawnedOnGhostSide;
 }

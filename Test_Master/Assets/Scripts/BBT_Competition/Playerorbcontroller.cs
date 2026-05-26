@@ -205,7 +205,8 @@ public class PlayerOrbController : MonoBehaviour
             }
 
             SequenceCube sc = sequenceCubes[pickIdx];
-            if (sc != null && !sc.IsTransferred && OrbSharedState.IsAvailable(sc.gameObject.GetInstanceID()))
+            if (sc != null && !sc.IsTransferred && OrbSharedState.IsAvailable(sc.gameObject.GetInstanceID())
+                && !sc.SpawnedOnGhostSide()) // nur eigene Seite
             {
                 targetCube = sc.gameObject;
                 targetRb = targetCube.GetComponent<Rigidbody>();

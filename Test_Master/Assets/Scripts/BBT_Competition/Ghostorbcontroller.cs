@@ -85,6 +85,10 @@ public class GhostOrbController : MonoBehaviour
     private bool isActive = false;
     private bool isStealingMalus = false;
     private bool isCarryingFreeze = false;
+    private bool isSequenceChallenge = false;
+    private List<SequenceCube> sequenceCubes = new List<SequenceCube>();
+    private float sequenceMistakeChance = 0.3f;
+    private int sequenceNextIdx = 0;
 
 
 
@@ -182,7 +186,8 @@ public class GhostOrbController : MonoBehaviour
             }
 
             SequenceCube sc = sequenceCubes[pickIdx];
-            if (sc != null && !sc.IsTransferred && OrbSharedState.IsAvailable(sc.gameObject.GetInstanceID()))
+            if (sc != null && !sc.IsTransferred && OrbSharedState.IsAvailable(sc.gameObject.GetInstanceID())
+                && sc.SpawnedOnGhostSide()) // nur eigene Seite
             {
                 targetCube = sc.gameObject;
                 targetRb = targetCube.GetComponent<Rigidbody>();
