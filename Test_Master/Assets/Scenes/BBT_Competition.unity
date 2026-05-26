@@ -1159,7 +1159,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Feedback
+  m_text: 
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -1169,7 +1169,7 @@ MonoBehaviour:
   m_fontColor32:
     serializedVersion: 2
     rgba: 4294802878
-  m_fontColor: {r: 0.74509805, g: 0.49019608, b: 0.99215686, a: 1}
+  m_fontColor: {r: 0.21960786, g: 0.21960786, b: 0.21960786, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -2197,6 +2197,8 @@ MonoBehaviour:
   gameDuration: 60
   timerText: {fileID: 1580816394}
   gameManager: {fileID: 435120650}
+  shakeDuration: 0.5
+  shakeMagnitude: 2
 --- !u!114 &435120650
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2267,7 +2269,7 @@ MonoBehaviour:
   firstChallengeMin: 3
   firstChallengeMax: 10
   feedbackText: {fileID: 169882327}
-  mistakeChance: 0
+  mistakeChance: 1
 --- !u!1 &439183746
 GameObject:
   m_ObjectHideFlags: 0

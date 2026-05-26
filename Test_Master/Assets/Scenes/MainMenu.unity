@@ -1641,9 +1641,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cf2d16f2797df0741933fda3ea17042b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  manuellesTrainingSceneName: BoxBlock_Training
-  visuellesTrainingSceneName: BoxBlock_VisualTraining
-  competitionSceneName: BoxBlock_Competition
+  manuellesTrainingSceneName: BBT_Training
+  visuellesTrainingSceneName: BBT_VisualTraining
+  competitionSceneName: BBT_Competition
   mainMenuPanel: {fileID: 875272739}
   trainingInfoPanel: {fileID: 2061798366}
   trainingButton: {fileID: 626258915}
