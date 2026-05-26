@@ -14,6 +14,7 @@
 
 using UnityEngine;
 using TMPro;
+using System.Collections;
 
 public class CompetitionTimer : MonoBehaviour
 {
@@ -26,14 +27,16 @@ public class CompetitionTimer : MonoBehaviour
     [Header("Referenz")]
     public CompetitionGameManager gameManager;
 
+    [Header("Shake bei 10s")]
+    public float shakeDuration = 0.5f;
+    public float shakeMagnitude = 8f;
+
     private float timeRemaining;
     private bool isRunning = false;
+    private bool shakeTriggered = false;
+    private Vector3 timerOriginalPos;
 
     public bool IsRunning => isRunning;
-
-    // -----------------------------------------------------------------------
-    // Unity Lifecycle
-    // -----------------------------------------------------------------------
 
     private void Start()
     {
@@ -41,6 +44,8 @@ public class CompetitionTimer : MonoBehaviour
             gameManager = FindObjectOfType<CompetitionGameManager>();
 
         timeRemaining = gameDuration;
+        if (timerText != null)
+            timerOriginalPos = timerText.rectTransform.anchoredPosition;
         UpdateUI();
     }
 
@@ -49,6 +54,13 @@ public class CompetitionTimer : MonoBehaviour
         if (!isRunning) return;
 
         timeRemaining -= Time.deltaTime;
+
+        // Schütteln bei genau 10s – nur einmal
+        if (!shakeTriggered && timeRemaining <= 10f)
+        {
+            shakeTriggered = true;
+            StartCoroutine(ShakeTimer());
+        }
 
         if (timeRemaining <= 0f)
         {
@@ -61,30 +73,19 @@ public class CompetitionTimer : MonoBehaviour
         UpdateUI();
     }
 
-    // -----------------------------------------------------------------------
-    // Public API
-    // -----------------------------------------------------------------------
-
-    /// <summary>
-    /// Wird von BoxStartTrigger aufgerufen wenn PlayerOrb die Box berührt.
-    /// </summary>
     public void StartTimer()
     {
         if (isRunning) return;
         timeRemaining = gameDuration;
         isRunning = true;
+        shakeTriggered = false;
         Debug.Log("[CompetitionTimer] Timer gestartet!");
         UpdateUI();
     }
 
-    // -----------------------------------------------------------------------
-    // Private
-    // -----------------------------------------------------------------------
-
     private void EndGame()
     {
         Debug.Log("[CompetitionTimer] Zeit abgelaufen!");
-
         if (gameManager != null)
             gameManager.EndGame();
     }
@@ -96,7 +97,26 @@ public class CompetitionTimer : MonoBehaviour
         int seconds = Mathf.CeilToInt(timeRemaining);
         timerText.text = "Time: " + seconds;
 
-        // Letzte 10s: Text rot
+        // Letzte 10s: rot
         timerText.color = seconds <= 10 ? Color.red : Color.white;
+        timerText.faceColor = seconds <= 10 ? Color.red : Color.white;
+    }
+
+    private IEnumerator ShakeTimer()
+    {
+        if (timerText == null) yield break;
+
+        float elapsed = 0f;
+        while (elapsed < shakeDuration)
+        {
+            float offsetX = Random.Range(-shakeMagnitude, shakeMagnitude);
+            float offsetY = Random.Range(-shakeMagnitude, shakeMagnitude);
+            timerText.rectTransform.anchoredPosition = timerOriginalPos + new Vector3(offsetX, offsetY, 0);
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+
+        // Zurück zur Originalposition
+        timerText.rectTransform.anchoredPosition = timerOriginalPos;
     }
 }
