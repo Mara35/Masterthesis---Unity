@@ -2131,7 +2131,6 @@ GameObject:
   - component: {fileID: 435120650}
   - component: {fileID: 435120651}
   - component: {fileID: 435120652}
-  - component: {fileID: 435120653}
   m_Layer: 0
   m_Name: CompetitionGameManager
   m_TagString: Untagged
@@ -2271,21 +2270,6 @@ MonoBehaviour:
   firstChallengeMax: 10
   feedbackText: {fileID: 169882327}
   mistakeChance: 1
---- !u!114 &435120653
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 435120646}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 21ffa7a0de19b7d429e9f2b65ba04cf3, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  bonusCubeSpawner: {fileID: 435120648}
-  pegChallengeManager: {fileID: 435120651}
-  sequenceChallengeManager: {fileID: 435120652}
 --- !u!1 &439183746
 GameObject:
   m_ObjectHideFlags: 0
