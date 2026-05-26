@@ -189,35 +189,48 @@ public class PlayerOrbController : MonoBehaviour
         }
 
         // Priorität 2: Sequence Challenge
-        if (isSequenceChallenge && sequenceNextIdx < sequenceCubes.Count)
+        if (isSequenceChallenge)
         {
-            // Mit mistakeChance falsche Reihenfolge wählen
-            int pickIdx = sequenceNextIdx;
-            if (Random.value < sequenceMistakeChance && sequenceCubes.Count > 1)
+            // Nächsten Würfel nach sequenceNumber finden (richtige Reihenfolge)
+            int nextNumber = sequenceNextIdx + 1; // sequenceNextIdx = wie viele bereits übertragen
+            SequenceCube correctCube = null;
+            SequenceCube wrongCube = null;
+
+            foreach (SequenceCube s in sequenceCubes)
             {
-                // Zufälligen noch nicht transferierten Würfel nehmen
-                List<int> available = new List<int>();
-                for (int i = 0; i < sequenceCubes.Count; i++)
-                    if (sequenceCubes[i] != null && !sequenceCubes[i].IsTransferred && i != sequenceNextIdx)
-                        available.Add(i);
-                if (available.Count > 0)
-                    pickIdx = available[Random.Range(0, available.Count)];
+                if (s == null || s.IsTransferred) continue;
+                if (s.sequenceNumber == nextNumber) correctCube = s;
+                else if (wrongCube == null) wrongCube = s;
             }
 
-            SequenceCube sc = sequenceCubes[pickIdx];
-            if (sc != null && !sc.IsTransferred && OrbSharedState.IsAvailable(sc.gameObject.GetInstanceID())
-                && !sc.SpawnedOnGhostSide()) // nur eigene Seite
+            // Fehler machen?
+            SequenceCube toPickup = null;
+            if (Random.value < sequenceMistakeChance && wrongCube != null)
+                toPickup = wrongCube;   // absichtlich falscher
+            else if (correctCube != null)
+                toPickup = correctCube; // richtiger
+            else
+                toPickup = wrongCube;   // kein richtiger mehr verfügbar
+
+            if (toPickup != null)
             {
-                targetCube = sc.gameObject;
-                targetRb = targetCube.GetComponent<Rigidbody>();
-                isStealingMalus = false;
-                isCarryingFreeze = false;
-                OrbSharedState.Lock(targetCube.GetInstanceID());
-                sequenceNextIdx++;
-                state = State.MovingToCube;
-                Debug.Log($"[PlayerOrb] Sequence Würfel #{sc.sequenceNumber} aufnehmen.");
-                return;
-            }
+                int pickIdx = sequenceCubes.IndexOf(toPickup);
+
+                SequenceCube sc = pickIdx >= 0 ? sequenceCubes[pickIdx] : null;
+                if (sc != null && !sc.IsTransferred && OrbSharedState.IsAvailable(sc.gameObject.GetInstanceID())
+                    && !sc.SpawnedOnGhostSide()) // nur eigene Seite
+                {
+                    targetCube = sc.gameObject;
+                    targetRb = targetCube.GetComponent<Rigidbody>();
+                    isStealingMalus = false;
+                    isCarryingFreeze = false;
+                    OrbSharedState.Lock(targetCube.GetInstanceID());
+                    sequenceNextIdx++;
+                    state = State.MovingToCube;
+                    Debug.Log($"[PlayerOrb] Sequence Würfel #{sc.sequenceNumber} aufnehmen (mistakeChance={sequenceMistakeChance}).");
+                    return;
+                }
+            } // end if toPickup
         }
 
         // Priorität 3: ReactionCube im eigenen Feld

@@ -250,9 +250,10 @@ public class SequenceChallengeManager : MonoBehaviour
     private void ShowFeedback(string message, Color color)
     {
         if (feedbackText == null) return;
+        feedbackText.gameObject.SetActive(true);
         feedbackText.text = message;
         feedbackText.color = color;
-        feedbackText.gameObject.SetActive(true);
+        feedbackText.faceColor = color;
         StartCoroutine(HideFeedbackAfterDelay(2f));
     }
 
