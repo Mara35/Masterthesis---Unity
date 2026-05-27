@@ -168,7 +168,7 @@ public class UDPServer : MonoBehaviour
         var data = StreamSendMessages.CreateVibrateOneRequest(vibrationRequest);
 
         // KORREKTUR: Ermittle den passenden Sende-Port anhand der SensorId.
-        // Unterarm (Id 3 -> Port 9001), Oberarm (Id 4 -> Port 9002)
+        // Unterarm (Id 4 -> Port 9002), Oberarm (Id 3 -> Port 9001)
         int targetPort = (vibrationRequest.SensorId == 4) ? 9002 : 9001;
 
         // Wir nutzen den ersten verfügbaren Client zum Senden
