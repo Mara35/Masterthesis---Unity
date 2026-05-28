@@ -1,9 +1,9 @@
 using UnityEngine;
 
 /// <summary>
-/// Bewegt das HandTarget-GameObject per Keyboard.
-/// Ersetzt HandProxyKeyboardControl – gleiche Tasten, gleiche Logik.
-/// Das HandTarget ist das IK-Target für den XBot-Arm (Two Bone IK Constraint).
+/// Moves the HandTarget GameObject using the keyboard.
+/// Replaces HandProxyKeyboardControl – same keys, same logic.
+/// The HandTarget is the IK target for the XBot arm (Two Bone IK Constraint).
 /// </summary>
 [RequireComponent(typeof(Rigidbody))]
 public class HandTargetKeyboardControl : MonoBehaviour
@@ -25,10 +25,9 @@ public class HandTargetKeyboardControl : MonoBehaviour
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
-
-        // Physik-Einstellungen: HandTarget soll sich nicht durch Gravitation bewegen
+                
         rb.useGravity = false;
-        rb.isKinematic = true; // Kinematic: wir steuern Position manuell
+        rb.isKinematic = true; 
         rb.constraints = RigidbodyConstraints.FreezeRotation;
     }
 
@@ -40,7 +39,7 @@ public class HandTargetKeyboardControl : MonoBehaviour
         float y = 0f;
         float z = 0f;
 
-        // Gleiche Tastenbelegung wie HandProxyKeyboardControl
+        // Same key mapping as HandProxyKeyboardControl
         if (Input.GetKey(KeyCode.A)) x = -1f;
         if (Input.GetKey(KeyCode.D)) x = 1f;
 

@@ -2,16 +2,16 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// Identisch mit dem ursprünglichen SimpleGrabber.
-/// Einzige Änderung für Phase 1:
-///   holdPoint ? auf den Hand-Bone des XBot (mixamorig:RightHand) zeigen lassen,
-///   NICHT mehr auf das HandProxy.
+/// Identical to the original SimpleGrabber.
+/// Only change for Phase 1:
+/// Set the holdPoint to point to the XBot's hand bone (mixamorig:RightHand),
+/// NOT to the HandProxy anymore.
 ///
-/// Das Script selbst bleibt auf dem HandTarget-GameObject.
+/// The script itself remains on the HandTarget GameObject.
 /// </summary>
 public class SimpleGrabber_Xbot : MonoBehaviour
 {
-    [Tooltip("Hand-Bone des XBot (mixamorig:RightHand) – NICHT mehr HandProxy")]
+    [Tooltip("XBot's Hand-Bone (mixamorig:RightHand) – NO LONGER HandProxy")]
     public Transform holdPoint;
 
     public KeyCode grabKey = KeyCode.E;
@@ -21,7 +21,7 @@ public class SimpleGrabber_Xbot : MonoBehaviour
     private BlockItem heldBlock;
     private TestTimer timer;
 
-    // Öffentlich lesbar für PartitionZone
+    // Publicly viewable for PartitionZone
     public BlockItem HeldBlock => heldBlock;
 
     private void Start()
@@ -59,7 +59,7 @@ public class SimpleGrabber_Xbot : MonoBehaviour
         {
             heldBlock = bestBlock;
             heldBlock.Grab(holdPoint);
-            Debug.Log("[SimpleGrabber] Block gegriffen.");
+            Debug.Log("[SimpleGrabber] The block was grabbed.");
         }
     }
 

@@ -45,24 +45,24 @@ public class Timer : MonoBehaviour
         UpdateUI();
     }
 
-    // Wird von BoxBoundaryTrigger aufgerufen wenn Hand die Box betritt
+    // Called by BoxBoundaryTrigger when the hand enters the box
     public void StartTimer()
     {
-        if (isRunning) return; // Nicht doppelt starten
+        if (isRunning) return; 
         timeRemaining = testDuration;
         isRunning = true;
-        Debug.Log("[TestTimer] Timer gestartet!");
+        Debug.Log("[TestTimer] Timer started!");
         UpdateUI();
     }
 
     public void StartTest()
     {
-        StartTimer(); // Rückwärtskompatibilität
+        StartTimer(); 
     }
 
     private void EndTest()
     {
-        Debug.Log("[TestTimer] Test beendet!");
+        Debug.Log("[TestTimer] Test ended!");
 
         int finalScore = (targetZoneCounter != null) ? targetZoneCounter.CurrentCount : 0;
 
@@ -80,17 +80,17 @@ public class Timer : MonoBehaviour
 
     private void DisableInteraction()
     {
-        // GloveGrabber deaktivieren
+        // GloveGrabber deactivated
         GloveGrabber gloveGrabber = FindObjectOfType<GloveGrabber>();
         if (gloveGrabber != null)
             gloveGrabber.enabled = false;
 
-        // CSVReplayController pausieren
+        // Pause CSVReplayController
         CSVReplayController csv = FindObjectOfType<CSVReplayController>();
         if (csv != null)
             csv.enabled = false;
 
-        // Alten SimpleGrabber falls noch aktiv
+        // Old SimpleGrabber, if still active
         SimpleGrabber simpleGrabber = FindObjectOfType<SimpleGrabber>();
         if (simpleGrabber != null)
             simpleGrabber.enabled = false;

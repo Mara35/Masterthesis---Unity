@@ -2596,6 +2596,111 @@ Transform:
   m_Children: []
   m_Father: {fileID: 448569402}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &622288249
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 622288252}
+  - component: {fileID: 622288251}
+  - component: {fileID: 622288250}
+  m_Layer: 0
+  m_Name: GloveController
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &622288250
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 622288249}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 84f47007af1d7494a82aa296b00cdf12, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  udpServer: {fileID: 415216058}
+--- !u!114 &622288251
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 622288249}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 84d31687855b9124d97141c6533be772, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  udpCommunication: {fileID: 415216057}
+  gloveId: 20
+  thumbMCP: {fileID: 676188331}
+  thumbPIP: {fileID: 676188330}
+  indexMCP: {fileID: 676188327}
+  indexPIP: {fileID: 676188326}
+  middleMCP: {fileID: 676188323}
+  middlePIP: {fileID: 676188322}
+  ringMCP: {fileID: 676188319}
+  ringPIP: {fileID: 676188318}
+  pinkyMCP: {fileID: 676188315}
+  pinkyPIP: {fileID: 676188314}
+  thumbMcpAxis: 2
+  thumbPipAxis: 2
+  fingerMcpAxis: 0
+  fingerPipAxis: 0
+  thumbMcpScale: 1
+  thumbPipScale: 1
+  indexMcpScale: 1
+  indexPipScale: 1
+  middleMcpScale: 1
+  middlePipScale: 1
+  ringMcpScale: 1
+  ringPipScale: 1
+  pinkyMcpScale: 1
+  pinkyPipScale: 1
+  thumbMcpOffset: 0
+  thumbPipOffset: 0
+  indexMcpOffset: 0
+  indexPipOffset: 0
+  middleMcpOffset: 0
+  middlePipOffset: 0
+  ringMcpOffset: 0
+  ringPipOffset: 0
+  pinkyMcpOffset: 0
+  pinkyPipOffset: 0
+  invertThumbMCP: 0
+  invertThumbPIP: 0
+  invertIndexMCP: 1
+  invertIndexPIP: 1
+  invertMiddleMCP: 1
+  invertMiddlePIP: 1
+  invertRingMCP: 1
+  invertRingPIP: 1
+  invertPinkyMCP: 1
+  invertPinkyPIP: 1
+  logValues: 0
+--- !u!4 &622288252
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 622288249}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0.34564227, y: 1.0438854, z: -0.2489123}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &647215544
 GameObject:
   m_ObjectHideFlags: 0
@@ -4069,7 +4174,7 @@ Transform:
   m_GameObject: {fileID: 761587198}
   serializedVersion: 2
   m_LocalRotation: {x: 0.30070576, y: 0, z: 0, w: 0.953717}
-  m_LocalPosition: {x: -0, y: 1.274, z: -0.556}
+  m_LocalPosition: {x: -0, y: 1.773, z: -1.269}
   m_LocalScale: {x: 0.73483, y: 0.73483, z: 1.4908366}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -9226,3 +9331,4 @@ SceneRoots:
   - {fileID: 448569402}
   - {fileID: 1515474393}
   - {fileID: 711172757}
+  - {fileID: 622288252}

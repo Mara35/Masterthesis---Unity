@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class GloveGrabber : MonoBehaviour
 {
-    [Header("--- Greif-Schwellwerte ---")]
+    [Header("--- Grab Threshold ---")]
     public float gripMcpThreshold = -25f;
     public float gripPipThreshold = -30f;
     public int minFingersForGrip = 2;
@@ -15,7 +15,7 @@ public class GloveGrabber : MonoBehaviour
     [Header("--- Debug ---")]
     public bool showDebugGUI = true;
 
-    // Winkel - werden von CSVReplayController gesetzt
+    // Angles - set by CSVReplayController
     public float currentIndexMcp = 0f;
     public float currentIndexPip = 0f;
     public float currentMiddleMcp = 0f;
@@ -89,7 +89,7 @@ public class GloveGrabber : MonoBehaviour
             heldBlock = best;
             heldBlock.Grab(holdPoint ? holdPoint : transform);
             isGripping = true;
-            Debug.Log($"[GloveGrabber] GEGRIFFEN: {best.name}");
+            Debug.Log($"[GloveGrabber] Gripped: {best.name}");
         }
     }
 
@@ -97,9 +97,9 @@ public class GloveGrabber : MonoBehaviour
     {
         if (heldBlock == null) { isGripping = false; return; }
 
-        // BlockItem.Release() prüft PartitionZone und setzt IsValidlyTransferred
+        // BlockItem.Release() checks PartitionZone and sets IsValidlyTransferred
         bool valid = heldBlock.Release();
-        Debug.Log($"[GloveGrabber] LOSGELASSEN: {heldBlock.name} - Transfer {(valid ? "GUELTIG" : "UNGUELTIG")}");
+        Debug.Log($"[GloveGrabber] Released: {heldBlock.name} - Transfer {(valid ? "valid" : "invalid")}");
 
         heldBlock = null;
         isGripping = false;
