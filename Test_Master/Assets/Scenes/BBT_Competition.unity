@@ -2231,7 +2231,7 @@ MonoBehaviour:
   mainMenuButton: {fileID: 1516795723}
   settingsButton: {fileID: 72321954}
   mainMenuSceneName: MainMenu
-  settingsSceneName: Settings
+  settingsSceneName: BBT_Explanation_Competition
 --- !u!114 &435120651
 MonoBehaviour:
   m_ObjectHideFlags: 0
