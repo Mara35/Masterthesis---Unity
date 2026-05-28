@@ -75,8 +75,8 @@ public class DifficultyApplier : MonoBehaviour
                 SetSequence(false, 0);
                 break;
 
-            case DifficultyLevel.Sequential:
-                // Fokus auf Sequence – kein Peg, kein Reaction
+            case DifficultyLevel.Memory:
+                // Fokus auf Working Memory – kein Peg, kein Reaction
                 SetBonus(3, 4, 12, 18);
                 SetFreeze(2, 3);
                 SetReaction(0, 0, 0);

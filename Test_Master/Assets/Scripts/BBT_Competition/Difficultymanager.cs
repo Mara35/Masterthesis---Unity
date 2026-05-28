@@ -6,7 +6,7 @@ public enum DifficultyLevel
     Motor = 1,
     Reaction = 2,
     Cognitive = 3,  // Fokus: Peg (kein Sequence)
-    Sequential = 4,  // Fokus: Sequence (kein Peg)
+    Memory = 4,  // Fokus: Sequence/Working Memory (kein Peg)
     Full = 5   // Alles + Ghost schneller
 }
 
@@ -27,6 +27,6 @@ public class DifficultyManager : MonoBehaviour
     public static bool HasReaction => SelectedLevel >= DifficultyLevel.Reaction;
     public static bool HasPeg => SelectedLevel == DifficultyLevel.Cognitive
                                    || SelectedLevel == DifficultyLevel.Full;
-    public static bool HasSequence => SelectedLevel == DifficultyLevel.Sequential
+    public static bool HasSequence => SelectedLevel == DifficultyLevel.Memory
                                    || SelectedLevel == DifficultyLevel.Full;
 }

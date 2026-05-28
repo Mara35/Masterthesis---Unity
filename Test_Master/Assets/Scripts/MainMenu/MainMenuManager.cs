@@ -6,12 +6,12 @@ public class MainMenuManager : MonoBehaviour
 {
     [Header("Scene Namen (exakt wie in Build Settings)")]
     [SerializeField] private string manuellesTrainingSceneName = "BoxBlock_Training";
-    [SerializeField] private string visuellesTrainingSceneName = "BoxBlock_VisualTraining"; 
+    [SerializeField] private string visuellesTrainingSceneName = "BoxBlock_VisualTraining";
     [SerializeField] private string competitionSceneName = "BoxBlock_Competition";
 
     [Header("Panels")]
-    [SerializeField] private GameObject mainMenuPanel;      
-    [SerializeField] private GameObject trainingInfoPanel;  
+    [SerializeField] private GameObject mainMenuPanel;
+    [SerializeField] private GameObject trainingInfoPanel;
 
     [Header("Hauptmenü Buttons")]
     [SerializeField] private Button trainingButton;
@@ -35,6 +35,7 @@ public class MainMenuManager : MonoBehaviour
         // Trainings-Info-Buttons
         if (manuellesTrainingButton != null) manuellesTrainingButton.onClick.AddListener(LoadManuellesTraining);
         if (visuellesTrainingButton != null) visuellesTrainingButton.onClick.AddListener(LoadVisuellesTraining);
+        if (zurueckButton != null) zurueckButton.onClick.AddListener(ShowMainMenu);
     }
 
     private void OnDestroy()
@@ -43,41 +44,42 @@ public class MainMenuManager : MonoBehaviour
         if (competitionButton != null) competitionButton.onClick.RemoveListener(LoadCompetitionScene);
         if (manuellesTrainingButton != null) manuellesTrainingButton.onClick.RemoveListener(LoadManuellesTraining);
         if (visuellesTrainingButton != null) visuellesTrainingButton.onClick.RemoveListener(LoadVisuellesTraining);
+        if (zurueckButton != null) zurueckButton.onClick.RemoveListener(ShowMainMenu);
     }
 
-    
+
     private void ShowMainMenu()
     {
         if (mainMenuPanel != null) mainMenuPanel.SetActive(true);
         if (trainingInfoPanel != null) trainingInfoPanel.SetActive(false);
     }
 
-    
+
     private void ShowTrainingInfo()
     {
         if (mainMenuPanel != null) mainMenuPanel.SetActive(false);
         if (trainingInfoPanel != null) trainingInfoPanel.SetActive(true);
     }
 
-    
+
     private void LoadManuellesTraining()
     {
         SceneManager.LoadScene(manuellesTrainingSceneName);
     }
 
-    
+
     private void LoadVisuellesTraining()
     {
         SceneManager.LoadScene(visuellesTrainingSceneName);
     }
 
-    
+
     private void LoadCompetitionScene()
     {
         SceneManager.LoadScene(competitionSceneName);
     }
 
-    
+
     public void QuitApplication()
     {
 #if UNITY_EDITOR

@@ -13,21 +13,10 @@ public class StreamSensorRotationController : MonoBehaviour
     kv => {
         Quaternion raw = kv.Value.Quaternion;
 
-        // Koordinatensystem-Konvertierung
-        Quaternion converted = new Quaternion(-raw.x, -raw.y, raw.z, raw.w);
+        Quaternion converted = new Quaternion(-raw.y, raw.x, raw.z, raw.w);
+        Quaternion mountingOffset = Quaternion.Euler(0f, -90f, 180f);
 
-        // Montagekorrektur
-        Quaternion mountingOffset = Quaternion.Euler(180f, 0f, 0f);
-
-        Quaternion result = converted * mountingOffset;
-
-        // Oberarm-Sensor: Y-Achse gespiegelt
-        if (kv.Key == 3) 
-        {
-            result = new Quaternion(result.x, -result.y, result.z, -result.w);
-        }
-
-        return result;
+        return converted * mountingOffset;
     }
 );
 

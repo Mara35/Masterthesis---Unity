@@ -34,10 +34,11 @@ public class ExplanationManager : MonoBehaviour
     public TextMeshProUGUI detailTitle;
     public TextMeshProUGUI detailSubtitle;
     public TextMeshProUGUI cubeDesc;
+    public Image cubeVisual;
     public TextMeshProUGUI newLabel;
 
     [Header("Cube Preview Panels (one per level, assign in order)")]
-    [Tooltip("6 Panels: Basic, Motor, Reaction, Cognitive, Sequential, Full")]
+    [Tooltip("6 Panels: Basic, Motor, Reaction, Cognitive, Memory, Full")]
     public GameObject[] previewPanels;
 
     [Header("Buttons")]
@@ -114,12 +115,12 @@ public class ExplanationManager : MonoBehaviour
                 difficulty    = DifficultyLevel.Cognitive
             },
             new LevelData {
-                title         = "Sequential",
-                subtitle      = "Focus on the Sequence Challenge — a working memory task.",
+                title         = "Memory",
+                subtitle      = "Focus on working memory — remember and reproduce the correct sequence.",
                 newBlockLabel = "Sequence Blocks",
                 description   = "3 purple blocks appear with numbers 1, 2 and 3. Remember the order — the numbers disappear after 3 seconds. Transfer them in the correct sequence for +5 bonus points. A wrong order means ?2 points. Trains working memory combined with motor execution.",
                 cubeColor     = colorPurple,
-                difficulty    = DifficultyLevel.Sequential
+                difficulty    = DifficultyLevel.Memory
             },
             new LevelData {
                 title         = "Full Challenge",
@@ -152,7 +153,7 @@ public class ExplanationManager : MonoBehaviour
         if (detailSubtitle != null) detailSubtitle.text = l.subtitle;
         if (cubeDesc != null) cubeDesc.text = l.description;
         if (newLabel != null) newLabel.text = l.newBlockLabel.ToUpper();
-        
+        if (cubeVisual != null) cubeVisual.color = l.cubeColor;
 
         // Preview Panel tauschen – nur das passende Panel anzeigen
         if (previewPanels != null)
