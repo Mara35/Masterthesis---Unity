@@ -40,7 +40,7 @@ public class CompetitionGameManager : MonoBehaviour
 
     [Header("Orbs & Spawner")]
     public GhostOrbController ghostOrb;
-    public PlayerOrbController playerOrb;
+    // public PlayerOrbController playerOrb;
     public BonusCubeSpawner bonusCubeSpawner;
 
     [Header("Start Trigger")]
@@ -144,7 +144,9 @@ public class CompetitionGameManager : MonoBehaviour
 
         // Alles sofort stoppen
         if (ghostOrb != null) ghostOrb.StopPlaying();
-        if (playerOrb != null) playerOrb.StopPlaying();
+        //if (playerOrb != null) playerOrb.StopPlaying();
+        GloveGrabber gloveGrabber = FindObjectOfType<GloveGrabber>();
+        if (gloveGrabber != null) gloveGrabber.enabled = false;
         if (bonusCubeSpawner != null) bonusCubeSpawner.StopSpawning();
 
         // Score sofort einfrieren – Orbs bewegen sich nicht mehr

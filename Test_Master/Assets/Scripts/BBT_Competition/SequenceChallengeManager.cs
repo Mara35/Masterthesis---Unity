@@ -1,17 +1,3 @@
-/*
- * Project:    SensinGlove – Box & Block Rehab Game
- * File:       SequenceChallengeManager.cs
- * Author:     Mari und Kiki (MCI – University of Applied Sciences)
- * Supervisor: Simon Winkler, BSc MSc
- * Year:       2025
- *
- * Regeln:
- *   - Alle 3 richtig ? +5 Bonuspunkte, Würfel verschwinden nach 1s
- *   - Erster falscher ? -2 Bonuspunkte, alle Würfel sofort weg
- *   - Feedback-Text im Spiel: "Gut gemacht!" oder "Falsche Reihenfolge!"
- *   - Orb soll alle 3 hintereinander nehmen ohne Unterbrechung
- */
-
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -31,14 +17,12 @@ public class SequenceChallengeManager : MonoBehaviour
     public float firstChallengeMax = 45f;
 
     [Header("Feedback Text (optional)")]
-    [Tooltip("TextMeshProUGUI für Feedback-Anzeige im Canvas")]
     public TextMeshProUGUI feedbackText;
 
-    [Header("Test")]
+    [Header("Ghost Fehler-Chance")]
     [Range(0f, 1f)]
     public float mistakeChance = 0.3f;
 
-    // -----------------------------------------------------------------------
     private bool isActive = false;
     private float partitionX = 0f;
     private List<SequenceCube> spawnedCubes = new List<SequenceCube>();
@@ -47,7 +31,6 @@ public class SequenceChallengeManager : MonoBehaviour
     private bool challengeActive = false;
     private bool spawnedOnLeft = false;
 
-    // -----------------------------------------------------------------------
     public void StartChallengeSystem()
     {
         isActive = true;
@@ -63,7 +46,6 @@ public class SequenceChallengeManager : MonoBehaviour
         DestroyAllCubes();
     }
 
-    // -----------------------------------------------------------------------
     private IEnumerator ChallengeRoutine()
     {
         yield return new WaitForSeconds(Random.Range(firstChallengeMin, firstChallengeMax));
@@ -86,24 +68,18 @@ public class SequenceChallengeManager : MonoBehaviour
         correctTransfers = 0;
         spawnedOnLeft = Random.value < 0.5f;
 
-        Debug.Log($"[SequenceChallenge] Challenge gestartet auf {(spawnedOnLeft ? "Ghost" : "Player")}-Seite!");
+        Debug.Log($"[SequenceChallenge] Challenge auf {(spawnedOnLeft ? "Ghost" : "Player")}-Seite!");
 
         Transform zone = spawnedOnLeft ? leftSpawnZone : rightSpawnZone;
         SpawnSequenceCubes(zone);
 
-        // Orb informieren – soll NUR Sequence-Würfel nehmen bis fertig
+        // Nur Ghost-Orb steuern - Mensch spielt selbst
         if (spawnedOnLeft)
         {
             GhostOrbController ghost = FindObjectOfType<GhostOrbController>();
             if (ghost != null) ghost.StartSequenceChallenge(spawnedCubes, mistakeChance);
         }
-        else
-        {
-            PlayerOrbController player = FindObjectOfType<PlayerOrbController>();
-            if (player != null) player.StartSequenceChallenge(spawnedCubes, mistakeChance);
-        }
 
-        // Überwachen bis fertig oder Timeout
         float timeout = 25f;
         float elapsed = 0f;
         while (challengeActive && elapsed < timeout && isActive)
@@ -113,22 +89,16 @@ public class SequenceChallengeManager : MonoBehaviour
             yield return null;
         }
 
-        // Orb freigeben
+        // Nur Ghost freigeben
         if (spawnedOnLeft)
         {
             GhostOrbController ghost = FindObjectOfType<GhostOrbController>();
             if (ghost != null) ghost.EndSequenceChallenge();
         }
-        else
-        {
-            PlayerOrbController player = FindObjectOfType<PlayerOrbController>();
-            if (player != null) player.EndSequenceChallenge();
-        }
 
         challengeActive = false;
     }
 
-    // -----------------------------------------------------------------------
     private void SpawnSequenceCubes(Transform zone)
     {
         if (sequenceCubePrefab == null || zone == null) return;
@@ -139,7 +109,6 @@ public class SequenceChallengeManager : MonoBehaviour
         float insetX = Mathf.Max(0.04f, b.size.x * 0.15f);
         float insetZ = Mathf.Max(0.04f, b.size.z * 0.15f);
 
-        // Zahlen 1-2-3 zufällig verteilt
         List<int> order = new List<int> { 1, 2, 3 };
         for (int i = order.Count - 1; i > 0; i--)
         {
@@ -165,7 +134,6 @@ public class SequenceChallengeManager : MonoBehaviour
         }
     }
 
-    // -----------------------------------------------------------------------
     private void CheckTransfers()
     {
         foreach (SequenceCube sc in spawnedCubes)
@@ -188,14 +156,12 @@ public class SequenceChallengeManager : MonoBehaviour
 
                 if (correctTransfers == 3)
                 {
-                    // Alle richtig!
                     OnAllCorrect();
                     return;
                 }
             }
             else
             {
-                // Falsche Reihenfolge
                 OnWrongOrder(sc.sequenceNumber);
                 return;
             }
@@ -208,17 +174,16 @@ public class SequenceChallengeManager : MonoBehaviour
         if (spawnedOnLeft)
         {
             CompetitionGameManager.ghostBonusPoints += bonus;
-            Debug.Log($"[SequenceChallenge] Alle richtig! BonusPoints Ghost = {CompetitionGameManager.ghostBonusPoints}");
+            Debug.Log($"[SequenceChallenge] Ghost: Alle richtig! +{bonus}");
         }
         else
         {
             CompetitionGameManager.playerBonusPoints += bonus;
-            Debug.Log($"[SequenceChallenge] Alle richtig! BonusPoints Player = {CompetitionGameManager.playerBonusPoints}");
+            Debug.Log($"[SequenceChallenge] Player: Alle richtig! +{bonus}");
         }
 
         ShowFeedback("Gut gemacht! +5", Color.green);
 
-        // Würfel nach 1s verschwinden lassen
         foreach (SequenceCube sc in spawnedCubes)
             if (sc != null) StartCoroutine(sc.LingerAndDestroy());
 
@@ -232,17 +197,15 @@ public class SequenceChallengeManager : MonoBehaviour
         if (spawnedOnLeft)
         {
             CompetitionGameManager.ghostBonusPoints += penalty;
-            Debug.Log($"[SequenceChallenge] Falsche Reihenfolge! #{wrongNumber}. BonusPoints Ghost = {CompetitionGameManager.ghostBonusPoints}");
+            Debug.Log($"[SequenceChallenge] Ghost: Falsche Reihenfolge! #{wrongNumber}. {penalty}");
         }
         else
         {
             CompetitionGameManager.playerBonusPoints += penalty;
-            Debug.Log($"[SequenceChallenge] Falsche Reihenfolge! #{wrongNumber}. BonusPoints Player = {CompetitionGameManager.playerBonusPoints}");
+            Debug.Log($"[SequenceChallenge] Player: Falsche Reihenfolge! #{wrongNumber}. {penalty}");
         }
 
         ShowFeedback("Falsche Reihenfolge! -2", Color.red);
-
-        // Alle Würfel sofort zerstören
         DestroyAllCubes();
         challengeActive = false;
     }

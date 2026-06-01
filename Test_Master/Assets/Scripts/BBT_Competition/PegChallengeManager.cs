@@ -1,47 +1,15 @@
-/*
- * Project:    SensinGlove – Box & Block Rehab Game
- * File:       PegChallengeManager.cs
- * Author:     Mari und Kiki (MCI – University of Applied Sciences)
- * Supervisor: Simon Winkler, BSc MSc
- * Year:       2025
- *
- * Attach to:  CompetitionGameManager (oder eigenes GO)
- *
- * Nine Hole Peg Test inspirierte Challenge:
- *   - 3 Zylinder spawnen auf der Spieler-Seite (in der Box)
- *   - 3 Zielzonen spawnen vor der Box auf dem Tisch
- *   - PlayerOrb bringt Zylinder in Zonen innerhalb von 8s
- *   - 1 richtig = +2, 2 richtig = +3, alle 3 = +5 Bonuspunkte
- *
- * Setup im Inspector:
- *   - pegPrefab        ? Zylinder Prefab mit PegChallengeCube.cs
- *   - zonePrefab       ? Zone Prefab mit PegChallengeZone.cs
- *   - playerSpawnZone  ? StartZone (Spieler-Seite)
- *   - tableCenter      ? Transform vor der Box auf dem Tisch
- */
-
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class PegChallengeManager : MonoBehaviour
 {
-    // -----------------------------------------------------------------------
-    // Inspector
-    // -----------------------------------------------------------------------
-
     [Header("Prefabs")]
-    [Tooltip("Zylinder Prefab (Nine Hole Peg Größe, Tag: Peg)")]
     public GameObject pegPrefab;
-
-    [Tooltip("Zielzone Prefab (kleines Loch/Marker)")]
     public GameObject zonePrefab;
 
     [Header("Spawn-Positionen")]
-    [Tooltip("StartZone des Spielers – hier spawnen die Zylinder")]
     public Transform playerSpawnZone;
-
-    [Tooltip("Transform vor der Box – hier spawnen die Zielzonen")]
     public Transform tableInFrontOfBox;
 
     [Header("Timing")]
@@ -50,21 +18,11 @@ public class PegChallengeManager : MonoBehaviour
     public float firstChallengeMax = 35f;
 
     [Header("Abstände")]
-    [Tooltip("Abstand zwischen den 3 Zonen")]
     public float zoneSpacing = 0.08f;
-
-    // -----------------------------------------------------------------------
-    // Private
-    // -----------------------------------------------------------------------
 
     private List<GameObject> spawnedPegs = new List<GameObject>();
     private List<PegChallengeZone> spawnedZones = new List<PegChallengeZone>();
-
     private bool isActive = false;
-
-    // -----------------------------------------------------------------------
-    // Public API
-    // -----------------------------------------------------------------------
 
     public void StartChallengeSystem()
     {
@@ -79,21 +37,11 @@ public class PegChallengeManager : MonoBehaviour
         CleanUp();
     }
 
-    // -----------------------------------------------------------------------
-    // Challenge Routine
-    // -----------------------------------------------------------------------
-
     private IEnumerator ChallengeRoutine()
     {
         yield return new WaitForSeconds(Random.Range(firstChallengeMin, firstChallengeMax));
-
         if (!isActive) yield break;
 
-        // Warten bis:
-        // 1. Player nicht gefreezt
-        // 2. Ghost nicht gefreezt (kein FreezeCube aktiv der Player einfrieren könnte)
-        // 3. Kein FreezeCube in der Scene der noch landen könnte
-        // 4. Keine andere Reaction Challenge aktiv
         yield return new WaitUntil(() =>
             !OrbSharedState.playerFrozen &&
             !OrbSharedState.ghostFrozen &&
@@ -101,9 +49,7 @@ public class PegChallengeManager : MonoBehaviour
             !FreezeCubeExistsInScene()
         );
 
-        // Zusätzliche Sicherheitspause nach FreezeCube
         yield return new WaitForSeconds(1.0f);
-
         yield return StartCoroutine(RunChallenge());
     }
 
@@ -111,16 +57,12 @@ public class PegChallengeManager : MonoBehaviour
     {
         Debug.Log("[PegChallengeManager] Challenge gestartet!");
 
-        // Pegs und Zonen spawnen
         OrbSharedState.playerSideHasPeg = true;
         SpawnPegs();
         SpawnZones();
 
-        // PlayerOrbController informieren
-        PlayerOrbController player = FindObjectOfType<PlayerOrbController>();
-        if (player != null) player.StartPegChallenge(spawnedPegs, GetZonePositions());
+        // Mensch spielt selbst - keine PlayerOrb Steuerung nötig
 
-        // 8s Countdown
         float remaining = challengeDuration;
         while (remaining > 0f && isActive)
         {
@@ -128,23 +70,14 @@ public class PegChallengeManager : MonoBehaviour
             yield return null;
         }
 
-        // Auswerten
         int placed = CountPlacedPegs();
         AwardBonusPoints(placed);
 
         Debug.Log($"[PegChallengeManager] Challenge beendet! {placed}/3 Pegs platziert.");
 
-        // PlayerOrb zurück zu normaler Logik
-        if (player != null) player.EndPegChallenge();
         OrbSharedState.playerSideHasPeg = false;
-
-        // Aufräumen
         CleanUp();
     }
-
-    // -----------------------------------------------------------------------
-    // Spawn
-    // -----------------------------------------------------------------------
 
     private void SpawnPegs()
     {
@@ -166,7 +99,6 @@ public class PegChallengeManager : MonoBehaviour
 
             GameObject peg = Instantiate(pegPrefab, pos, Quaternion.identity);
 
-            // Farb-ID zuweisen (0=Rot, 1=Blau, 2=Gelb)
             PegChallengeCube pegComp = peg.GetComponent<PegChallengeCube>();
             if (pegComp != null) pegComp.colorId = i;
 
@@ -178,9 +110,7 @@ public class PegChallengeManager : MonoBehaviour
     {
         if (zonePrefab == null || tableInFrontOfBox == null) return;
 
-        // Zonen in zufälliger Reihenfolge nebeneinander vor der Box
         int[] colorOrder = { 0, 1, 2 };
-        // Fisher-Yates shuffle
         for (int i = colorOrder.Length - 1; i > 0; i--)
         {
             int j = Random.Range(0, i + 1);
@@ -196,7 +126,7 @@ public class PegChallengeManager : MonoBehaviour
             PegChallengeZone zone = zoneGO.GetComponent<PegChallengeZone>();
             if (zone != null)
             {
-                zone.colorId = colorOrder[i]; // zufällige Anordnung der Farben
+                zone.colorId = colorOrder[i];
                 spawnedZones.Add(zone);
             }
         }
@@ -209,10 +139,6 @@ public class PegChallengeManager : MonoBehaviour
             if (z != null) positions.Add(z.transform.position);
         return positions;
     }
-
-    // -----------------------------------------------------------------------
-    // Auswertung
-    // -----------------------------------------------------------------------
 
     private bool FreezeCubeExistsInScene()
     {
@@ -229,17 +155,16 @@ public class PegChallengeManager : MonoBehaviour
             PegChallengeCube pegComp = peg.GetComponent<PegChallengeCube>();
             if (pegComp == null) continue;
 
-            // Prüfe ob Peg nahe einer Zone mit passender Farbe liegt
             foreach (PegChallengeZone zone in spawnedZones)
             {
                 if (zone == null) continue;
                 if (zone.colorId != pegComp.colorId) continue;
 
                 float dist = Vector3.Distance(peg.transform.position, zone.transform.position);
-                if (dist < 0.1f) // innerhalb 10cm = platziert
+                if (dist < 0.1f)
                 {
                     count++;
-                    Debug.Log($"[PegChallengeManager] Peg {pegComp.colorId} korrekt in Zone {zone.colorId} platziert.");
+                    Debug.Log($"[PegChallengeManager] Peg {pegComp.colorId} korrekt platziert.");
                     break;
                 }
             }
@@ -254,18 +179,12 @@ public class PegChallengeManager : MonoBehaviour
         else if (placed == 2) bonus = 3;
         else if (placed >= 3) bonus = 5;
 
-        Debug.Log($"[PegChallengeManager] {placed}/3 Pegs ? {bonus} Bonuspunkte. PlayerBonusPoints vorher: {CompetitionGameManager.playerBonusPoints}");
-
         if (bonus > 0)
         {
             CompetitionGameManager.playerBonusPoints += bonus;
-            Debug.Log($"[PegChallengeManager] Peg erfolgreich! BonusPoints Player = {CompetitionGameManager.playerBonusPoints}");
+            Debug.Log($"[PegChallengeManager] {placed}/3 Pegs - {bonus} Bonuspunkte. Total={CompetitionGameManager.playerBonusPoints}");
         }
     }
-
-    // -----------------------------------------------------------------------
-    // Aufräumen
-    // -----------------------------------------------------------------------
 
     private void CleanUp()
     {

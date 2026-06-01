@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -129,6 +130,26 @@ public class GloveGrabber : MonoBehaviour
             candidates.Add(block);
             Debug.Log($"[GloveGrabber] TriggerEnter: {block.name}");
         }
+    }
+
+    public void Freeze(float seconds)
+    {
+        StartCoroutine(FreezeRoutine(seconds));
+    }
+
+    private IEnumerator FreezeRoutine(float seconds)
+    {
+        enabled = false;
+        if (heldBlock != null)
+        {
+            heldBlock.Release();
+            heldBlock = null;
+            isGripping = false;
+        }
+        Debug.Log($"[GloveGrabber] Freeze für {seconds}s");
+        yield return new WaitForSeconds(seconds);
+        enabled = true;
+        Debug.Log("[GloveGrabber] Freeze beendet");
     }
 
     private void OnTriggerExit(Collider other)
