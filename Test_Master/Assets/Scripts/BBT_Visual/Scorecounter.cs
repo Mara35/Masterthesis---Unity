@@ -2,13 +2,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 
-/// <summary>
-/// Score counter for BoxBlock_VisualTraining and BoxBlock_Training_offline.
-/// BoxBlock_VisualTraining (AutoHandMover):
-///   useBlockItemValidation = false: checks whether the cube is to the left of the partition
-/// BoxBlock_Training_offline (GloveGrabber):
-///   useBlockItemValidation = true: checks BlockItem.IsValidlyTransferred
-/// </summary>
 [RequireComponent(typeof(BoxCollider))]
 public class ScoreCounter : MonoBehaviour
 {
@@ -50,12 +43,10 @@ public class ScoreCounter : MonoBehaviour
 
         if (useBlockItemValidation)
         {
-            // GloveGrabber Flow
             valid = block.IsValidlyTransferred;
         }
         else
         {
-            // AutoHandMover Flow: Cube to the left of the partition = valid transfer
             if (partitionTransform != null)
                 valid = other.transform.position.x < partitionTransform.position.x;
             else
@@ -67,22 +58,27 @@ public class ScoreCounter : MonoBehaviour
             countedInstanceIDs.Add(id);
             score++;
             UpdateUI();
-            Debug.Log($"[ScoreCounter] '{block.name}' counted – VALID transfer. Score={score}");
+            Debug.Log($"[ScoreCounter] '{block.name}' counted - VALID transfer. Score={score}");
         }
         else
         {
-            Debug.Log($"[ScoreCounter] '{block.name}' rejected – invalid transfer.");
+            Debug.Log($"[ScoreCounter] '{block.name}' rejected - invalid transfer.");
         }
     }
 
     private void OnTriggerExit(Collider other)
     {
+        BlockItem block = other.GetComponent<BlockItem>();
+        if (block == null) return;
+
         int id = other.gameObject.GetInstanceID();
-        if (countedInstanceIDs.Remove(id))
+
+        if (countedInstanceIDs.Contains(id) && !block.IsValidlyTransferred)
         {
+            countedInstanceIDs.Remove(id);
             score = Mathf.Max(0, score - 1);
             UpdateUI();
-            Debug.Log($"[ScoreCounter] leave block. Score={score}");
+            Debug.Log($"[ScoreCounter] '{block.name}' left zone invalidly - Score={score}");
         }
     }
 

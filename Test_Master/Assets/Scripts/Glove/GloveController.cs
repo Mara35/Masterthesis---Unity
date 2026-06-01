@@ -6,6 +6,9 @@ public class GloveController : MonoBehaviour
     [SerializeField] private UDPCommunicationGlove udpCommunication;
     [SerializeField] private int gloveId = 20;
 
+    [Header("Grabber")]
+    [SerializeField] private GloveGrabber gloveGrabber;
+
     [Header("Thumb")]
     [SerializeField] private Transform thumbMCP;
     [SerializeField] private Transform thumbPIP;
@@ -115,6 +118,19 @@ public class GloveController : MonoBehaviour
                 $"Index MCP: {glove.Index_MCP:F1}, PIP: {glove.Index_PIP:F1} | " +
                 $"Middle MCP: {glove.Middle_MCP:F1}, PIP: {glove.Middle_PIP:F1}"
             );
+        }
+
+        // Finger-Winkel an GloveGrabber weitergeben
+        if (gloveGrabber != null)
+        {
+            gloveGrabber.currentIndexMcp = glove.Index_MCP;
+            gloveGrabber.currentIndexPip = glove.Index_PIP;
+            gloveGrabber.currentMiddleMcp = glove.Middle_MCP;
+            gloveGrabber.currentMiddlePip = glove.Middle_PIP;
+            gloveGrabber.currentRingMcp = glove.Ring_MCP;
+            gloveGrabber.currentRingPip = glove.Ring_PIP;
+            gloveGrabber.currentPinkyMcp = glove.Pinky_MCP;
+            gloveGrabber.currentPinkyPip = glove.Pinky_PIP;
         }
     }
 

@@ -20,4 +20,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/BBT_Explanation_Competition.unity
     guid: 3a14ba96324319040b8e7eac01e6b4ba
+  - enabled: 1
+    path: Assets/Scenes/BBT_Training.unity
+    guid: bb50ae2275253c246bfd6020774be22b
   m_configObjects: {}

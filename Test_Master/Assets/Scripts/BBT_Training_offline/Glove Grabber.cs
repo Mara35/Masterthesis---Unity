@@ -32,6 +32,22 @@ public class GloveGrabber : MonoBehaviour
     public BlockItem HeldBlock => heldBlock;
     public bool IsGripping => isGripping;
 
+    private void Start()
+    {
+        if (LevelConfig.Selected != null)
+        {
+            gripMcpThreshold = LevelConfig.Selected.gripMcpThreshold;
+            gripPipThreshold = LevelConfig.Selected.gripPipThreshold;
+            minFingersForGrip = LevelConfig.Selected.minFingersForGrip;
+            releaseHysteresis = LevelConfig.Selected.releaseHysteresis;
+            Debug.Log($"[GloveGrabber] Level geladen: {LevelConfig.Selected.levelName}");
+        }
+        else
+        {
+            Debug.Log("[GloveGrabber] Kein Level ausgewählt - Inspector-Werte werden verwendet.");
+        }
+    }
+
     private void Update()
     {
         bool shouldGrip = CheckGripCondition();
