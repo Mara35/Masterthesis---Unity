@@ -70,7 +70,7 @@ public static class StreamReceiveMessageTypes
 
         glove.Id = data[3];
 
-        // Achtung: Reihenfolge MUSS exakt zu ESP passen
+        
         glove.Thumb_MCP = BitConverter.ToSingle(data, 4);
         glove.Thumb_PIP = BitConverter.ToSingle(data, 8);
 

@@ -4,9 +4,9 @@ using UnityEngine.UI;
 
 public class MainMenuManager : MonoBehaviour
 {
-    [Header("Scene Namen (exakt wie in Build Settings)")]
+    [Header("Scene Names")]
     [SerializeField] private string manuellesTrainingSceneName = "BBT_Training";
-    [SerializeField] private string visuellesTrainingSceneName = "BoxBlock_VisualTraining";
+    [SerializeField] private string visuellesTrainingSceneName = "BBT_VisualTraining";
     [SerializeField] private string competitionSceneName = "BBT_Explanation_Competition";
 
     [Header("Panels")]
@@ -14,11 +14,11 @@ public class MainMenuManager : MonoBehaviour
     [SerializeField] private GameObject trainingInfoPanel;
     [SerializeField] private GameObject levelSelectPanel;
 
-    [Header("Hauptmenü Buttons")]
+    [Header("Main Menu Buttons")]
     [SerializeField] private Button trainingButton;
     [SerializeField] private Button competitionButton;
 
-    [Header("Trainings-Info Buttons")]
+    [Header("Training Info Buttons")]
     [SerializeField] private Button manuellesTrainingButton;
     [SerializeField] private Button visuellesTrainingButton;
     [SerializeField] private Button zurueckButton;
@@ -42,7 +42,7 @@ public class MainMenuManager : MonoBehaviour
             gripMcpThreshold = -20f,
             gripPipThreshold = -25f,
             minFingersForGrip = 1,
-            releaseHysteresis = 5f
+            releaseHysteresis = 15f
         };
         mediumConfig = new LevelConfig
         {
@@ -50,7 +50,7 @@ public class MainMenuManager : MonoBehaviour
             gripMcpThreshold = -35f,
             gripPipThreshold = -35f,
             minFingersForGrip = 3,
-            releaseHysteresis = 5f
+            releaseHysteresis = 15f
         };
         hardConfig = new LevelConfig
         {
@@ -58,7 +58,7 @@ public class MainMenuManager : MonoBehaviour
             gripMcpThreshold = -45f,
             gripPipThreshold = -40f,
             minFingersForGrip = 5,
-            releaseHysteresis = 5f
+            releaseHysteresis = 15f
         };
     }
 
@@ -66,11 +66,11 @@ public class MainMenuManager : MonoBehaviour
     {
         ShowMainMenu();
 
-        // Hauptmenü
+        // MainMenu
         if (trainingButton != null) trainingButton.onClick.AddListener(ShowTrainingInfo);
         if (competitionButton != null) competitionButton.onClick.AddListener(LoadCompetitionScene);
 
-        // Trainings-Info
+        // Training Info
         if (manuellesTrainingButton != null) manuellesTrainingButton.onClick.AddListener(ShowLevelSelect);
         if (visuellesTrainingButton != null) visuellesTrainingButton.onClick.AddListener(LoadVisuellesTraining);
         if (zurueckButton != null) zurueckButton.onClick.AddListener(ShowMainMenu);
@@ -118,7 +118,7 @@ public class MainMenuManager : MonoBehaviour
         if (levelSelectPanel != null) levelSelectPanel.SetActive(true);
     }
 
-    // --- Level Auswahl ---
+    // --- Level Selection ---
 
     private void SelectEasy()
     {
@@ -138,7 +138,7 @@ public class MainMenuManager : MonoBehaviour
         LoadManuellesTraining();
     }
 
-    // --- Scene Laden ---
+    // --- Scene Loading ---
 
     private void LoadManuellesTraining()
     {

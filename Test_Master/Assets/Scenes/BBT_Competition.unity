@@ -8377,7 +8377,7 @@ MonoBehaviour:
   gripMcpThreshold: -25
   gripPipThreshold: -30
   minFingersForGrip: 2
-  releaseHysteresis: 5
+  releaseHysteresis: 15
   holdPoint: {fileID: 1783763877}
   showDebugGUI: 0
   currentIndexMcp: 0
@@ -11763,8 +11763,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c967c945b4bc1424fb37e794aee08a7b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gloveGrabber: {fileID: 1916315915}
-  grabTrigger: {fileID: 1916315910}
 --- !u!1 &1921934530
 GameObject:
   m_ObjectHideFlags: 0

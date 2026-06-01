@@ -15,7 +15,6 @@ public static class CsvFullBodyLoader
         if (lines.Length < 2)
             return frames;
 
-        // Wir überspringen die Header-Zeile
         for (int row = 1; row < lines.Length; row++)
         {
             string line = lines[row].Trim();
@@ -24,11 +23,11 @@ public static class CsvFullBodyLoader
 
             string[] parts = line.Split(',');
 
-            // Erwartetes Format:
-            // Spalte 0 = Index
-            // Spalte 1 = Platzhalter / NaN
-            // danach 10 Sensoren * 4 Werte = 40 Spalten
-            // insgesamt mindestens 42 Spalten
+            // Expected format:
+            // Column 0 = Index
+            // Column 1 = Placeholder / NaN
+            // followed by 10 sensors * 4 values = 40 columns
+            // a total of at least 42 columns
             if (parts.Length < 42)
                 continue;
 
@@ -46,7 +45,7 @@ public static class CsvFullBodyLoader
                 float jVal = ParseFloat(parts[baseCol + 2]);
                 float realVal = ParseFloat(parts[baseCol + 3]);
 
-                // Datenschema aus deinem IMU-System:
+                // Data schema from your IMU system:
                 // Unity x = i
                 // Unity y = -k
                 // Unity z = j

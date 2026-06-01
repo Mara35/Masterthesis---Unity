@@ -9,10 +9,9 @@ using UnityEngine;
 
 public class UDPServer : MonoBehaviour
 {
-    // Hier kannst du im Inspector nun mehrere Ports eintragen (z.B. Größe 2: Element 0 = 9001, Element 1 = 9002)
     [SerializeField] private List<int> listenPorts = new List<int> { 9001, 9002 };
 
-    // Wir verwalten jetzt eine Liste von Clients und Threads, um von allen Ports gleichzeitig zu lesen
+    
     private List<UdpClient> _udpClients = new List<UdpClient>();
     private List<Thread> _readThreads = new List<Thread>();
 
@@ -33,17 +32,17 @@ public class UDPServer : MonoBehaviour
                 var client = new UdpClient(port);
                 _udpClients.Add(client);
 
-                // Für jeden Port starten wir einen eigenen kleinen Hintergrund-Thread
+                
                 Thread thread = new Thread(() => ThreadFunction(client, port));
                 thread.IsBackground = true;
                 thread.Start();
                 _readThreads.Add(thread);
 
-                Debug.Log($"UDP Server lauscht erfolgreich auf Port: {port}");
+                Debug.Log($"UDP server is successfully waiting on port: {port}");
             }
             catch (Exception e)
             {
-                Debug.LogError($"Fehler beim Öffnen von Port {port}: {e.Message}");
+                Debug.LogError($"Error opening port {port}: {e.Message}");
             }
         }
     }
@@ -92,7 +91,7 @@ public class UDPServer : MonoBehaviour
                 {
                     var (nr, quat) = StreamReceiveMessageTypes.DecodeQuaternionData(receivedBytes);
 
-                    lock (SensorsMap) // Lock für Thread-Sicherheit bei mehreren Ports
+                    lock (SensorsMap) 
                     {
                         if (!SensorsMap.ContainsKey(nr))
                         {
@@ -105,10 +104,6 @@ public class UDPServer : MonoBehaviour
                         SensorsMap[nr].IpAddress = clientEndpoint.Address;
                         SensorsMap[nr].Quaternion = quat;
 
-                        // WICHTIG: Wir merken uns, auf welchem Port dieser Sensor reinkam!
-                        // Falls dein StreamSensor-Objekt kein Port-Feld hat, nutzen wir das temporär für die Antwort.
-                        // Wir missbrauchen hier einen Trick oder senden direkt an den Port, von dem er kam.
-                        // Damit die Vibration funktioniert, speichern wir den Port im Endpunkt.
                     }
                     continue;
                 }
@@ -167,11 +162,10 @@ public class UDPServer : MonoBehaviour
 
         var data = StreamSendMessages.CreateVibrateOneRequest(vibrationRequest);
 
-        // KORREKTUR: Ermittle den passenden Sende-Port anhand der SensorId.
-        // Unterarm (Id 4 -> Port 9002), Oberarm (Id 3 -> Port 9001)
+        
         int targetPort = (vibrationRequest.SensorId == 4) ? 9002 : 9001;
 
-        // Wir nutzen den ersten verfügbaren Client zum Senden
+        
         if (_udpClients.Count > 0)
         {
             _udpClients[0].Send(data, data.Length, new IPEndPoint(sensor.IpAddress, targetPort));

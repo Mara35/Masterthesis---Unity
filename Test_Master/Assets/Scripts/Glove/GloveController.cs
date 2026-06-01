@@ -120,7 +120,7 @@ public class GloveController : MonoBehaviour
             );
         }
 
-        // Finger-Winkel an GloveGrabber weitergeben
+        // Passes the finger angle to GloveGrabber
         if (gloveGrabber != null)
         {
             gloveGrabber.currentIndexMcp = glove.Index_MCP;

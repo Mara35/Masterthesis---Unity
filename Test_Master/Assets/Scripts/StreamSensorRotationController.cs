@@ -7,7 +7,7 @@ public class StreamSensorRotationController : MonoBehaviour
     [SerializeField] private UDPServer streamController;
     [SerializeField] private StreamSensorModel model;
 
-    // Hier passen wir die Raumachsen exakt an dein Setup an
+    
     private IDictionary<int, Quaternion> Quaternions => streamController.SensorsMap.ToDictionary(
     kv => kv.Key,
     kv => {
