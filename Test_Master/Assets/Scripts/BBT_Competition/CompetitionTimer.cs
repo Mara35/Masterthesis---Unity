@@ -1,15 +1,11 @@
 /*
- * Project:    SensinGlove – Box & Block Rehab Game
- * File:       CompetitionTimer.cs
- * Author:     Mari und Kiki (MCI – University of Applied Sciences)
- * Supervisor: Simon Winkler, BSc MSc
- * Year:       2025
+ * Summary
+ * 
+ * Attach to:  CompetitionGameManager GameObject (or your own GameObject)
  *
- * Attach to:  CompetitionGameManager GameObject (oder eigenes GO)
- *
- * Ähnlicher Aufbau wie Timer.cs in BBT_Training_offline.
- * Wird von BoxStartTrigger gestartet wenn PlayerOrb die Box berührt.
- * Ruft am Ende CompetitionGameManager.EndGame() auf.
+ * Similar structure to Timer.cs in BBT_Training_offline.
+ * Triggered by BoxStartTrigger when Hand touches the box.
+ * Calls CompetitionGameManager.EndGame() at the end.
  */
 
 using UnityEngine;
@@ -18,16 +14,16 @@ using System.Collections;
 
 public class CompetitionTimer : MonoBehaviour
 {
-    [Header("Dauer")]
+    [Header("Duration")]
     public float gameDuration = 60f;
 
     [Header("UI")]
     public TextMeshProUGUI timerText;
 
-    [Header("Referenz")]
+    [Header("Reference")]
     public CompetitionGameManager gameManager;
 
-    [Header("Shake bei 10s")]
+    [Header("Shake at 10s")]
     public float shakeDuration = 0.5f;
     public float shakeMagnitude = 8f;
 
@@ -55,7 +51,7 @@ public class CompetitionTimer : MonoBehaviour
 
         timeRemaining -= Time.deltaTime;
 
-        // Schütteln bei genau 10s – nur einmal
+        // Shake at exactly 10 seconds—just once
         if (!shakeTriggered && timeRemaining <= 10f)
         {
             shakeTriggered = true;
@@ -79,13 +75,13 @@ public class CompetitionTimer : MonoBehaviour
         timeRemaining = gameDuration;
         isRunning = true;
         shakeTriggered = false;
-        Debug.Log("[CompetitionTimer] Timer gestartet!");
+        Debug.Log("[CompetitionTimer] Timer started!");
         UpdateUI();
     }
 
     private void EndGame()
     {
-        Debug.Log("[CompetitionTimer] Zeit abgelaufen!");
+        Debug.Log("[CompetitionTimer] Time!s up!");
         if (gameManager != null)
             gameManager.EndGame();
     }
@@ -97,7 +93,7 @@ public class CompetitionTimer : MonoBehaviour
         int seconds = Mathf.CeilToInt(timeRemaining);
         timerText.text = "Time: " + seconds;
 
-        // Letzte 10s: rot
+        // Last 10 seconds: red
         timerText.color = seconds <= 10 ? Color.red : Color.white;
         timerText.faceColor = seconds <= 10 ? Color.red : Color.white;
     }
@@ -116,7 +112,7 @@ public class CompetitionTimer : MonoBehaviour
             yield return null;
         }
 
-        // Zurück zur Originalposition
+        // Back to the original position
         timerText.rectTransform.anchoredPosition = timerOriginalPos;
     }
 }

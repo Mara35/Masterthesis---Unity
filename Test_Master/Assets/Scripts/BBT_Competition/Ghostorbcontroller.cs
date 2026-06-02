@@ -1,18 +1,14 @@
 /*
- * Project:    SensinGlove – Box & Block Rehab Game
- * File:       GhostOrbController.cs
- * Author:     Mari und Kiki (MCI – University of Applied Sciences)
- * Supervisor: Simon Winkler, BSc MSc
- * Year:       2025
+ * summary:
+ * 
+ * Attach to:  GhostOrb GameObject
  *
- * Attach to:  GhostOrb GameObject (nur EINMAL!)
+ * Searches for cubes by POSITION (left side of the partition) – not by parent hierarchy.
+ * This also detects cubes that have been moved over by the PlayerOrb.
  *
- * Sucht Würfel per POSITION (links der Partition) – nicht per Parent-Hierarchie.
- * Dadurch werden auch Würfel erkannt die vom PlayerOrb rübergelegt wurden.
- *
- * Setup im Inspector:
- *   - ghostTargetZone  ? StartZone des XBot (rechte Seite, Ablagebereich)
- *   - cubeTag          ? Tag aller Würfel (z.B. "Block"), oder leer lassen für Name-Suche
+ * Setup in the Inspector:
+ *   - ghostTargetZone  ? XBot's StartZone (right side, drop zone)
+ *   - cubeTag          ? Tag for all cubes (e.g., “Block”), or leave blank for name search
  */
 
 using System.Collections;
@@ -25,36 +21,36 @@ public class GhostOrbController : MonoBehaviour
     // Inspector
     // -----------------------------------------------------------------------
 
-    [Header("Szenen-Referenzen")]
-    [Tooltip("Ablagebereich auf der XBot-Seite (StartZone des XBot)")]
+    [Header("Scene-Reference")]
+    [Tooltip("Drop-off area on the XBot side (XBot's StartZone)")]
     public Transform ghostTargetZone;
 
-    [Tooltip("FreezeZone für eigene FreezeCubes (links für Player, rechts für Ghost)")]
+    [Tooltip("FreezeZone for your own FreezeCubes (left for Player, right for Ghost)")]
     public Transform freezeZone;
 
-    [Tooltip("Eigene Ablageseite des Ghost (TargetZone – linke Seite)")]
+    [Tooltip("The Ghost's dedicated drop-off side (TargetZone – left side)")]
     public Transform ghostOwnZone;
 
-    [Tooltip("Tag aller Würfel-GameObjects (in Unity unter Inspector ? Tag setzen)")]
+    [Tooltip("Tag of all Cube-GameObjects")]
     public string cubeTag = "Block";
 
-    [Header("Bewegung")]
+    [Header("Movement")]
     [Range(0.1f, 1.0f)]
     public float speed = 1.0f;
 
-    [Tooltip("Wie hoch der Orb über die Partition-Oberkante hebt (Meter)")]
+    [Tooltip("How high the orb rises above the top edge of the partition")]
     public float liftHeight = 0.15f;
 
-    [Tooltip("Minimale Y-Höhe des Orbs – manuell auf Tischoberfläche setzen")]
+    [Tooltip("Minimal Y-Hight of orb")]
     public float minSafeY = 0.9f;
 
-    [Tooltip("Radius zum Aufnehmen eines Würfels")]
+    [Tooltip("Radius to pick up a cube")]
     public float pickupRadius = 0.12f;
 
-    [Tooltip("Radius zum Erreichen eines Wegpunkts")]
+    [Tooltip("Radius required to reach a waypoint")]
     public float waypointRadius = 0.05f;
 
-    [Tooltip("Pause (s) bevor der nächste Würfel gesucht wird")]
+    [Tooltip("Pause(s) before the next cube is selected")]
     [Range(0f, 2f)]
     public float reactionDelay = 0.5f;
 
@@ -104,7 +100,7 @@ public class GhostOrbController : MonoBehaviour
             centerPartition = cp.transform;
             partitionX = cp.transform.position.x;
 
-            // Alle Renderer in Children sammeln und höchsten Punkt finden
+            // Collect all renderers in Children and find the highest point
             Renderer[] renderers = cp.GetComponentsInChildren<Renderer>();
             if (renderers.Length > 0)
             {
@@ -115,7 +111,7 @@ public class GhostOrbController : MonoBehaviour
             }
             else
             {
-                // Fallback: Tisch-Oberfläche über BoxCollider suchen
+                // Fallback: Find the table surface using BoxCollider
                 BoxCollider bc = cp.GetComponentInChildren<BoxCollider>();
                 if (bc != null)
                     partitionTopY = bc.bounds.max.y;
@@ -125,8 +121,8 @@ public class GhostOrbController : MonoBehaviour
         }
         else
         {
-            // CenterPartition nicht gefunden: Tischoberfläche über alle Renderer schätzen
-            Debug.LogWarning("[Orb] 'CenterPartition' nicht gefunden – suche Tischoberfläche.");
+            // CenterPartition not found: Estimate table surface using all renderers
+            Debug.LogWarning("[Orb] 'CenterPartition' not found – looking for table surface.");
             GameObject table = GameObject.Find("Table");
             if (table != null)
             {
@@ -137,7 +133,7 @@ public class GhostOrbController : MonoBehaviour
             }
             else
             {
-                partitionTopY = 0.8f; // letzter Fallback
+                partitionTopY = 0.8f; // last Fallback
             }
             partitionX = 0f;
         }
@@ -168,12 +164,12 @@ public class GhostOrbController : MonoBehaviour
 
     private void HandleIdle()
     {
-        // FreezeCube auf eigener Seite hat höchste Priorität
-        // Priorität 2: Sequence Challenge
+        // FreezeCube is top priority
+        // Priority 2: Sequence Challenge
         if (isSequenceChallenge)
         {
-            // Nächsten Würfel nach sequenceNumber finden (richtige Reihenfolge)
-            int nextNumber = sequenceNextIdx + 1; // sequenceNextIdx = wie viele bereits übertragen
+            // Find the next cube based on sequenceNumber (in the correct order)
+            int nextNumber = sequenceNextIdx + 1; // sequenceNextIdx = how many have already been transferred
             SequenceCube correctCube = null;
             SequenceCube wrongCube = null;
 
@@ -184,14 +180,14 @@ public class GhostOrbController : MonoBehaviour
                 else if (wrongCube == null) wrongCube = s;
             }
 
-            // Fehler machen?
+            // Making mistakes?
             SequenceCube toPickup = null;
             if (Random.value < sequenceMistakeChance && wrongCube != null)
-                toPickup = wrongCube;   // absichtlich falscher
+                toPickup = wrongCube;   // intentionally incorrect
             else if (correctCube != null)
-                toPickup = correctCube; // richtiger
+                toPickup = correctCube; // correct
             else
-                toPickup = wrongCube;   // kein richtiger mehr verfügbar
+                toPickup = wrongCube;   //  No more proper ones available
 
             if (toPickup != null)
             {
@@ -199,7 +195,7 @@ public class GhostOrbController : MonoBehaviour
 
                 SequenceCube sc = pickIdx >= 0 ? sequenceCubes[pickIdx] : null;
                 if (sc != null && !sc.IsTransferred && OrbSharedState.IsAvailable(sc.gameObject.GetInstanceID())
-                    && sc.SpawnedOnGhostSide()) // nur eigene Seite
+                    && sc.SpawnedOnGhostSide()) // only own side
                 {
                     targetCube = sc.gameObject;
                     targetRb = targetCube.GetComponent<Rigidbody>();
@@ -208,13 +204,13 @@ public class GhostOrbController : MonoBehaviour
                     OrbSharedState.Lock(targetCube.GetInstanceID());
                     sequenceNextIdx++;
                     state = State.MovingToCube;
-                    Debug.Log($"[GhostOrb] Sequence Würfel #{sc.sequenceNumber} aufnehmen (mistakeChance={sequenceMistakeChance}).");
+                    Debug.Log($"[GhostOrb] Sequence cubes #{sc.sequenceNumber} pick up (mistakeChance={sequenceMistakeChance}).");
                     return;
                 }
             } // end if toPickup
         }
 
-        // Priorität 3: ReactionCube im eigenen Feld
+        // Priority 3: ReactionCube in its own field
         GameObject reactionTarget = FindReactionCubeOnOwnSide();
         if (reactionTarget != null)
         {
@@ -223,7 +219,7 @@ public class GhostOrbController : MonoBehaviour
             isStealingMalus = false;
             isCarryingFreeze = false;
             OrbSharedState.Lock(targetCube.GetInstanceID());
-            Debug.Log($"[GhostOrb] ReactionCube gefunden – höchste Priorität!");
+            Debug.Log($"[GhostOrb] ReactionCube found – highest Priority!");
 
             if (transform.position.x > partitionX)
             {
@@ -239,14 +235,14 @@ public class GhostOrbController : MonoBehaviour
 
         GameObject freezeTarget = FindFreezeCubeOnOwnSide();
 
-        // 50% Chance: versuche roten Würfel vom Gegner zu klauen
+        // 50% Chance: Try to steal the green cube from the opponent's side
         GameObject stealTarget = null;
         if (freezeTarget == null && Random.value < 0.5f)
             stealTarget = FindMalusCubeOnEnemySide();
 
         targetCube = freezeTarget ?? stealTarget ?? FindNearestCubeOnMySide();
 
-        // Fallback: Cooldown ignorieren falls kein Würfel gefunden (verhindert Stillstand)
+        // Fallback: Ignore cooldown if no cube is found (prevents stalling)
         if (targetCube == null)
             targetCube = FindNearestCubeOnMySide(ignoreCooldown: true);
 
@@ -256,10 +252,10 @@ public class GhostOrbController : MonoBehaviour
         isCarryingFreeze = (freezeTarget != null);
         targetRb = targetCube.GetComponent<Rigidbody>();
 
-        // Sofort sperren damit kein anderer Orb denselben Würfel wählt
+        //  Block immediately so opponents don't choose the same cube
         OrbSharedState.Lock(targetCube.GetInstanceID());
 
-        // Orb auf falscher Seite ? erst zurückfliegen
+        // Orb on the wrong side? Fly back first
         if (transform.position.x > partitionX)
         {
             returnTarget = new Vector3(targetCube.transform.position.x, flyHeight,
@@ -274,7 +270,7 @@ public class GhostOrbController : MonoBehaviour
         }
     }
 
-    // Sucht einen Malus-Würfel (BonusCube mit negativem pointValue) auf der GEGNERISCHEN Seite
+    // Look for a bonus cube (BonusCube with a negative pointValue) on the OPPONENT'S side
     private GameObject FindMalusCubeOnEnemySide()
     {
         GameObject nearest = null;
@@ -282,11 +278,11 @@ public class GhostOrbController : MonoBehaviour
 
         foreach (BonusCube bc in FindObjectsOfType<BonusCube>())
         {
-            if (bc.pointValue > 0) continue; // nur negative (rote) Würfel
+            if (bc.pointValue > 0) continue; // only negative (green) Cubes
             if (!bc.gameObject.activeInHierarchy) continue;
             if (!OrbSharedState.IsAvailable(bc.gameObject.GetInstanceID())) continue;
 
-            // Gegnerische Seite = rechts der Partition (Ghost ist links)
+            // Opposite side = right side of the partition (Ghost is on the left)
             if (bc.transform.position.x <= partitionX) continue;
 
             float d = Vector3.Distance(transform.position, bc.transform.position);
@@ -370,20 +366,20 @@ public class GhostOrbController : MonoBehaviour
     }
 
     // -----------------------------------------------------------------------
-    // Bewegung / Würfel mitführen
+    // Movement / Carrying the cubes
     // -----------------------------------------------------------------------
 
     private void MoveTowards(Vector3 target)
     {
         Vector3 next = Vector3.MoveTowards(transform.position, target, speed * Time.deltaTime);
-        next.y = Mathf.Max(next.y, minSafeY); // nie unter Tischoberfläche
+        next.y = Mathf.Max(next.y, minSafeY); // never below the tabletop
         transform.position = next;
     }
 
     private void CarryCube()
     {
         if (targetCube != null)
-            // Würfel leicht über dem Orb-Mittelpunkt halten damit er nicht durch Geometrie drückt
+            // // Hold the cube slightly above the orb's center so it doesn't pass through the geometry
             targetCube.transform.position = transform.position + Vector3.up * 0.01f;
     }
 
@@ -399,12 +395,12 @@ public class GhostOrbController : MonoBehaviour
             targetRb.isKinematic = true;
         }
 
-        // ReactionCube informieren wer ihn trägt
+        // inform ReactionCube who is carrying it (for correct behavior and visuals)
         ReactionCube rc = targetCube.GetComponent<ReactionCube>();
         if (rc != null) rc.RegisterCarrier(true);
 
         Vector3 pos = transform.position;
-        // Ablageposition bestimmen
+        // Determine the drop-off location
         if (isCarryingFreeze)
             dropTarget = GetFreezeZonePosition();
         else if (isStealingMalus)
@@ -415,12 +411,12 @@ public class GhostOrbController : MonoBehaviour
         crossTarget = new Vector3(dropTarget.x, flyHeight, dropTarget.z);
         state = State.LiftUp;
 
-        Debug.Log($"[GhostOrb] {(isStealingMalus ? "Klaue Malus" : "Transfer")}: {targetCube.name}  Ziel: {dropTarget}");
+        Debug.Log($"[GhostOrb] {(isStealingMalus ? "Stealing Malus" : "Transfer")}: {targetCube.name}  Target: {dropTarget}");
     }
 
     private void Drop()
     {
-        // Sicherheitscheck – Würfel könnte bereits zerstört sein (z.B. ReactionCube)
+        // Safety check – the cube may already be destroyed (e.g., ReactionCube)
         if (targetCube == null)
         {
             targetRb = null;
@@ -455,8 +451,8 @@ public class GhostOrbController : MonoBehaviour
     }
 
     // -----------------------------------------------------------------------
-    // Würfelsuche per POSITION (nicht per Parent)
-    // Findet alle Würfel links der Partition – egal welcher Parent
+    // Find cubes by POSITION (not by parent)
+    // Finds all cubes to the left of the partition—regardless of their parent
     // -----------------------------------------------------------------------
 
     private GameObject FindNearestCubeOnMySide(bool ignoreCooldown = false)
@@ -464,7 +460,7 @@ public class GhostOrbController : MonoBehaviour
         GameObject nearest = null;
         float bestDist = float.MaxValue;
 
-        // Alle Würfel per Tag suchen
+        // Search for all cubes with tag
         GameObject[] allCubes;
         try
         {
@@ -481,12 +477,12 @@ public class GhostOrbController : MonoBehaviour
         {
             if (!cube.activeInHierarchy) continue;
 
-            // Nur Würfel auf der linken (Ghost-)Seite
+            // Only dice on the left (ghost) side
             if (cube.transform.position.x >= partitionX) continue;
 
-            // Würfel der gerade getragen wird überspringen
+            // Skip the cube currently being carried
             if (cube == targetCube) continue;
-            // Gesperrte oder kürzlich abgelegte Würfel überspringen (shared state)
+            // Skip locked or recently discarded dice (shared state)
             if (ignoreCooldown ? !OrbSharedState.IsAvailableIgnoreCooldown(cube.GetInstanceID()) : !OrbSharedState.IsAvailable(cube.GetInstanceID())) continue;
 
             float d = Vector3.Distance(transform.position, cube.transform.position);
@@ -496,7 +492,7 @@ public class GhostOrbController : MonoBehaviour
         return nearest;
     }
 
-    // Fallback falls kein Tag gesetzt: sucht alle GameObjects die mit "Block" beginnen
+    // Fallback if no tag is set: searches for all GameObjects that start with “Block”
     private GameObject[] FindAllBlocksByName()
     {
         var result = new List<GameObject>();
@@ -508,7 +504,7 @@ public class GhostOrbController : MonoBehaviour
         return result.ToArray();
     }
 
-    // Zufällige Position auf der eigenen (Ghost-)Seite – für gestohlene rote Würfel
+    // Random position on your own (ghost) side – for stolen green cubes
     private GameObject FindReactionCubeOnOwnSide()
     {
         GameObject nearest = null;
@@ -524,7 +520,7 @@ public class GhostOrbController : MonoBehaviour
         {
             if (!rc.activeInHierarchy) continue;
             if (!OrbSharedState.IsAvailable(rc.GetInstanceID())) continue;
-            if (rc.transform.position.x > partitionX) continue; // Ghost-Seite = links
+            if (rc.transform.position.x > partitionX) continue; // Ghost-Side = left
 
             float d = Vector3.Distance(transform.position, rc.transform.position);
             if (d < bestDist) { bestDist = d; nearest = rc; }
@@ -534,14 +530,14 @@ public class GhostOrbController : MonoBehaviour
 
     private GameObject FindFreezeCubeOnOwnSide()
     {
-        // FreezeCube auf beiden Seiten suchen – nächsten verfügbaren nehmen
-        // (freezeZone wird nur für Ablage gebraucht, nicht für die Suche)
+        // Search for FreezeCube on both sides – take the next available one
+        // (freezeZone is only used for storage, not for searching)
         GameObject nearest = null;
         float bestDist = float.MaxValue;
         GameObject[] freezeCubes = null;
 
         try { freezeCubes = GameObject.FindGameObjectsWithTag("Freeze"); }
-        catch { Debug.LogWarning("[Orb] Tag 'Freeze' nicht registriert!"); return null; }
+        catch { Debug.LogWarning("[Orb] The ‘Freeze’ tag is not registered!"); return null; }
 
         if (freezeCubes == null || freezeCubes.Length == 0) return null;
 
@@ -554,7 +550,7 @@ public class GhostOrbController : MonoBehaviour
         }
 
         if (nearest != null)
-            Debug.Log($"[GhostOrb] FreezeCube gefunden: {nearest.name}");
+            Debug.Log($"[GhostOrb] FreezeCube found: {nearest.name}");
 
         return nearest;
     }
@@ -563,11 +559,11 @@ public class GhostOrbController : MonoBehaviour
     {
         if (freezeZone == null)
         {
-            Debug.LogWarning("[Orb] freezeZone nicht zugewiesen! Bitte im Inspector setzen.");
+            Debug.LogWarning("[Orb] freezeZone not assigned! Please set it in the Inspector.");
             return transform.position;
         }
 
-        Debug.Log($"[Orb] Lege FreezeCube in {freezeZone.name} ab.");
+        Debug.Log($"[Orb] Place FreezeCube in {freezeZone.name}.");
 
         Collider col = freezeZone.GetComponent<Collider>();
         if (col != null)
@@ -600,7 +596,7 @@ public class GhostOrbController : MonoBehaviour
                 );
             }
         }
-        // Fallback: links der Partition
+        // Fallback: to the left of the partition
         return new Vector3(partitionX - 0.15f, partitionTopY + 0.05f, Random.Range(-0.1f, 0.1f));
     }
 
@@ -613,7 +609,7 @@ public class GhostOrbController : MonoBehaviour
             {
                 Bounds b = col.bounds;
 
-                // Inset: 20% der Größe von jeder Seite abziehen
+                // Inset: Subtract 20% from the size of each side
                 float insetX = Mathf.Max(0.06f, b.size.x * 0.2f);
                 float insetZ = Mathf.Max(0.06f, b.size.z * 0.2f);
 
@@ -650,7 +646,7 @@ public class GhostOrbController : MonoBehaviour
 
         StopAllCoroutines();
         StartCoroutine(FreezeRoutine(seconds));
-        Debug.Log($"[GhostOrb] Eingefroren für {seconds}s.");
+        Debug.Log($"[GhostOrb] freezed for {seconds}s.");
     }
 
     private System.Collections.IEnumerator FreezeRoutine(float seconds)
@@ -660,7 +656,7 @@ public class GhostOrbController : MonoBehaviour
         isActive = true;
         state = State.Idle;
         OrbSharedState.ghostFrozen = false;
-        Debug.Log($"[GhostOrb] Freeze beendet.");
+        Debug.Log($"[GhostOrb] freeze ended.");
     }
 
     public void StartSequenceChallenge(List<SequenceCube> cubes, float mistakeChance)
@@ -669,7 +665,7 @@ public class GhostOrbController : MonoBehaviour
         sequenceMistakeChance = mistakeChance;
         sequenceNextIdx = 0;
         isSequenceChallenge = true;
-        Debug.Log($"[GhostOrb] Sequence Challenge gestartet! MistakeChance={mistakeChance}");
+        Debug.Log($"[GhostOrb]  Sequence Challenge has begun! MistakeChance={mistakeChance}");
     }
 
     public void EndSequenceChallenge()
@@ -677,7 +673,7 @@ public class GhostOrbController : MonoBehaviour
         isSequenceChallenge = false;
         sequenceCubes.Clear();
         sequenceNextIdx = 0;
-        Debug.Log($"[GhostOrb] Sequence Challenge beendet.");
+        Debug.Log($"[GhostOrb] Sequence Challenge ended.");
     }
 
     public void StopPlaying()

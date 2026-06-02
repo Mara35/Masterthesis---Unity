@@ -5,20 +5,20 @@ public class CompetitionScoreCounter : MonoBehaviour
 {
     public enum Side { RightSide, LeftSide }
 
-    [Header("Welche Seite zählt dieses Script?")]
-    [Tooltip("RightSide = Spieler (StartZone)\nLeftSide = Ghost (TargetZone)")]
+    [Header("Which side does this script count?")]
+    [Tooltip("RightSide = Player (StartZone)\nLeftSide = Ghost (TargetZone)")]
     public Side countSide = Side.RightSide;
 
     [Header("UI")]
     public TextMeshProUGUI scoreText;
     public string prefix = "Score: ";
 
-    [Header("Würfel")]
-    [Tooltip("Tag der Würfel (z.B. 'Block'), oder leer für Name-Suche")]
+    [Header("Cube")]
+    [Tooltip("Tag of Cubes (e.g. 'Block'), or leave blank to search by name")]
     public string cubeTag = "Block";
 
-    [Header("Update-Rate")]
-    [Tooltip("Wie oft pro Sekunde gezählt wird (Performance)")]
+    [Header("Update rate")]
+    [Tooltip("How many times per second the count is performed (performance)")]
     public float updateInterval = 0.1f;
 
     // -----------------------------------------------------------------------
@@ -39,15 +39,15 @@ public class CompetitionScoreCounter : MonoBehaviour
         if (cp != null)
             partitionX = cp.transform.position.x;
         else
-            Debug.LogWarning("[CompetitionScoreCounter] 'CenterPartition' nicht gefunden!");
+            Debug.LogWarning("[CompetitionScoreCounter] 'CenterPartition' not found!");
 
-        // Einen Frame warten bis alle GameObjects initialisiert sind
+        // Wait one frame until all GameObjects have been initialized
         StartCoroutine(InitialCount());
     }
 
     private System.Collections.IEnumerator InitialCount()
     {
-        yield return null; // einen Frame warten
+        yield return null; // wait one frame
         CountAndUpdate();
     }
 
@@ -59,7 +59,7 @@ public class CompetitionScoreCounter : MonoBehaviour
     }
 
     // -----------------------------------------------------------------------
-    // Zählen
+    // Count
     // -----------------------------------------------------------------------
 
     private void CountAndUpdate()
@@ -77,7 +77,7 @@ public class CompetitionScoreCounter : MonoBehaviour
 
             if (!onMySide) continue;
 
-            // Bonus-Würfel zählen mit ihrem Punktewert, normale mit 1
+            // BonusCube count for their point value; regular dice count as 1
             BonusCube bonus = cube.GetComponent<BonusCube>();
             count += (bonus != null) ? bonus.pointValue : 1;
         }
@@ -98,7 +98,7 @@ public class CompetitionScoreCounter : MonoBehaviour
         }
         catch { }
 
-        // Fallback: alle GameObjects die mit "Block" beginnen
+        // Fallback: all GameObjects that start with “Block”
         var list = new System.Collections.Generic.List<GameObject>();
         foreach (GameObject go in FindObjectsOfType<GameObject>())
             if (go.name.StartsWith("Block")) list.Add(go);

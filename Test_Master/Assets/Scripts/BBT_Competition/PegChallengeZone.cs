@@ -1,19 +1,13 @@
 /*
- * Project:    SensinGlove – Box & Block Rehab Game
- * File:       PegChallengeZone.cs
- * Author:     Mari und Kiki (MCI – University of Applied Sciences)
- * Supervisor: Simon Winkler, BSc MSc
- * Year:       2025
- *
  * Attach to:  PegZone Prefab
- * Akzeptiert nur den Zylinder mit passender colorId.
+ * Accepts only the cylinder with the matching colorId.
  */
 
 using UnityEngine;
 
 public class PegChallengeZone : MonoBehaviour
 {
-    [Tooltip("Farb-ID – muss mit dem Zylinder übereinstimmen (0=Rot, 1=Blau, 2=Gelb)")]
+    [Tooltip("Color ID – must match the cylinder (0=Red, 1=Blue, 2=Yellow)")]
     public int colorId = 0;
 
     public bool IsOccupied { get; private set; } = false;
@@ -30,7 +24,7 @@ public class PegChallengeZone : MonoBehaviour
         zoneRenderer = GetComponent<Renderer>();
         if (zoneRenderer != null && colorId < PegChallengeCube.PegColors.Length)
         {
-            // Zone in der passenden Farbe anzeigen, leicht transparent
+            // Display the zone in the appropriate color, slightly transparent
             baseColor = PegChallengeCube.PegColors[colorId];
             baseColor.a = 0.5f;
             zoneRenderer.material.color = baseColor;
@@ -44,10 +38,10 @@ public class PegChallengeZone : MonoBehaviour
         PegChallengeCube peg = other.GetComponent<PegChallengeCube>();
         if (peg == null) return;
 
-        // Nur passende Farbe akzeptieren
+        // Accept only matching colors
         if (peg.colorId != colorId)
         {
-            Debug.Log($"[PegChallengeZone] Falsche Farbe! Erwartet {colorId}, bekommen {peg.colorId}");
+            Debug.Log($"[PegChallengeZone] Wrong color! Expected {colorId}, got {peg.colorId}");
             return;
         }
 
@@ -55,17 +49,17 @@ public class PegChallengeZone : MonoBehaviour
         placedPeg = peg;
         peg.IsPlaced = true;
 
-        // Zylinder senkrecht und zentriert in Zone fixieren
+        // Position the cylinder vertically and centrally in the zone
         Rigidbody rb = other.GetComponent<Rigidbody>();
         other.transform.position = transform.position + Vector3.up * 0.03f;
         other.transform.rotation = Quaternion.identity;
         if (rb != null) { rb.isKinematic = true; rb.useGravity = false; rb.velocity = Vector3.zero; }
 
-        // Zone leuchtet auf
+        // Zone lights up
         if (zoneRenderer != null)
             zoneRenderer.material.color = PegChallengeCube.PegColors[colorId];
 
-        Debug.Log($"[PegChallengeZone] Richtig! Farbe {colorId} korrekt platziert.");
+        Debug.Log($"[PegChallengeZone]  Correct! Color {colorId} is in the right place.");
     }
 
     private void OnTriggerExit(Collider other)
@@ -81,7 +75,7 @@ public class PegChallengeZone : MonoBehaviour
             placedPeg = null;
             peg.IsPlaced = false;
 
-            // Farbe zurücksetzen
+            // Reset zone color
             if (zoneRenderer != null && colorId < PegChallengeCube.PegColors.Length)
             {
                 Color c = PegChallengeCube.PegColors[colorId];

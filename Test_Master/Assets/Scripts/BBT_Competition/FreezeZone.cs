@@ -3,13 +3,13 @@ using UnityEngine;
 
 public class FreezeZone : MonoBehaviour
 {
-    [Header("Ziel")]
+    [Header("Target")]
     public MonoBehaviour targetToFreeze;
 
-    [Header("Einstellungen")]
+    [Header("Settingss")]
     public float freezeDuration = 5f;
 
-    [Header("Visuelles Feedback")]
+    [Header("Visual feedback")]
     public Renderer zoneRenderer;
     public Color activeColor = new Color(0.2f, 0.5f, 1f, 0.5f);
     public Color inactiveColor = new Color(0.2f, 0.5f, 1f, 0.15f);
@@ -64,7 +64,7 @@ public class FreezeZone : MonoBehaviour
         if (!other.CompareTag("Freeze")) return;
         if (isFrozen) return;
 
-        Debug.Log($"[FreezeZone] FreezeCube erkannt - friere {targetToFreeze?.name} ein.");
+        Debug.Log($"[FreezeZone] FreezeCube detected - freeze {targetToFreeze?.name}.");
 
         Rigidbody rb = other.GetComponent<Rigidbody>();
         if (rb != null) { rb.isKinematic = true; rb.useGravity = false; }
@@ -78,7 +78,7 @@ public class FreezeZone : MonoBehaviour
     {
         if (targetToFreeze == null)
         {
-            Debug.LogWarning("[FreezeZone] targetToFreeze nicht zugewiesen!");
+            Debug.LogWarning("[FreezeZone] targetToFreeze is not assigned!");
             if (freezeCube != null) Destroy(freezeCube);
             yield break;
         }
@@ -93,7 +93,7 @@ public class FreezeZone : MonoBehaviour
         if (player != null) player.Freeze(freezeDuration);
 
         if (ghost == null && player == null)
-            Debug.LogWarning("[FreezeZone] targetToFreeze ist weder Ghost noch GloveGrabber!");
+            Debug.LogWarning("[FreezeZone] targetToFreeze is neither Ghost nor GloveGrabber!");
 
         if (countdownMesh != null) countdownMesh.gameObject.SetActive(true);
 
@@ -120,7 +120,7 @@ public class FreezeZone : MonoBehaviour
 
         isFrozen = false;
         UpdateVisual(false);
-        Debug.Log("[FreezeZone] Freeze beendet.");
+        Debug.Log("[FreezeZone] Freeze ended.");
     }
 
     private void UpdateVisual(bool frozen)

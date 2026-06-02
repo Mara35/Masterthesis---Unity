@@ -1,22 +1,18 @@
-/*
- * Project:    SensinGlove – Box & Block Rehab Game
- * File:       CompetitionGameManager.cs
- * Author:     Mari und Kiki (MCI – University of Applied Sciences)
- * Supervisor: Simon Winkler, BSc MSc
- * Year:       2025
- *
+/* 
+ * Summary
+ * 
  * Attach to:  CompetitionGameManager GameObject
  *
- * Spielablauf:
- *   1. Warten bis PlayerOrb die Box berührt (BoxBoundaryTrigger)
- *   2. Countdown 60s startet, GhostOrb beginnt zu spielen
- *   3. Nach 60s: Result-Screen mit Scores, Bonus-Abzug, Win/Lose
+ * Gameplay:
+ *   1. Wait until the hand touches the box (BoxBoundaryTrigger)
+ *   2. 60-second countdown starts, GhostOrb begins playing
+ *   3. After 60 seconds: Result screen with scores, bonus deduction, Win/Lose
  *
- * Setup im Inspector:
+ * Setup in the Inspector:
  *   - timerText          ? TimerText (TMP)
  *   - gameOverPanel      ? GameOverPanel
- *   - playerScoreCounter ? CompetitionScoreCounter auf Player-Seite
- *   - ghostScoreCounter  ? CompetitionScoreCounter auf Ghost-Seite
+ *   - playerScoreCounter ? CompetitionScoreCounter on the player side
+ *   - ghostScoreCounter  ? CompetitionScoreCounter on the ghost side
  *   - ghostOrb           ? GhostOrbController
  *   - bonusCubeSpawner   ? BonusCubeSpawner
  *   - startTrigger       ? BoxBoundaryTrigger Collider
@@ -40,14 +36,14 @@ public class CompetitionGameManager : MonoBehaviour
 
     [Header("Orbs & Spawner")]
     public GhostOrbController ghostOrb;
-    // public PlayerOrbController playerOrb;
+    // public PlayerOrbController playerOrb; // PlayerOrb replaced by Hand + GloveGrabber
     public BonusCubeSpawner bonusCubeSpawner;
 
     [Header("Start Trigger")]
-    [Tooltip("BoxBoundaryTrigger – Spiel startet wenn PlayerOrb diesen berührt")]
+    [Tooltip("BoxBoundaryTrigger – Game starts when Hand touches it")]
     public Collider startTrigger;
 
-    [Header("Live Score (wird bei Spielende ausgeblendet)")]
+    [Header("Live Score (will be hidden when the game ends)")]
     public GameObject liveScoreGhost;
     public GameObject liveScorePlayer;
     public TextMeshProUGUI timerText;
@@ -61,11 +57,11 @@ public class CompetitionGameManager : MonoBehaviour
     public TextMeshProUGUI resultText;        // "You Win!" / "You Lose!"
     public Button playAgainButton;
     public Button mainMenuButton;
-    public Button settingsButton;    // für spätere Schwierigkeitseinstellung
+    public Button settingsButton;    
 
-    [Header("Szenen")]
+    [Header("Scene")]
     public string mainMenuSceneName = "MainMenu";
-    public string settingsSceneName = "Settings";
+    public string settingsSceneName = "BBT_Explanation_Competition";
 
     // -----------------------------------------------------------------------
     // Private
@@ -76,8 +72,7 @@ public class CompetitionGameManager : MonoBehaviour
     private int frozenPlayerScore = 0;
     private int frozenGhostScore = 0;
 
-    // Bonus-Punkte die am Ende abgezogen werden
-    // (werden später von Reaktions-Würfel / Farb-Matching befüllt)
+    // Bonus points that are deducted at the end
     public static int playerBonusPoints = 0;
     public static int ghostBonusPoints = 0;
 
@@ -87,7 +82,7 @@ public class CompetitionGameManager : MonoBehaviour
 
     private void Start()
     {
-        // Buttons verdrahten
+        
         if (playAgainButton != null)
             playAgainButton.onClick.AddListener(OnPlayAgain);
         if (mainMenuButton != null)
@@ -95,44 +90,41 @@ public class CompetitionGameManager : MonoBehaviour
         if (settingsButton != null)
             settingsButton.onClick.AddListener(OnSettings);
 
-        // Panel verstecken
+        // Hide Panel
         if (gameOverPanel != null)
             gameOverPanel.SetActive(false);
 
-        // Orbs noch nicht starten
-        if (ghostOrb != null) ghostOrb.StopPlaying(); // Ghost wartet auf Trigger
+        
+        if (ghostOrb != null) ghostOrb.StopPlaying(); // GhostOrb waiting for Trigger
 
     }
 
     // -----------------------------------------------------------------------
-    // Spielstart (durch BoxBoundaryTrigger ausgelöst)
+    // Game Start (triggered by BoxBoundaryTrigger)
     // -----------------------------------------------------------------------
 
-    /// <summary>
-    /// Wird vom BoxBoundaryTrigger aufgerufen wenn PlayerOrb die Box berührt.
-    /// </summary>
     public void StartGame()
     {
         if (gameStarted) return;
         gameStarted = true;
 
-        Debug.Log("[CompetitionGameManager] Spiel gestartet!");
+        Debug.Log("[CompetitionGameManager] The game has started!");
 
-        // Orbs aktivieren
+        // Activate Orbs
         if (ghostOrb != null) ghostOrb.StartPlaying();
-        else Debug.LogWarning("[CompetitionGameManager] ghostOrb ist nicht zugewiesen!");
-        // PlayerOrb startet bereits in Start() automatisch
+        else Debug.LogWarning("[CompetitionGameManager] ghostOrb not assigned!");
+        // PlayerOrb startet bereits in Start() automatisch // Replaced by Hand + GloveGrabber
 
-        // Spawner starten
+        // Start Spawners
         if (bonusCubeSpawner != null) bonusCubeSpawner.StartSpawning();
 
-        // Bonus-Punkte zurücksetzen
+        // Reset Bonus Points
         playerBonusPoints = 0;
         ghostBonusPoints = 0;
     }
 
     // -----------------------------------------------------------------------
-    // Spielende
+    // Game End
     // -----------------------------------------------------------------------
 
     public void EndGame()
@@ -140,22 +132,22 @@ public class CompetitionGameManager : MonoBehaviour
         if (gameFinished) return;
         gameFinished = true;
 
-        Debug.Log("[CompetitionGameManager] Spiel beendet!");
+        Debug.Log("[CompetitionGameManager] Game Over!");
 
-        // Alles sofort stoppen
+        // Stop everything immediately
         if (ghostOrb != null) ghostOrb.StopPlaying();
-        //if (playerOrb != null) playerOrb.StopPlaying();
+        //if (playerOrb != null) playerOrb.StopPlaying(); // Replaced by Hand + GloveGrabber
         GloveGrabber gloveGrabber = FindObjectOfType<GloveGrabber>();
         if (gloveGrabber != null) gloveGrabber.enabled = false;
         if (bonusCubeSpawner != null) bonusCubeSpawner.StopSpawning();
 
-        // Score sofort einfrieren – Orbs bewegen sich nicht mehr
+        // Freeze the score immediately – the GhostOrb will no longer move
         frozenPlayerScore = playerScoreCounter != null ? playerScoreCounter.GetScore() : 0;
         frozenGhostScore = ghostScoreCounter != null ? ghostScoreCounter.GetScore() : 0;
 
-        Debug.Log($"[CompetitionGameManager] Scores eingefroren: Player={frozenPlayerScore}, Ghost={frozenGhostScore}");
+        Debug.Log($"[CompetitionGameManager] Scores frozen: Player={frozenPlayerScore}, Ghost={frozenGhostScore}");
 
-        // Kurze Pause dann Result-Screen
+        // Short pause, then the results screen
         StartCoroutine(ShowResultAfterDelay(1.0f));
     }
 
@@ -169,7 +161,7 @@ public class CompetitionGameManager : MonoBehaviour
     {
         if (gameOverPanel != null) gameOverPanel.SetActive(true);
 
-        // Live-Score und Timer ausblenden
+        // Hide Live-Score and Timer 
         if (liveScoreGhost != null) liveScoreGhost.SetActive(false);
         if (liveScorePlayer != null) liveScorePlayer.SetActive(false);
         if (timerText != null) timerText.gameObject.SetActive(false);
@@ -184,22 +176,22 @@ public class CompetitionGameManager : MonoBehaviour
         int playerFinal = Mathf.Max(0, playerRaw - playerBonusPoints);
         int ghostFinal = Mathf.Max(0, ghostRaw - ghostBonusPoints);
 
-        // Alles verstecken
+        // Hide everything
         if (resultText != null) resultText.text = "";
         if (playerBonusText != null) playerBonusText.text = "";
         if (ghostBonusText != null) ghostBonusText.text = "";
 
-        // Schritt 1: Rohe Scores anzeigen
+        // Step 1: View raw scores
         if (playerScoreText != null) playerScoreText.text = playerRaw.ToString();
         if (ghostScoreText != null) ghostScoreText.text = ghostRaw.ToString();
         yield return new WaitForSecondsRealtime(1.5f);
 
-        // Schritt 2: Bonus-Punkte einblenden
-        // +X = Erfolg (Score sinkt), -X = Misserfolg (Score steigt)
+        // Step 2: Show Bonus Points (deductions)
+        // +X = Success (score decreases), -X = Failure (score increases)
         if (playerBonusText != null)
         {
             string pSign = playerBonusPoints > 0 ? "+" : "";
-            playerBonusText.text = $"Du: {pSign}{playerBonusPoints} Bonus";
+            playerBonusText.text = $"You: {pSign}{playerBonusPoints} Bonus";
         }
         if (ghostBonusText != null)
         {
@@ -208,12 +200,12 @@ public class CompetitionGameManager : MonoBehaviour
         }
         yield return new WaitForSecondsRealtime(1.5f);
 
-        // Schritt 3: Score-Countdown von Raw zu Final
+        // Step 3: Score Countdown from Raw to Final
         yield return StartCoroutine(CountdownScore(playerScoreText, playerRaw, playerFinal));
         yield return StartCoroutine(CountdownScore(ghostScoreText, ghostRaw, ghostFinal));
         yield return new WaitForSecondsRealtime(0.5f);
 
-        // Schritt 4: Win/Lose anzeigen
+        // Step 4: Show Result Text
         if (resultText != null)
         {
             if (playerFinal < ghostFinal)
@@ -227,7 +219,7 @@ public class CompetitionGameManager : MonoBehaviour
         Time.timeScale = 0f;
     }
 
-    // Zählt einen Score-Text schrittweise von start zu end
+    
     private IEnumerator CountdownScore(TextMeshProUGUI text, int start, int end)
     {
         if (text == null) yield break;

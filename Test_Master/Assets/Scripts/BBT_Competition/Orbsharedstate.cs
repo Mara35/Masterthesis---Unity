@@ -1,24 +1,17 @@
 /*
- * Project:    SensinGlove – Box & Block Rehab Game
- * File:       OrbSharedState.cs
- * Author:     Mari und Kiki (MCI – University of Applied Sciences)
- * Supervisor: Simon Winkler, BSc MSc
- * Year:       2025
- *
- * Geteilter Zustand zwischen GhostOrbController und PlayerOrbController.
- * Stellt sicher dass lockedCubes und recentlyDropped wirklich von beiden
- * Controllern geteilt werden – unabhängig von static-Klassen-Grenzen.
+ * Shared state between GhostOrbController and PlayerOrbController.
+ * Ensures that lockedCubes and recentlyDropped are truly shared by both
+ * controllers—regardless of static class boundaries.
  */
-
 using System.Collections.Generic;
 using UnityEngine;
 
 public static class OrbSharedState
 {
-    // Würfel die gerade getragen werden – für keinen anderen Orb greifbar
+    // Orbs currently being carried – cannot be picked up by any other orb
     public static HashSet<int> lockedCubes = new HashSet<int>();
 
-    // Würfel die kürzlich abgelegt wurden – Cooldown in Sekunden
+    // Dice that were recently rolled – cooldown in seconds
     public static Dictionary<int, float> recentlyDropped = new Dictionary<int, float>();
 
     public static float dropCooldown = 1.5f;
@@ -47,12 +40,12 @@ public static class OrbSharedState
         return !lockedCubes.Contains(instanceId);
     }
 
-    // Welche Seite gerade gefreezt ist (verhindert ReactionCube-Spawn dort)
+    // Which page is currently frozen (prevents ReactionCube from spawning there)
     public static bool ghostFrozen = false;
     public static bool playerFrozen = false;
 
-    // Aktive Challenge-Flags pro Seite
-    // true = diese Seite hat gerade eine aktive Challenge
+    // Active challenge flags per side
+    // true = this page currently has an active challenge
     public static bool playerSideHasReaction = false;
     public static bool ghostSideHasReaction = false;
     public static bool playerSideHasPeg = false;

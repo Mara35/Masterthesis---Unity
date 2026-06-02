@@ -20,7 +20,7 @@ public class BoxStartTrigger : MonoBehaviour
     {
         if (other.GetComponent<GloveGrabber>() == null) return;
 
-        Debug.Log("[BoxStartTrigger] Hand hat Box berührt - Spiel startet!");
+        Debug.Log("[BoxStartTrigger] Hand touched the box—game starts!");
 
         if (gameManager != null) gameManager.StartGame();
         if (competitionTimer != null) competitionTimer.StartTimer();

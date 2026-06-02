@@ -19,7 +19,7 @@ public class SequenceChallengeManager : MonoBehaviour
     [Header("Feedback Text (optional)")]
     public TextMeshProUGUI feedbackText;
 
-    [Header("Ghost Fehler-Chance")]
+    [Header("Ghost Error Chance")]
     [Range(0f, 1f)]
     public float mistakeChance = 0.3f;
 
@@ -68,12 +68,12 @@ public class SequenceChallengeManager : MonoBehaviour
         correctTransfers = 0;
         spawnedOnLeft = Random.value < 0.5f;
 
-        Debug.Log($"[SequenceChallenge] Challenge auf {(spawnedOnLeft ? "Ghost" : "Player")}-Seite!");
+        Debug.Log($"[SequenceChallenge] Challenge on {(spawnedOnLeft ? "Ghost" : "Player")}-Side!");
 
         Transform zone = spawnedOnLeft ? leftSpawnZone : rightSpawnZone;
         SpawnSequenceCubes(zone);
 
-        // Nur Ghost-Orb steuern - Mensch spielt selbst
+        // Control only the Ghost Orb 
         if (spawnedOnLeft)
         {
             GhostOrbController ghost = FindObjectOfType<GhostOrbController>();
@@ -89,7 +89,7 @@ public class SequenceChallengeManager : MonoBehaviour
             yield return null;
         }
 
-        // Nur Ghost freigeben
+        // Share only Ghost
         if (spawnedOnLeft)
         {
             GhostOrbController ghost = FindObjectOfType<GhostOrbController>();
@@ -152,7 +152,7 @@ public class SequenceChallengeManager : MonoBehaviour
             {
                 correctTransfers++;
                 nextExpectedSequence++;
-                Debug.Log($"[SequenceChallenge] Richtig! #{sc.sequenceNumber}. Correct={correctTransfers}");
+                Debug.Log($"[SequenceChallenge] Correct! #{sc.sequenceNumber}. Correct={correctTransfers}");
 
                 if (correctTransfers == 3)
                 {
@@ -174,15 +174,15 @@ public class SequenceChallengeManager : MonoBehaviour
         if (spawnedOnLeft)
         {
             CompetitionGameManager.ghostBonusPoints += bonus;
-            Debug.Log($"[SequenceChallenge] Ghost: Alle richtig! +{bonus}");
+            Debug.Log($"[SequenceChallenge] Ghost: All correct! +{bonus}");
         }
         else
         {
             CompetitionGameManager.playerBonusPoints += bonus;
-            Debug.Log($"[SequenceChallenge] Player: Alle richtig! +{bonus}");
+            Debug.Log($"[SequenceChallenge] Player: All correct! +{bonus}");
         }
 
-        ShowFeedback("Gut gemacht! +5", Color.green);
+        ShowFeedback("Well done! +5", Color.green);
 
         foreach (SequenceCube sc in spawnedCubes)
             if (sc != null) StartCoroutine(sc.LingerAndDestroy());
@@ -197,15 +197,15 @@ public class SequenceChallengeManager : MonoBehaviour
         if (spawnedOnLeft)
         {
             CompetitionGameManager.ghostBonusPoints += penalty;
-            Debug.Log($"[SequenceChallenge] Ghost: Falsche Reihenfolge! #{wrongNumber}. {penalty}");
+            Debug.Log($"[SequenceChallenge] Ghost: wrong order! #{wrongNumber}. {penalty}");
         }
         else
         {
             CompetitionGameManager.playerBonusPoints += penalty;
-            Debug.Log($"[SequenceChallenge] Player: Falsche Reihenfolge! #{wrongNumber}. {penalty}");
+            Debug.Log($"[SequenceChallenge] Player: wrong order! #{wrongNumber}. {penalty}");
         }
 
-        ShowFeedback("Falsche Reihenfolge! -2", Color.red);
+        ShowFeedback("Wrong order! -2", Color.red);
         DestroyAllCubes();
         challengeActive = false;
     }

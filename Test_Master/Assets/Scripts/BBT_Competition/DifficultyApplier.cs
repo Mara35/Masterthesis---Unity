@@ -29,17 +29,17 @@ public class DifficultyApplier : MonoBehaviour
 
         if (bonusCubeSpawner == null) return;
 
-        // Prefabs setzen
+        // Install prefabs
         bonusCubeSpawner.freezeCubePrefab = DifficultyManager.HasFreeze ? cachedFreezePrefab : null;
         bonusCubeSpawner.reactionCubePrefab = DifficultyManager.HasReaction ? cachedReactionPrefab : null;
         bonusCubeSpawner.pegChallengeManager = DifficultyManager.HasPeg ? cachedPegManager : null;
         bonusCubeSpawner.sequenceChallengeManager = DifficultyManager.HasSequence ? cachedSeqManager : null;
 
-        // Scripts aktivieren/deaktivieren
+        // Enable/disable scripts
         if (pegChallengeManager != null) pegChallengeManager.enabled = DifficultyManager.HasPeg;
         if (sequenceChallengeManager != null) sequenceChallengeManager.enabled = DifficultyManager.HasSequence;
 
-        // Werte pro Level setzen
+        // Set values by level
         switch (level)
         {
             case DifficultyLevel.Basic:
@@ -67,7 +67,7 @@ public class DifficultyApplier : MonoBehaviour
                 break;
 
             case DifficultyLevel.Cognitive:
-                // Fokus auf Peg – kein Reaction für klaren Dual-Task Fokus
+                // focus on Peg – no reaction for clear dual-task focus
                 SetBonus(3, 4, 12, 18);
                 SetFreeze(2, 3);
                 SetReaction(0, 0, 0);
@@ -76,7 +76,7 @@ public class DifficultyApplier : MonoBehaviour
                 break;
 
             case DifficultyLevel.Memory:
-                // Fokus auf Working Memory – kein Peg, kein Reaction
+                // Focus on working memory – no Peg, no Reaction
                 SetBonus(3, 4, 12, 18);
                 SetFreeze(2, 3);
                 SetReaction(0, 0, 0);
@@ -85,7 +85,7 @@ public class DifficultyApplier : MonoBehaviour
                 break;
 
             case DifficultyLevel.Full:
-                // Alles + Ghost schneller
+                // Everything
                 SetBonus(3, 4, 12, 18);
                 SetFreeze(3, 3);
                 SetReaction(2, 20, 35);

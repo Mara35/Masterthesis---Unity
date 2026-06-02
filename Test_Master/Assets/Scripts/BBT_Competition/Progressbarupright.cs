@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class ProgressBarUpright : MonoBehaviour
 {
-    [Tooltip("Höhe über dem Eltern-Würfel (World Space)")]
+    [Tooltip("Height above the parent cube (world space)")]
     public float heightOffset = 0.08f;
 
     private Transform parentCube;
@@ -16,10 +16,10 @@ public class ProgressBarUpright : MonoBehaviour
     {
         if (parentCube == null) return;
 
-        // Position: immer direkt über dem Würfel in World-Y
+        // Position: always directly above the cube in World-Y
         transform.position = parentCube.position + Vector3.up * heightOffset;
 
-        // Rotation: immer flach (keine Rotation des Eltern-Würfels übernehmen)
+        // Rotation: always flat (do not inherit rotation from the parent cube)
         transform.rotation = Quaternion.identity;
     }
 }

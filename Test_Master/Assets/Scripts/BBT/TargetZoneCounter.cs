@@ -23,7 +23,7 @@ public class TargetZoneCounter : MonoBehaviour
 
         if (block == null) return;
 
-        // Nur zählen wenn der Transfer als gültig markiert wurde
+        // Count only if the transfer has been marked as valid
         if (!block.IsValidlyTransferred)
         {
             Debug.Log("[TargetZone] Block rejected – invalid transfer.");

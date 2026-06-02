@@ -4873,7 +4873,6 @@ GameObject:
   m_Component:
   - component: {fileID: 883463735}
   - component: {fileID: 883463736}
-  - component: {fileID: 883463737}
   m_Layer: 0
   m_Name: TargetZone
   m_TagString: TargetZone
@@ -4917,21 +4916,6 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &883463737
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 883463734}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1d40a31206c9ab74c8c162eaed83d7b5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  scoreText: {fileID: 1308708708}
-  partitionTransform: {fileID: 0}
-  useBlockItemValidation: 1
 --- !u!1 &934865024
 GameObject:
   m_ObjectHideFlags: 0

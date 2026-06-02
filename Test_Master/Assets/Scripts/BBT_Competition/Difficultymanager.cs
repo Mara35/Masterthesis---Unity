@@ -5,9 +5,9 @@ public enum DifficultyLevel
     Basic = 0,
     Motor = 1,
     Reaction = 2,
-    Cognitive = 3,  // Fokus: Peg (kein Sequence)
-    Memory = 4,  // Fokus: Sequence/Working Memory (kein Peg)
-    Full = 5   // Alles + Ghost schneller
+    Cognitive = 3,  // Focus: Peg Challenge (no Reaction, no Memory)
+    Memory = 4,  // Focus: Working Memory (no Reaction, no Peg)
+    Full = 5   // Everything enabled
 }
 
 public class DifficultyManager : MonoBehaviour

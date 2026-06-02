@@ -1,16 +1,12 @@
 /*
- * Project:    SensinGlove – Box & Block Rehab Game
- * File:       BonusCubeSpawner.cs
- * Author:     Mari und Kiki (MCI – University of Applied Sciences)
- * Supervisor: Simon Winkler, BSc MSc
- * Year:       2025
+ * Summary:
+ * 
+ * Assigned to:  CompetitionGameManager
  *
- * Attach to:  CompetitionGameManager
- *
- * Limits:
- *   - Max 5 BonusCubes (grün/rot) in 60s
- *   - Max 2-3 FreezeCubes in 60s, max 1 gleichzeitig im Feld
- *   - Erster Spawn nach 8-15s nach Spielstart
+ * Restrictions:
+ *   - Maximum of 5 bonus cubes (green/red) in 60 seconds
+ *   - Maximum of 2–3 freeze cubes in 60 seconds, with a maximum of 1 on the board at a time
+ *   - First spawn 8–15 seconds after the game starts
  */
 
 using System.Collections;
@@ -23,18 +19,18 @@ public class BonusCubeSpawner : MonoBehaviour
     public GameObject malusCubePrefab;
     public GameObject freezeCubePrefab;
 
-    [Header("Spawn-Zonen")]
+    [Header("Spawn-Zones")]
     public Transform leftZone;
     public Transform rightZone;
 
-    [Header("Bonus/Malus Timing")]
-    [Tooltip("Erster Spawn nach X Sekunden (nach Spielstart)")]
+    [Header("Bonus/penalty Timing")]
+    [Tooltip("First spawn after X seconds (after the game starts)")]
     public float firstSpawnMin = 8f;
     public float firstSpawnMax = 15f;
-    [Tooltip("Intervall zwischen weiteren Spawns")]
+    [Tooltip("Interval between further spawns")]
     public float spawnIntervalMin = 10f;
     public float spawnIntervalMax = 15f;
-    [Tooltip("Maximale Anzahl Bonus/Malus Cubes in 60s")]
+    [Tooltip("Maximum number of bonus/penalty cubes in 60 seconds")]
     public int maxBonusCubesTotal = 5;
 
     [Header("Sequence Challenge")]
@@ -45,13 +41,13 @@ public class BonusCubeSpawner : MonoBehaviour
 
     [Header("Reaction Cube")]
     public GameObject reactionCubePrefab;
-    [Tooltip("Maximale Anzahl ReactionCubes in 60s")]
+    [Tooltip("Maximum number of ReactionCubes in 60 seconds")]
     public int maxReactionCubesTotal = 3;
     public float reactionSpawnMin = 20f;
     public float reactionSpawnMax = 35f;
 
     [Header("Freeze Timing")]
-    [Tooltip("Maximale Anzahl FreezeCubes in 60s")]
+    [Tooltip("Maximum number of FreezeCubes in 60 seconds")]
     public int maxFreezeCubesTotal = 3;
 
     // -----------------------------------------------------------------------
@@ -99,12 +95,12 @@ public class BonusCubeSpawner : MonoBehaviour
     }
 
     // -----------------------------------------------------------------------
-    // Bonus/Malus Spawn Routine
+    // Bonus/Penalty Spawn Routine
     // -----------------------------------------------------------------------
 
     private IEnumerator SpawnRoutine()
     {
-        // Erster Spawn nach 8-15s
+        // First spawn after 8–15 seconds
         yield return new WaitForSeconds(Random.Range(firstSpawnMin, firstSpawnMax));
 
         while (isActive && totalBonusSpawned < maxBonusCubesTotal)
@@ -150,12 +146,12 @@ public class BonusCubeSpawner : MonoBehaviour
 
     private IEnumerator FreezeSpawnRoutine()
     {
-        // Erster Freeze: zwischen 15-25s
+        // First Freeze: between 15-25s
         yield return new WaitForSeconds(Random.Range(15f, 25f));
 
         while (isActive && totalFreezeSpawned < maxFreezeCubesTotal)
         {
-            // Warten bis kein FreezeCube im Feld, kein Spieler gefreezt und keine Peg Challenge
+            // Wait until there are no FreezeCubes on the field, no players are frozen, and there is no Peg Challenge
             yield return new WaitUntil(() =>
                 !FreezeCubeExistsInScene() &&
                 !OrbSharedState.playerFrozen &&
@@ -167,7 +163,7 @@ public class BonusCubeSpawner : MonoBehaviour
 
             SpawnFreezeCube();
 
-            // Pause zwischen Freeze-Spawns
+            // Pause between freeze spawns
             yield return new WaitForSeconds(Random.Range(15f, 25f));
         }
     }
@@ -195,7 +191,7 @@ public class BonusCubeSpawner : MonoBehaviour
     }
 
     // -----------------------------------------------------------------------
-    // Hilfsmethoden
+    // Supporting methods
     // -----------------------------------------------------------------------
 
     private IEnumerator ReactionSpawnRoutine()
@@ -213,19 +209,19 @@ public class BonusCubeSpawner : MonoBehaviour
     {
         if (reactionCubePrefab == null) return;
 
-        // Seiten-Checks:
-        // - Nicht auf gefreezte Seite (Spieler kann nicht reagieren)
-        // - Nicht auf Seite die bereits Reaction oder Peg hat
+        // Side checks:
+        // - Not on a frozen side (player cannot react)
+        // - Not on a side that already has a Reaction or Peg
         bool canSpawnLeft = !OrbSharedState.ghostFrozen
                           && !OrbSharedState.ghostSideHasReaction;
 
         bool canSpawnRight = !OrbSharedState.playerFrozen
                           && !OrbSharedState.playerSideHasReaction
-                          && !OrbSharedState.playerSideHasPeg; // Peg und Reaction nicht gleichzeitig
+                          && !OrbSharedState.playerSideHasPeg; // Peg and Reaction not at the same time on one side
 
         if (!canSpawnLeft && !canSpawnRight)
         {
-            Debug.Log("[BonusCubeSpawner] Keine freie Seite für ReactionCube.");
+            Debug.Log("[BonusCubeSpawner] No free space for ReactionCube");
             return;
         }
 
@@ -239,7 +235,7 @@ public class BonusCubeSpawner : MonoBehaviour
 
         Instantiate(reactionCubePrefab, pos, Quaternion.identity);
         totalReactionSpawned++;
-        Debug.Log($"[BonusCubeSpawner] ReactionCube gespawnt ({totalReactionSpawned}/{maxReactionCubesTotal}) auf {(spawnLeft ? "Ghost" : "Player")}-Seite");
+        Debug.Log($"[BonusCubeSpawner] ReactionCube spawned ({totalReactionSpawned}/{maxReactionCubesTotal}) on {(spawnLeft ? "Ghost" : "Player")}-Side");
     }
 
     private Vector3 GetRandomPositionInZone(Transform zone)

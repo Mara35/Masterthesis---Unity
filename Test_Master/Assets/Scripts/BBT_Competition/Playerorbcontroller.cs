@@ -1,22 +1,16 @@
 /*
- * Project:    SensinGlove – Box & Block Rehab Game
- * File:       PlayerOrbController.cs
- * Author:     Mari und Kiki (MCI – University of Applied Sciences)
- * Supervisor: Simon Winkler, BSc MSc
- * Year:       2025
+ * Attach to:  PlayerOrb GameObject (test orb for the XBot side)
  *
- * Attach to:  PlayerOrb GameObject (Testkugel für XBot-Seite)
+ * Mirrored relative to the GhostOrbController:
+ *   - Searches for cubes on the RIGHT side (positive X, XBot side)
+ *   - Places them on the LEFT side (Ghost side)
  *
- * Spiegelverkehrt zum GhostOrbController:
- *   - Sucht Würfel auf der RECHTEN Seite (positive X, XBot-Seite)
- *   - Legt sie auf der LINKEN Seite ab (Ghost-Seite)
+ * This script is replaced by the actual sensor control.
+ * The game logic (cube detection by position) remains the same.
  *
- * Später wird dieses Script durch die echte Sensor-Steuerung ersetzt.
- * Die Spiellogik (Würfelerkennung per Position) bleibt identisch.
- *
- * Setup im Inspector:
- *   - playerTargetZone ? StartZone des Ghost (linke Seite, Ablagebereich)
- *   - cubeTag          ? Tag aller Würfel (z.B. "Block")
+ * Setup in the Inspector:
+ *   - playerTargetZone ? Ghost's start zone (left side, drop zone)
+ *   - cubeTag          ? Tag for all cubes (e.g., “Block”)
  */
 
 using System.Collections;
@@ -29,7 +23,7 @@ public class PlayerOrbController : MonoBehaviour
     // Inspector
     // -----------------------------------------------------------------------
 
-    [Header("Szenen-Referenzen")]
+    [Header("Scene-Reference")]
     [Tooltip("Ablagebereich auf der Ghost-Seite (linke Seite)")]
     public Transform playerTargetZone;
 

@@ -8,7 +8,7 @@ public class PegChallengeManager : MonoBehaviour
     public GameObject pegPrefab;
     public GameObject zonePrefab;
 
-    [Header("Spawn-Positionen")]
+    [Header("Spawn-Positions")]
     public Transform playerSpawnZone;
     public Transform tableInFrontOfBox;
 
@@ -17,7 +17,7 @@ public class PegChallengeManager : MonoBehaviour
     public float firstChallengeMin = 25f;
     public float firstChallengeMax = 35f;
 
-    [Header("Abstände")]
+    [Header("Distance")]
     public float zoneSpacing = 0.08f;
 
     private List<GameObject> spawnedPegs = new List<GameObject>();
@@ -55,7 +55,7 @@ public class PegChallengeManager : MonoBehaviour
 
     private IEnumerator RunChallenge()
     {
-        Debug.Log("[PegChallengeManager] Challenge gestartet!");
+        Debug.Log("[PegChallengeManager] Challenge started!");
 
         OrbSharedState.playerSideHasPeg = true;
         SpawnPegs();
@@ -73,7 +73,7 @@ public class PegChallengeManager : MonoBehaviour
         int placed = CountPlacedPegs();
         AwardBonusPoints(placed);
 
-        Debug.Log($"[PegChallengeManager] Challenge beendet! {placed}/3 Pegs platziert.");
+        Debug.Log($"[PegChallengeManager] Challenge ended! {placed}/3 Pegs placed.");
 
         OrbSharedState.playerSideHasPeg = false;
         CleanUp();
@@ -164,7 +164,7 @@ public class PegChallengeManager : MonoBehaviour
                 if (dist < 0.1f)
                 {
                     count++;
-                    Debug.Log($"[PegChallengeManager] Peg {pegComp.colorId} korrekt platziert.");
+                    Debug.Log($"[PegChallengeManager] Peg {pegComp.colorId} properly placed.");
                     break;
                 }
             }
@@ -182,7 +182,7 @@ public class PegChallengeManager : MonoBehaviour
         if (bonus > 0)
         {
             CompetitionGameManager.playerBonusPoints += bonus;
-            Debug.Log($"[PegChallengeManager] {placed}/3 Pegs - {bonus} Bonuspunkte. Total={CompetitionGameManager.playerBonusPoints}");
+            Debug.Log($"[PegChallengeManager] {placed}/3 Pegs - {bonus} Bonuspoints. Total={CompetitionGameManager.playerBonusPoints}");
         }
     }
 

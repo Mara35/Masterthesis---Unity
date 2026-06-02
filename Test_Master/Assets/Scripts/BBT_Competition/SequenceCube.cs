@@ -1,11 +1,3 @@
-/*
- * Project:    SensinGlove – Box & Block Rehab Game
- * File:       SequenceCube.cs
- * Author:     Mari und Kiki (MCI – University of Applied Sciences)
- * Supervisor: Simon Winkler, BSc MSc
- * Year:       2025
- */
-
 using System.Collections;
 using UnityEngine;
 
@@ -33,7 +25,7 @@ public class SequenceCube : MonoBehaviour
         partitionX = cp != null ? cp.transform.position.x : 0f;
         spawnedOnGhostSide = transform.position.x < partitionX;
 
-        // Originalfarbe merken – keine Änderung beim Spawn
+        
         Renderer r = GetComponent<Renderer>();
         if (r != null) originalColor = r.material.color;
 
@@ -71,7 +63,7 @@ public class SequenceCube : MonoBehaviour
         numberText.alignment = TextAlignment.Center;
         numberText.fontStyle = FontStyle.Bold;
 
-        Debug.Log($"[SequenceCube] Zahl {sequenceNumber} angezeigt.");
+        Debug.Log($"[SequenceCube] Number {sequenceNumber} displayed.");
     }
 
     private IEnumerator HideNumberAfterDelay()
@@ -80,11 +72,11 @@ public class SequenceCube : MonoBehaviour
         if (numberText != null)
         {
             numberText.gameObject.SetActive(false);
-            Debug.Log($"[SequenceCube] Zahl {sequenceNumber} ausgeblendet.");
+            Debug.Log($"[SequenceCube] Number {sequenceNumber} hidden.");
         }
     }
 
-    /// Nach Transfer: 1s liegen lassen dann verschwinden
+    /// After transfer: wait 1s, then disappear
     public IEnumerator LingerAndDestroy()
     {
         yield return new WaitForSeconds(1f);
