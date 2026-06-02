@@ -8,7 +8,7 @@ public class GloveGrabber : MonoBehaviour
     public float gripMcpThreshold = -25f;
     public float gripPipThreshold = -30f;
     public int minFingersForGrip = 2;
-    public float releaseHysteresis = 5f;
+    public float releaseHysteresis = 15f;
 
     [Header("--- Hold Point ---")]
     public Transform holdPoint;
@@ -16,7 +16,7 @@ public class GloveGrabber : MonoBehaviour
     [Header("--- Debug ---")]
     public bool showDebugGUI = true;
 
-    // Angles - set by CSVReplayController
+    // Angles - set by GloveController
     public float currentIndexMcp = 0f;
     public float currentIndexPip = 0f;
     public float currentMiddleMcp = 0f;
@@ -41,11 +41,11 @@ public class GloveGrabber : MonoBehaviour
             gripPipThreshold = LevelConfig.Selected.gripPipThreshold;
             minFingersForGrip = LevelConfig.Selected.minFingersForGrip;
             releaseHysteresis = LevelConfig.Selected.releaseHysteresis;
-            Debug.Log($"[GloveGrabber] Level geladen: {LevelConfig.Selected.levelName}");
+            Debug.Log($"[GloveGrabber] Level loaded: {LevelConfig.Selected.levelName}");
         }
         else
         {
-            Debug.Log("[GloveGrabber] Kein Level ausgewählt - Inspector-Werte werden verwendet.");
+            Debug.Log("[GloveGrabber] No level selected - Inspector values will be used.");
         }
     }
 
@@ -61,6 +61,7 @@ public class GloveGrabber : MonoBehaviour
 
     bool CheckGripCondition()
     {
+        // Apply hysteresis when already gripping to prevent flickering
         float mcpT = isGripping ? gripMcpThreshold + releaseHysteresis : gripMcpThreshold;
         float pipT = isGripping ? gripPipThreshold + releaseHysteresis : gripPipThreshold;
 
@@ -80,6 +81,7 @@ public class GloveGrabber : MonoBehaviour
         Vector3 searchPos = holdPoint ? holdPoint.position : transform.position;
         float radius = GetComponent<SphereCollider>()?.radius ?? 0.15f;
 
+        // If no candidates in trigger, use overlap sphere as fallback
         if (candidates.Count == 0)
         {
             Collider[] hits = Physics.OverlapSphere(searchPos, radius);
@@ -94,9 +96,18 @@ public class GloveGrabber : MonoBehaviour
         float bestDist = float.MaxValue;
         BlockItem best = null;
 
+        // Find closest available candidate
         for (int i = candidates.Count - 1; i >= 0; i--)
         {
             if (candidates[i] == null) { candidates.RemoveAt(i); continue; }
+
+            // Skip blocks already carried by GhostOrb
+            if (!OrbSharedState.IsAvailable(candidates[i].gameObject.GetInstanceID()))
+            {
+                candidates.RemoveAt(i);
+                continue;
+            }
+
             float d = Vector3.Distance(searchPos, candidates[i].transform.position);
             if (d < bestDist) { bestDist = d; best = candidates[i]; }
         }
@@ -104,8 +115,17 @@ public class GloveGrabber : MonoBehaviour
         if (best != null)
         {
             heldBlock = best;
+
+            // Lock block so GhostOrb cannot pick it up simultaneously
+            OrbSharedState.Lock(best.gameObject.GetInstanceID());
+
             heldBlock.Grab(holdPoint ? holdPoint : transform);
             isGripping = true;
+
+            // Notify ReactionCube that the patient (not ghost) is carrying it
+            ReactionCube rc = heldBlock.GetComponent<ReactionCube>();
+            if (rc != null) rc.RegisterCarrier(false);
+
             Debug.Log($"[GloveGrabber] Gripped: {best.name}");
         }
     }
@@ -114,12 +134,42 @@ public class GloveGrabber : MonoBehaviour
     {
         if (heldBlock == null) { isGripping = false; return; }
 
-        // BlockItem.Release() checks PartitionZone and sets IsValidlyTransferred
+        // Unlock block so GhostOrb can pick it up again if needed
+        OrbSharedState.Unlock(heldBlock.gameObject.GetInstanceID());
+
         bool valid = heldBlock.Release();
         Debug.Log($"[GloveGrabber] Released: {heldBlock.name} - Transfer {(valid ? "valid" : "invalid")}");
 
         heldBlock = null;
         isGripping = false;
+    }
+
+    // Called by FreezeZone in Competition Scene
+    public void Freeze(float seconds)
+    {
+        StartCoroutine(FreezeRoutine(seconds));
+    }
+
+    private IEnumerator FreezeRoutine(float seconds)
+    {
+        enabled = false;
+        OrbSharedState.playerFrozen = true;
+
+        // Drop currently held block before freezing
+        if (heldBlock != null)
+        {
+            OrbSharedState.Unlock(heldBlock.gameObject.GetInstanceID());
+            heldBlock.Release();
+            heldBlock = null;
+            isGripping = false;
+        }
+
+        Debug.Log($"[GloveGrabber] Frozen for {seconds}s");
+        yield return new WaitForSeconds(seconds);
+
+        enabled = true;
+        OrbSharedState.playerFrozen = false;
+        Debug.Log("[GloveGrabber] Freeze ended.");
     }
 
     private void OnTriggerEnter(Collider other)
@@ -132,26 +182,6 @@ public class GloveGrabber : MonoBehaviour
         }
     }
 
-    public void Freeze(float seconds)
-    {
-        StartCoroutine(FreezeRoutine(seconds));
-    }
-
-    private IEnumerator FreezeRoutine(float seconds)
-    {
-        enabled = false;
-        if (heldBlock != null)
-        {
-            heldBlock.Release();
-            heldBlock = null;
-            isGripping = false;
-        }
-        Debug.Log($"[GloveGrabber] Freeze für {seconds}s");
-        yield return new WaitForSeconds(seconds);
-        enabled = true;
-        Debug.Log("[GloveGrabber] Freeze beendet");
-    }
-
     private void OnTriggerExit(Collider other)
     {
         BlockItem block = other.GetComponent<BlockItem>();
@@ -162,7 +192,7 @@ public class GloveGrabber : MonoBehaviour
     {
         if (!showDebugGUI) return;
         GUILayout.BeginArea(new Rect(10, 150, 320, 110));
-        GUILayout.Label($"[GloveGrabber] Gripping={isGripping} | Kandidaten={candidates.Count}");
+        GUILayout.Label($"[GloveGrabber] Gripping={isGripping} | Candidates={candidates.Count}");
         GUILayout.Label($"Index MCP={currentIndexMcp:F1}(T={gripMcpThreshold}) PIP={currentIndexPip:F1}(T={gripPipThreshold})");
         GUILayout.Label($"CheckGrip={CheckGripCondition()} | Block={heldBlock?.name ?? "-"}");
         GUILayout.EndArea();

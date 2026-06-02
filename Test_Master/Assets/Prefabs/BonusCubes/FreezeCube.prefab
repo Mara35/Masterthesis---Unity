@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 8719958355134927547}
   - component: {fileID: 7035385996000593868}
   - component: {fileID: -1697763391191164909}
+  - component: {fileID: -3302279955896891163}
   m_Layer: 0
   m_Name: FreezeCube
   m_TagString: Freeze
@@ -133,3 +134,16 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!114 &-3302279955896891163
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4517981615047357892}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2d6a0a203e1e65c41bd26621b63d2d4d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  partition: {fileID: 0}

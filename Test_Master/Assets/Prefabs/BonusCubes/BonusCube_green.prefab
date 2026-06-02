@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 3619864252736663347}
   - component: {fileID: 320516489109831268}
   - component: {fileID: -9005159086225661618}
+  - component: {fileID: -9105838849082510665}
   m_Layer: 0
   m_Name: BonusCube_green
   m_TagString: Block
@@ -147,3 +148,16 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 2
+--- !u!114 &-9105838849082510665
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 521418649633421708}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2d6a0a203e1e65c41bd26621b63d2d4d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  partition: {fileID: 0}

@@ -42,7 +42,11 @@ public class BlockItem : MonoBehaviour
         transform.localPosition = Vector3.zero;
         transform.localRotation = Quaternion.identity;
 
-        startedOnRightSide = transform.position.x > partition.position.x;
+        if (partition != null)
+            startedOnRightSide = transform.position.x > partition.position.x;
+        else
+            startedOnRightSide = false;
+
         crossedPartitionWhileHeld = false;
         passedThroughPartitionZone = false;
         IsValidlyTransferred = false;
@@ -61,7 +65,7 @@ public class BlockItem : MonoBehaviour
     {
         if (!isHeld) return;
 
-        if (startedOnRightSide && transform.position.x < partition.position.x)
+        if (partition != null && startedOnRightSide && transform.position.x < partition.position.x)
             crossedPartitionWhileHeld = true;
     }
 
@@ -76,22 +80,28 @@ public class BlockItem : MonoBehaviour
         rb.velocity = Vector3.zero;
         rb.angularVelocity = Vector3.zero;
 
-        bool nowOnLeftSide = transform.position.x < partition.position.x;
+        bool valid = false;
 
-        bool valid = startedOnRightSide
-                  && crossedPartitionWhileHeld
-                  && passedThroughPartitionZone
-                  && nowOnLeftSide;
+        if (partition != null)
+        {
+            bool nowOnLeftSide = transform.position.x < partition.position.x;
+            valid = startedOnRightSide
+                 && crossedPartitionWhileHeld
+                 && passedThroughPartitionZone
+                 && nowOnLeftSide;
+        }
+        // partition == null: PegCube or other objects without transfer logic
+        // valid remains false; evaluation is handled by a separate system (PegChallengeZone, etc.)
 
         IsValidlyTransferred = valid;
 
-        if (!valid)
+        if (!valid && partition != null)
         {
             transform.position = grabPosition;
             transform.rotation = grabRotation;
             Debug.Log($"[BlockItem] Invalid - Reset.");
         }
-        else
+        else if (valid)
         {
             Debug.Log("[BlockItem] valid Transfer");
         }
