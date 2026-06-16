@@ -14,6 +14,11 @@ public class MainMenuManager : MonoBehaviour
     [SerializeField] private GameObject trainingInfoPanel;
     [SerializeField] private GameObject levelSelectPanel;
 
+    [Header("VR Panels")]
+    [SerializeField] private GameObject vrMainMenuPanel;
+    [SerializeField] private GameObject vrTrainingInfoPanel;
+    [SerializeField] private GameObject vrLevelSelectPanel;
+
     [Header("Main Menu Buttons")]
     [SerializeField] private Button trainingButton;
     [SerializeField] private Button competitionButton;
@@ -102,6 +107,10 @@ public class MainMenuManager : MonoBehaviour
         if (mainMenuPanel != null) mainMenuPanel.SetActive(true);
         if (trainingInfoPanel != null) trainingInfoPanel.SetActive(false);
         if (levelSelectPanel != null) levelSelectPanel.SetActive(false);
+
+        if (vrMainMenuPanel != null) vrMainMenuPanel.SetActive(true);
+        if (vrTrainingInfoPanel != null) vrTrainingInfoPanel.SetActive(false);
+        if (vrLevelSelectPanel != null) vrLevelSelectPanel.SetActive(false);
     }
 
     private void ShowTrainingInfo()
@@ -109,6 +118,10 @@ public class MainMenuManager : MonoBehaviour
         if (mainMenuPanel != null) mainMenuPanel.SetActive(false);
         if (trainingInfoPanel != null) trainingInfoPanel.SetActive(true);
         if (levelSelectPanel != null) levelSelectPanel.SetActive(false);
+
+        if (vrMainMenuPanel != null) vrMainMenuPanel.SetActive(false);
+        if (vrTrainingInfoPanel != null) vrTrainingInfoPanel.SetActive(true);
+        if (vrLevelSelectPanel != null) vrLevelSelectPanel.SetActive(false);
     }
 
     private void ShowLevelSelect()
@@ -116,6 +129,10 @@ public class MainMenuManager : MonoBehaviour
         if (mainMenuPanel != null) mainMenuPanel.SetActive(false);
         if (trainingInfoPanel != null) trainingInfoPanel.SetActive(false);
         if (levelSelectPanel != null) levelSelectPanel.SetActive(true);
+
+        if (vrMainMenuPanel != null) vrMainMenuPanel.SetActive(false);
+        if (vrTrainingInfoPanel != null) vrTrainingInfoPanel.SetActive(false);
+        if (vrLevelSelectPanel != null) vrLevelSelectPanel.SetActive(true);
     }
 
     // --- Level Selection ---

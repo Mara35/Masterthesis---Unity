@@ -453,6 +453,7 @@ MonoBehaviour:
   playOnStart: 1
   loop: 1
   playbackSpeed: 1
+  assumedDtSeconds: 0.02
 --- !u!4 &395221744
 Transform:
   m_ObjectHideFlags: 0
@@ -1716,9 +1717,57 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 88e4bde424c1aab4483ae8178b90cdad, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  armSource: {fileID: 395221743}
-  targetBone: {fileID: 1318300899}
-  useBaseRotation: 1
+  playbackSource: {fileID: 0}
+  hips:
+    sensorId: 0
+    targetBone: {fileID: 0}
+    useBaseRotation: 1
+    baseRotation: {x: 0, y: 0, z: 0, w: 0}
+  chest:
+    sensorId: 0
+    targetBone: {fileID: 0}
+    useBaseRotation: 1
+    baseRotation: {x: 0, y: 0, z: 0, w: 0}
+  rightUpperArm:
+    sensorId: 0
+    targetBone: {fileID: 0}
+    useBaseRotation: 1
+    baseRotation: {x: 0, y: 0, z: 0, w: 0}
+  rightForeArm:
+    sensorId: 0
+    targetBone: {fileID: 0}
+    useBaseRotation: 1
+    baseRotation: {x: 0, y: 0, z: 0, w: 0}
+  leftUpperArm:
+    sensorId: 0
+    targetBone: {fileID: 0}
+    useBaseRotation: 1
+    baseRotation: {x: 0, y: 0, z: 0, w: 0}
+  leftForeArm:
+    sensorId: 0
+    targetBone: {fileID: 0}
+    useBaseRotation: 1
+    baseRotation: {x: 0, y: 0, z: 0, w: 0}
+  rightUpperLeg:
+    sensorId: 0
+    targetBone: {fileID: 0}
+    useBaseRotation: 1
+    baseRotation: {x: 0, y: 0, z: 0, w: 0}
+  rightLowerLeg:
+    sensorId: 0
+    targetBone: {fileID: 0}
+    useBaseRotation: 1
+    baseRotation: {x: 0, y: 0, z: 0, w: 0}
+  leftUpperLeg:
+    sensorId: 0
+    targetBone: {fileID: 0}
+    useBaseRotation: 1
+    baseRotation: {x: 0, y: 0, z: 0, w: 0}
+  leftLowerLeg:
+    sensorId: 0
+    targetBone: {fileID: 0}
+    useBaseRotation: 1
+    baseRotation: {x: 0, y: 0, z: 0, w: 0}
 --- !u!1 &1319916970
 GameObject:
   m_ObjectHideFlags: 0
