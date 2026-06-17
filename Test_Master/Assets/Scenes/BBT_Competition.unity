@@ -12204,7 +12204,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   targetToFreeze: {fileID: 1830553543}
   freezeDuration: 5
-  zoneRenderer: {fileID: 0}
+  zoneRenderer: {fileID: 1767362934}
   activeColor: {r: 0.2, g: 0.5, b: 1, a: 0.5}
   inactiveColor: {r: 0.2, g: 0.5, b: 1, a: 0.15}
   textHeight: 0.4
@@ -13972,7 +13972,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   targetToFreeze: {fileID: 1387609344}
   freezeDuration: 5
-  zoneRenderer: {fileID: 0}
+  zoneRenderer: {fileID: 2007110728}
   activeColor: {r: 0.2, g: 0.5, b: 1, a: 0.5}
   inactiveColor: {r: 0.2, g: 0.5, b: 1, a: 0.15}
   textHeight: 0.4
