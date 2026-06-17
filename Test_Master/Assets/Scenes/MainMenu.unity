@@ -3373,7 +3373,6 @@ GameObject:
   - component: {fileID: 1028662559}
   - component: {fileID: 1028662558}
   - component: {fileID: 1028662560}
-  - component: {fileID: 1028662561}
   m_Layer: 0
   m_Name: EventSystem
   m_TagString: Untagged
@@ -3442,26 +3441,6 @@ MonoBehaviour:
   m_PointerBehavior: 0
   m_CursorLockBehavior: 0
   m_ScrollDeltaPerTick: 6
---- !u!114 &1028662561
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1028662556}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4f231c4fb786f3946a6b90b886c48677, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_SendPointerHoverToParent: 1
-  m_HorizontalAxis: Horizontal
-  m_VerticalAxis: Vertical
-  m_SubmitButton: Submit
-  m_CancelButton: Cancel
-  m_InputActionsPerSecond: 10
-  m_RepeatDelay: 0.5
-  m_ForceModuleActive: 0
 --- !u!1 &1035030060
 GameObject:
   m_ObjectHideFlags: 0
@@ -6861,7 +6840,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1898762481}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: dc42784cf147c0c48a680349fa168899, type: 3}
   m_Name: 
@@ -6971,21 +6950,21 @@ MonoBehaviour:
   manuellesTrainingSceneName: BBT_Training
   visuellesTrainingSceneName: BBT_VisualTraining
   competitionSceneName: BBT_Explanation_Competition
-  mainMenuPanel: {fileID: 875272739}
-  trainingInfoPanel: {fileID: 2061798366}
-  levelSelectPanel: {fileID: 956938557}
+  mainMenuPanel: {fileID: 124892705}
+  trainingInfoPanel: {fileID: 1641542244}
+  levelSelectPanel: {fileID: 881622617}
   vrMainMenuPanel: {fileID: 875272739}
   vrTrainingInfoPanel: {fileID: 2061798366}
   vrLevelSelectPanel: {fileID: 956938557}
-  trainingButton: {fileID: 626258915}
-  competitionButton: {fileID: 237746715}
-  manuellesTrainingButton: {fileID: 1486402682}
-  visuellesTrainingButton: {fileID: 383530970}
-  zurueckButton: {fileID: 852122368}
-  easyButton: {fileID: 371146792}
-  mediumButton: {fileID: 664733745}
-  hardButton: {fileID: 191110198}
-  levelBackButton: {fileID: 1614939953}
+  trainingButton: {fileID: 180859013}
+  competitionButton: {fileID: 1307559961}
+  manuellesTrainingButton: {fileID: 2022606478}
+  visuellesTrainingButton: {fileID: 2041445941}
+  zurueckButton: {fileID: 470052656}
+  easyButton: {fileID: 1444709857}
+  mediumButton: {fileID: 876381559}
+  hardButton: {fileID: 357687862}
+  levelBackButton: {fileID: 1200228657}
   easyConfig:
     levelName: Easy
     gripMcpThreshold: -20
