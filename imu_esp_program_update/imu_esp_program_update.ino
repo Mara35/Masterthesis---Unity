@@ -12,16 +12,18 @@
 #define BNO08X_RESET -1
 
 // === FÜR UNTERARM (SENSOR 6): ===
-//const byte strapId = 3;
-//const int localPort = 9001;
+const byte strapId = 3;
+const int localPort = 9001;
 
 // === FÜR OBERARM (SENSOR 4): ===
-const byte strapId = 4;           // 
-const int localPort = 9002;       // 
+//const byte strapId = 4;           // 
+//const int localPort = 9002;       // 
 
+const char *ssid = "TP-Link_2582";
+const char *pwd = "24707985";
 
-const char *ssid = "LAPTOP-Mara"; // [cite: 3]
-const char *pwd  = "2Rc209@3";    // [cite: 3]
+//const char *ssid = "LAPTOP-Mara"; // [cite: 3]
+//const char *pwd  = "2Rc209@3";    // [cite: 3]
 
 // XIAO ESP32C6 I2C:
 const int SDA_PIN = D4;           // [cite: 4]
@@ -148,7 +150,7 @@ struct WifiConnection {
 
     bool connectedNow = (status == WL_CONNECTED); // [cite: 24]
     if (connectedNow && !connected) { // [cite: 25]
-      serverIp = IPAddress(192,168,137,1); // [cite: 25]
+      serverIp = IPAddress(192,168,137,2); // [cite: 25]
       Serial.print("Connected to WiFi. Gateway IP: "); // [cite: 25]
       Serial.println(serverIp);   // [cite: 25]
       if (!wifiVibrationDone) {   // [cite: 26]
