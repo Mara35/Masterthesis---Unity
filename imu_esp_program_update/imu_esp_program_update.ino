@@ -12,18 +12,18 @@
 #define BNO08X_RESET -1
 
 // === FÜR UNTERARM (SENSOR 6): ===
-const byte strapId = 3;
-const int localPort = 9001;
+//const byte strapId = 3;
+//const int localPort = 9001;
 
 // === FÜR OBERARM (SENSOR 4): ===
-//const byte strapId = 4;           // 
-//const int localPort = 9002;       // 
+const byte strapId = 4;           
+const int localPort = 9001;       
 
-const char *ssid = "TP-Link_2582";
-const char *pwd = "24707985";
+//const char *ssid = "TP-Link_2582";
+//const char *pwd = "24707985";
 
-//const char *ssid = "LAPTOP-Mara"; // [cite: 3]
-//const char *pwd  = "2Rc209@3";    // [cite: 3]
+const char *ssid = "LAPTOP-Mara"; // [cite: 3]
+const char *pwd  = "2Rc20931";    // [cite: 3]
 
 // XIAO ESP32C6 I2C:
 const int SDA_PIN = D4;           // [cite: 4]
@@ -150,7 +150,8 @@ struct WifiConnection {
 
     bool connectedNow = (status == WL_CONNECTED); // [cite: 24]
     if (connectedNow && !connected) { // [cite: 25]
-      serverIp = IPAddress(192,168,137,2); // [cite: 25]
+      //serverIp = IPAddress(192,168,137,165); // [cite: 25]
+      serverIp = WiFi.broadcastIP();
       Serial.print("Connected to WiFi. Gateway IP: "); // [cite: 25]
       Serial.println(serverIp);   // [cite: 25]
       if (!wifiVibrationDone) {   // [cite: 26]
@@ -240,7 +241,8 @@ void setup() {
   imu.begin();                    // [cite: 41]
 
   wifiConnection.onMessage = onUdpMessage; // [cite: 41]
-  wifiConnection.begin();         // [cite: 41]
+  wifiConnection.begin();
+  lastEspReport = millis();
 }
 
 // -----------------------------
@@ -255,21 +257,29 @@ void loop() {
     return;                       // [cite: 42]
   }
 
-  static unsigned long nextTSendQuat = 0; // [cite: 43]
+ static unsigned long nextTSendQuat = 0;
+  if (millis() >= nextTSendQuat) {
+    nextTSendQuat += 15;
+    if (millis() > nextTSendQuat + 100) nextTSendQuat = millis() + 15;
 
-  if (millis() >= nextTSendQuat) { // [cite: 43]
-    nextTSendQuat += 15;          // [cite: 43]
-    if (millis() > nextTSendQuat + 100) { // [cite: 44]
-      nextTSendQuat = millis() + 15; // [cite: 44]
+    unsigned long tProc0 = micros();
+    sendRotationWithIndex();
+    unsigned long tProc1 = micros();
+    espProcAccum += (tProc1 - tProc0);
+    espProcCount++;
+
+    if (millis() - lastEspReport >= 1000) {
+      float avgUs = espProcCount ? (float)espProcAccum / espProcCount : 0.0f;
+      Serial.print("[ESP-INT] avg send = ");
+      Serial.print(avgUs/1000.0f, 3);
+      Serial.println(" ms");
+      espProcAccum = 0; espProcCount = 0; lastEspReport = millis();
     }
 
-    sendRotationWithIndex();      // [cite: 45]
-
-    if (wifiConnection.connected) { // [cite: 45]
-      Serial.println("Sending");  // [cite: 45]
-    } else {                      // [cite: 46]
-      Serial.print("Not connected to WiFi, status="); // [cite: 46]
-      Serial.println((int)wifiConnection.status); // [cite: 46]
+    if (!wifiConnection.connected) {
+      Serial.print("Not connected to WiFi, status=");
+      Serial.println((int)wifiConnection.status);
     }
   }
 }
+

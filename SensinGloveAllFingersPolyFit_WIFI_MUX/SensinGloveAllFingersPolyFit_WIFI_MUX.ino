@@ -32,10 +32,10 @@
 
 // ---------- WiFi / UDP ----------
 const char* ssid = "LAPTOP-Mara";
-const char* pwd  = "2Rc209@3";
+const char* pwd  = "2Rc20931";
 
 WiFiUDP udp;
-IPAddress serverIp(192, 168, 137, 1);
+IPAddress serverIp(192, 168, 137, 165);
 const int  port    = 9001;
 const byte gloveId = 20;
 
@@ -353,6 +353,7 @@ void connectWiFi() {
   Serial.println();
   if (WiFi.status() == WL_CONNECTED) {
     udp.begin(port);
+    serverIp = WiFi.broadcastIP(),
     Serial.print(F("WiFi verbunden. IP: "));
     Serial.println(WiFi.localIP());
   } else {
@@ -468,4 +469,22 @@ void loop() {
   }
 
   delay(5);
+}
+
+// ---------- RTT-Ping-Echo ----------
+// PC sendet 8-Byte-Ping: FE EE FE EE + uint32 id. Wir spiegeln ihn unveraendert
+// an den Absender zurueck, damit der PC die Round-Trip-Zeit messen kann.
+void handlePingEcho() {
+  int plen = udp.parsePacket();
+  if (plen >= 8) {
+    byte pbuf[64];
+    int n = udp.read(pbuf, sizeof(pbuf));
+    if (n >= 8 && pbuf[0]==0xFE && pbuf[1]==0xEE && pbuf[2]==0xFE && pbuf[3]==0xEE) {
+      IPAddress rip = udp.remoteIP();
+      uint16_t rport = udp.remotePort();
+      udp.beginPacket(rip, rport);
+      udp.write(pbuf, n);
+      udp.endPacket();
+    }
+  }
 }

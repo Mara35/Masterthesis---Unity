@@ -9,14 +9,22 @@ using UnityEngine;
 
 public class UDPServer : MonoBehaviour
 {
-    [SerializeField] private List<int> listenPorts = new List<int> { 9001, 9002 };
+    [SerializeField] private List<int> listenPorts = new List<int> { 9001 };
 
-    
+
     private List<UdpClient> _udpClients = new List<UdpClient>();
     private List<Thread> _readThreads = new List<Thread>();
 
     public readonly Dictionary<int, StreamSensor> SensorsMap = new();
     public readonly Dictionary<int, GloveSensorData> GloveMap = new();
+
+    // MESS: Empfangs-Zeitstempel (ms) pro Gerät, gesetzt im Empfangs-Thread.
+    public readonly Dictionary<int, double> SensorRecvMs = new();
+    public readonly Dictionary<int, double> GloveRecvMs = new();
+
+    // MESS: gemeinsame monotone Uhr für Empfangs-Thread und Main-Thread.
+    public static double NowMs() =>
+        System.Diagnostics.Stopwatch.GetTimestamp() * 1000.0 / System.Diagnostics.Stopwatch.Frequency;
 
     private bool _reading = false;
 
@@ -32,7 +40,7 @@ public class UDPServer : MonoBehaviour
                 var client = new UdpClient(port);
                 _udpClients.Add(client);
 
-                
+
                 Thread thread = new Thread(() => ThreadFunction(client, port));
                 thread.IsBackground = true;
                 thread.Start();
@@ -84,6 +92,8 @@ public class UDPServer : MonoBehaviour
                 if (receivedBytes == null || receivedBytes.Length == 0)
                     continue;
 
+                double recvMs = NowMs();   // MESS: Empfangszeit sofort nehmen
+
                 var receivedList = receivedBytes.ToList();
 
                 // -------- IMU Quaternion --------
@@ -91,7 +101,7 @@ public class UDPServer : MonoBehaviour
                 {
                     var (nr, quat) = StreamReceiveMessageTypes.DecodeQuaternionData(receivedBytes);
 
-                    lock (SensorsMap) 
+                    lock (SensorsMap)
                     {
                         if (!SensorsMap.ContainsKey(nr))
                         {
@@ -104,6 +114,7 @@ public class UDPServer : MonoBehaviour
                         SensorsMap[nr].IpAddress = clientEndpoint.Address;
                         SensorsMap[nr].Quaternion = quat;
 
+                        SensorRecvMs[nr] = recvMs;   // MESS
                     }
                     continue;
                 }
@@ -135,6 +146,8 @@ public class UDPServer : MonoBehaviour
                         GloveMap[gloveData.Id].Ring_PIP = gloveData.Ring_PIP;
                         GloveMap[gloveData.Id].Pinky_MCP = gloveData.Pinky_MCP;
                         GloveMap[gloveData.Id].Pinky_PIP = gloveData.Pinky_PIP;
+
+                        GloveRecvMs[gloveData.Id] = recvMs;   // MESS
                     }
                     continue;
                 }
@@ -162,10 +175,10 @@ public class UDPServer : MonoBehaviour
 
         var data = StreamSendMessages.CreateVibrateOneRequest(vibrationRequest);
 
-        
-        int targetPort = (vibrationRequest.SensorId == 4) ? 9002 : 9001;
 
-        
+        int targetPort =  9001;
+
+
         if (_udpClients.Count > 0)
         {
             _udpClients[0].Send(data, data.Length, new IPEndPoint(sensor.IpAddress, targetPort));
@@ -185,6 +198,23 @@ public class UDPServer : MonoBehaviour
         lock (GloveMap)
         {
             return GloveMap.TryGetValue(gloveId, out glove);
+        }
+    }
+
+    // MESS: Empfangszeit auslesen (für UnityInternalLatencyLogger)
+    public bool TryGetSensorRecvMs(int sensorId, out double ms)
+    {
+        lock (SensorsMap)
+        {
+            return SensorRecvMs.TryGetValue(sensorId, out ms);
+        }
+    }
+
+    public bool TryGetGloveRecvMs(int gloveId, out double ms)
+    {
+        lock (GloveMap)
+        {
+            return GloveRecvMs.TryGetValue(gloveId, out ms);
         }
     }
 }
