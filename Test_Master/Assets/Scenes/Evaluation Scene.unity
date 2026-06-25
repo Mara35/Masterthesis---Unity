@@ -2154,19 +2154,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6000407479487422213, guid: 565a0bf5ada881e499f98246a413ea73, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 0.9943219
+      value: 0.6299082
       objectReference: {fileID: 0}
     - target: {fileID: 6000407479487422213, guid: 565a0bf5ada881e499f98246a413ea73, type: 3}
       propertyPath: m_LocalRotation.x
-      value: -0.024612261
+      value: -0.01921814
       objectReference: {fileID: 0}
     - target: {fileID: 6000407479487422213, guid: 565a0bf5ada881e499f98246a413ea73, type: 3}
       propertyPath: m_LocalRotation.y
-      value: -0.0025662906
+      value: 0.015588857
       objectReference: {fileID: 0}
     - target: {fileID: 6000407479487422213, guid: 565a0bf5ada881e499f98246a413ea73, type: 3}
       propertyPath: m_LocalRotation.z
-      value: 0.10349713
+      value: 0.7762753
       objectReference: {fileID: 0}
     - target: {fileID: 6000407479487422213, guid: 565a0bf5ada881e499f98246a413ea73, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -2178,7 +2178,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6000407479487422213, guid: 565a0bf5ada881e499f98246a413ea73, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
-      value: 11.899
+      value: 101.899
       objectReference: {fileID: 0}
     - target: {fileID: 8169382868667117632, guid: 565a0bf5ada881e499f98246a413ea73, type: 3}
       propertyPath: m_LocalRotation.w
@@ -5362,6 +5362,27 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   streamController: {fileID: 415216058}
   model: {fileID: 448569401}
+  referencePoses:
+  - index: 1
+    localRotation: {x: 0, y: 0, z: 0, w: 1}
+  - index: 2
+    localRotation: {x: 0, y: 0, z: 0, w: 1}
+  - index: 3
+    localRotation: {x: 0, y: 0, z: 0, w: 1}
+  - index: 4
+    localRotation: {x: 0, y: 0, z: 0, w: 1}
+  - index: 5
+    localRotation: {x: 0, y: 0, z: 0, w: 1}
+  - index: 6
+    localRotation: {x: 0, y: 0, z: 0, w: 1}
+  - index: 7
+    localRotation: {x: 0, y: 0, z: 0, w: 1}
+  - index: 8
+    localRotation: {x: 0, y: 0, z: 0, w: 1}
+  - index: 9
+    localRotation: {x: 0, y: 0, z: 0, w: 1}
+  - index: 10
+    localRotation: {x: 0, y: 0, z: 0, w: 1}
 --- !u!4 &1153348797
 Transform:
   m_ObjectHideFlags: 0
@@ -5512,8 +5533,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1230934265}
-  - component: {fileID: 1230934267}
-  - component: {fileID: 1230934268}
+  - component: {fileID: 1230934266}
   m_Layer: 0
   m_Name: TestManager
   m_TagString: Untagged
@@ -5536,41 +5556,31 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1230934267
+--- !u!114 &1230934266
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1230934263}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 50ca3afa4bb1edc45a4189fc0db939cb, type: 3}
+  m_Script: {fileID: 11500000, guid: 2be23e5e8cbd72340a68f997ee68dea5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  testDuration: 60
-  timerText: {fileID: 0}
-  gameOverUI: {fileID: 1230934268}
---- !u!114 &1230934268
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1230934263}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9922ec9d6d895d441b996bfb5f159b93, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  gameOverPanel: {fileID: 0}
-  finalScoreText: {fileID: 0}
-  hudScoreText: {fileID: 0}
-  hudTimerText: {fileID: 0}
-  newGameButton: {fileID: 0}
-  mainMenuButton: {fileID: 0}
-  trainingSceneName: BBT_Training
-  mainMenuSceneName: MainMenu
+  cylinder: {fileID: 2112843041}
+  targets:
+  - {fileID: 1925687632}
+  - {fileID: 441223986}
+  - {fileID: 8988353}
+  - {fileID: 1668155194}
+  - {fileID: 1806727782}
+  logKey: 32
+  resetKey: 114
+  customCsvPath: 
+  currentTarget: 0
+  isFrozen: 0
+  trialCounter: 0
 --- !u!1 &1256216347
 GameObject:
   m_ObjectHideFlags: 0
@@ -7220,9 +7230,10 @@ GameObject:
   - component: {fileID: 2112843038}
   - component: {fileID: 2112843037}
   - component: {fileID: 2112843036}
-  m_Layer: 9
+  - component: {fileID: 2112843042}
+  m_Layer: 0
   m_Name: TestObject
-  m_TagString: Untagged
+  m_TagString: Block
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -7363,6 +7374,19 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2112843042
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2112843035}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2d6a0a203e1e65c41bd26621b63d2d4d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  partition: {fileID: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
