@@ -6969,21 +6969,21 @@ MonoBehaviour:
   levelBackButton: {fileID: 1200228657}
   easyConfig:
     levelName: Easy
-    gripMcpThreshold: -20
-    gripPipThreshold: -25
-    minFingersForGrip: 1
+    gripMcpThreshold: -25
+    gripPipThreshold: -30
+    minFingersForGrip: 2
     releaseHysteresis: 5
   mediumConfig:
     levelName: Medium
-    gripMcpThreshold: -35
-    gripPipThreshold: -35
+    gripMcpThreshold: -40
+    gripPipThreshold: -50
     minFingersForGrip: 3
     releaseHysteresis: 5
   hardConfig:
     levelName: Hard
-    gripMcpThreshold: -45
-    gripPipThreshold: -40
-    minFingersForGrip: 5
+    gripMcpThreshold: -55
+    gripPipThreshold: -70
+    minFingersForGrip: 4
     releaseHysteresis: 5
 --- !u!4 &1973253350
 Transform:
