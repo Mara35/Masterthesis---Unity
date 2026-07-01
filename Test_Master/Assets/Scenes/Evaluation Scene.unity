@@ -5534,6 +5534,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1230934265}
   - component: {fileID: 1230934266}
+  - component: {fileID: 1230934267}
   m_Layer: 0
   m_Name: TestManager
   m_TagString: Untagged
@@ -5582,6 +5583,31 @@ MonoBehaviour:
   currentTarget: 0
   isFrozen: 0
   trialCounter: 0
+--- !u!114 &1230934267
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1230934263}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6aa9550564284954f8229050b2bb9c22, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  shoulder: {fileID: 676188334}
+  elbow: {fileID: 676188333}
+  wrist: {fileID: 676188332}
+  grip: {fileID: 189349382}
+  measurement: {fileID: 1230934266}
+  logKey: 32
+  resetKey: 114
+  logQuaternions: 1
+  streamController: {fileID: 415216058}
+  upperArmIndex: 4
+  foreArmIndex: 3
+  logContinuously: 1
+  customCsvPath: 
 --- !u!1 &1256216347
 GameObject:
   m_ObjectHideFlags: 0
