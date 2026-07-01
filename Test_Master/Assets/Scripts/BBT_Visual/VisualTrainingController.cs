@@ -34,6 +34,14 @@ public class VisualTrainingController : MonoBehaviour
     [SerializeField] private TextMeshProUGUI instructionText;
     [SerializeField] private TextMeshProUGUI finishedText;
 
+    [Header("VR UI (World Space - display only)")]
+    [Tooltip("Instruction text on Canvas_VR")]
+    [SerializeField] private TextMeshProUGUI vrInstructionText;
+    [Tooltip("Copy of FinishedPanel on Canvas_VR (buttons disabled)")]
+    [SerializeField] private GameObject vrFinishedPanel;
+    [Tooltip("Optional: separate finished text on Canvas_VR")]
+    [SerializeField] private TextMeshProUGUI vrFinishedText;
+
     [Header("Buttons (at the end)")]
     [Tooltip("Assign FinishedPanel")]
     [SerializeField] private GameObject finishedPanel;
@@ -57,9 +65,12 @@ public class VisualTrainingController : MonoBehaviour
     private void Start()
     {
         if (instructionText != null) instructionText.text = "";
+        if (vrInstructionText != null) vrInstructionText.text = "";
 
         // Hide the panel at the start
         if (finishedPanel != null) finishedPanel.SetActive(false);
+        if (vrFinishedPanel != null) vrFinishedPanel.SetActive(false);
+
         if (repeatButton != null) repeatButton.onClick.AddListener(OnRepeat);
         if (mainMenuButton != null) mainMenuButton.onClick.AddListener(OnMainMenu);
 
@@ -77,7 +88,7 @@ public class VisualTrainingController : MonoBehaviour
 
             if (entry.block == null || entry.dropTarget == null)
             {
-                Debug.LogWarning($"[VisualTraining] Block {i} is missing – skipped");
+                Debug.LogWarning($"[VisualTraining] Block {i} is missing - skipped");
                 continue;
             }
 
@@ -138,24 +149,39 @@ public class VisualTrainingController : MonoBehaviour
     // -----------------------------------------------------------------------
     private void ShowInstruction(string colorName)
     {
-        if (instructionText == null) return;
-        instructionText.gameObject.SetActive(true);
-        instructionText.text = instructionTemplate.Replace("{COLOR}", colorName);
+        string text = instructionTemplate.Replace("{COLOR}", colorName);
+
+        if (instructionText != null)
+        {
+            instructionText.gameObject.SetActive(true);
+            instructionText.text = text;
+        }
+        if (vrInstructionText != null)
+        {
+            vrInstructionText.gameObject.SetActive(true);
+            vrInstructionText.text = text;
+        }
     }
 
     private void ClearInstruction()
     {
         if (instructionText != null) instructionText.text = "";
+        if (vrInstructionText != null) vrInstructionText.text = "";
     }
 
     private void ShowFinished()
     {
         ClearInstruction();
         if (instructionText != null) instructionText.gameObject.SetActive(false);
+        if (vrInstructionText != null) vrInstructionText.gameObject.SetActive(false);
 
-        // Show panel
-        if (finishedPanel != null)
-            finishedPanel.SetActive(true);
+        // Show panel (PC + VR)
+        if (finishedPanel != null) finishedPanel.SetActive(true);
+        if (vrFinishedPanel != null) vrFinishedPanel.SetActive(true);
+
+        // Optional VR finished text
+        if (vrFinishedText != null && finishedText != null)
+            vrFinishedText.text = finishedText.text;
 
         Debug.Log("[VisualTraining] All cubes completed.");
     }
