@@ -32,6 +32,8 @@ public class MeasurementController : MonoBehaviour
     // Zielwahl ueber Zifferntasten 1..5 (bis 9 unterstuetzt)
 
     [Header("--- Optionen ---")]
+    [Tooltip("Zylinder beim Freeze aufrecht stellen (Achse senkrecht). Rein optisch/QA - aendert die geloggte Position NICHT.")]
+    public bool forceUpright = true;
     [Tooltip("Eigenen CSV-Pfad erzwingen. Leer = Application.persistentDataPath.")]
     public string customCsvPath = "";
 
@@ -41,6 +43,7 @@ public class MeasurementController : MonoBehaviour
     public int trialCounter = 0;
 
     private Vector3 frozenPos;
+    private Quaternion frozenRot;
     private string csvPath;
 
     private Rigidbody cylRb;
@@ -61,12 +64,12 @@ public class MeasurementController : MonoBehaviour
         }
         Debug.Log($"[Measurement] CSV: {csvPath}");
 
-        // Zylinder-Ausgangszustand merken (= virtuelles A)
+        // Zylinder-Ausgangszustand merken (= virtuelles A, aufrechte Pose)
         if (cylinder != null)
         {
             cylRb = cylinder.GetComponent<Rigidbody>();
             startPos = cylinder.position;
-            startRot = cylinder.rotation;
+            startRot = cylinder.rotation;   // gilt als "aufrecht" fuer forceUpright
         }
         else
         {
@@ -104,7 +107,8 @@ public class MeasurementController : MonoBehaviour
         {
             if (cylRb != null) { cylRb.isKinematic = true; cylRb.useGravity = false; }
             cylinder.SetParent(null);
-            cylinder.position = frozenPos;
+            cylinder.position = frozenPos;    // Position bleibt der Mess-Instant
+            cylinder.rotation = frozenRot;    // aufrecht (oder Ist-Rotation, je nach Option)
         }
     }
 
@@ -116,8 +120,10 @@ public class MeasurementController : MonoBehaviour
             return;
         }
 
-        // Mess-Instant = genau jetzt
+        // Mess-Instant = genau jetzt. Position ist der Pivot (= Achse) und wird NICHT
+        // durch eine spaetere Rotationsaenderung verschoben (Rotation dreht um den Pivot).
         frozenPos = cylinder.position;
+        frozenRot = forceUpright ? startRot : cylinder.rotation;
         isFrozen = true;
         trialCounter++;
 
@@ -163,7 +169,7 @@ public class MeasurementController : MonoBehaviour
     {
         isFrozen = false;
 
-        // Virtuellen Zylinder zurueck auf A
+        // Virtuellen Zylinder zurueck auf A (Position + aufrechte Startpose)
         if (cylinder != null)
         {
             cylinder.SetParent(null);
