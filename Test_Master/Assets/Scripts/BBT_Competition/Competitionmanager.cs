@@ -173,8 +173,8 @@ public class CompetitionGameManager : MonoBehaviour
     {
         int playerRaw = frozenPlayerScore;
         int ghostRaw = frozenGhostScore;
-        int playerFinal = Mathf.Max(0, playerRaw - playerBonusPoints);
-        int ghostFinal = Mathf.Max(0, ghostRaw - ghostBonusPoints);
+        int playerFinal = playerRaw - playerBonusPoints;
+        int ghostFinal = ghostRaw - ghostBonusPoints;
 
         // Hide everything
         if (resultText != null) resultText.text = "";
