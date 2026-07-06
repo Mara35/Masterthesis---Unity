@@ -5,6 +5,7 @@ public class BlockItem : MonoBehaviour
 {
     private Rigidbody rb;
     private BoxCollider col;
+    private Renderer blockRenderer;
 
     private bool isHeld = false;
     private bool startedOnRightSide;
@@ -24,6 +25,7 @@ public class BlockItem : MonoBehaviour
     {
         rb = GetComponent<Rigidbody>();
         col = GetComponent<BoxCollider>();
+        blockRenderer = GetComponent<Renderer>();
     }
 
     public void Grab(Transform holdPoint)
@@ -100,6 +102,8 @@ public class BlockItem : MonoBehaviour
             transform.position = grabPosition;
             transform.rotation = grabRotation;
             Debug.Log($"[BlockItem] Invalid - Reset.");
+            if (blockRenderer != null)
+                StartCoroutine(FlashInvalid());
         }
         else if (valid)
         {
@@ -107,5 +111,12 @@ public class BlockItem : MonoBehaviour
         }
 
         return valid;
+    }
+    private System.Collections.IEnumerator FlashInvalid()  
+    {
+        Color original = blockRenderer.material.color;
+        blockRenderer.material.color = Color.red;
+        yield return new WaitForSeconds(0.3f);
+        blockRenderer.material.color = original;
     }
 }
