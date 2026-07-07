@@ -7886,7 +7886,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   scoreText: {fileID: 1308708708}
-  partitionTransform: {fileID: 0}
+  vrScoreText: {fileID: 1306058718}
+  partitionTransform: {fileID: 879326063}
   useBlockItemValidation: 1
 --- !u!1 &886657374
 GameObject:
@@ -11591,6 +11592,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   testDuration: 60
   timerText: {fileID: 1580816394}
+  vrTimerText: {fileID: 886657375}
   gameOverUI: {fileID: 1230934268}
 --- !u!114 &1230934268
 MonoBehaviour:

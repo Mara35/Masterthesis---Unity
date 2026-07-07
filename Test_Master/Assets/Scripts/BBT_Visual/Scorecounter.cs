@@ -8,6 +8,10 @@ public class ScoreCounter : MonoBehaviour
     [Header("UI")]
     public TextMeshProUGUI scoreText;
 
+    [Header("VR UI (World Space)")]
+    [Tooltip("Score text on Canvas_VR")]
+    public TextMeshProUGUI vrScoreText;
+
     [Header("Partition")]
     [Tooltip("Will be automatically filled in if left blank")]
     public Transform partitionTransform;
@@ -84,8 +88,9 @@ public class ScoreCounter : MonoBehaviour
 
     private void UpdateUI()
     {
-        if (scoreText != null)
-            scoreText.text = "Score: " + score;
+        string label = "Score: " + score;
+        if (scoreText != null) scoreText.text = label;
+        if (vrScoreText != null) vrScoreText.text = label;
     }
 
     public int GetScore() => score;

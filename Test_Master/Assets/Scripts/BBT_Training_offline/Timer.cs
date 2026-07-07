@@ -8,6 +8,10 @@ public class Timer : MonoBehaviour
     [Header("UI")]
     public TextMeshProUGUI timerText;
 
+    [Header("VR UI (World Space)")]
+    [Tooltip("Timer text on Canvas_VR")]
+    public TextMeshProUGUI vrTimerText;
+
     [Header("End Screen")]
     [SerializeField] private GameOverUI_off gameOverUI;
 
@@ -73,8 +77,9 @@ public class Timer : MonoBehaviour
 
     private void UpdateUI()
     {
-        if (timerText != null)
-            timerText.text = "Time: " + Mathf.CeilToInt(timeRemaining);
+        string label = "Time: " + Mathf.CeilToInt(timeRemaining);
+        if (timerText != null) timerText.text = label;
+        if (vrTimerText != null) vrTimerText.text = label;
     }
 
     private void DisableInteraction()
