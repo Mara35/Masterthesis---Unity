@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using UnityEngine;
 
@@ -18,7 +19,7 @@ using UnityEngine;
 /// -- that part is separate and out of scope.
 ///
 /// Setup: attach to any GameObject in the game scene, assign the UDPServer reference,
-/// press Play, perform the same movements as in the transport session.
+/// press Play, perform the same movements as in a real training session.
 /// Output: unity_internal_<stamp>.csv  (t_ms, device, recv_to_render_ms)
 ///
 /// NOTE: requires the ESPs to run the MEAS firmware AND UDPServer's StreamReceiveMessageTypes
@@ -27,7 +28,7 @@ using UnityEngine;
 public class UnityInternalLatencyLogger : MonoBehaviour
 {
     [SerializeField] private UDPServer udpServer;
-    [SerializeField] private int[] sensorIds = { 3, 4 };   // forearm, upper arm
+    [SerializeField] private int[] sensorIds = { 3, 4 };   // 3 = upper arm, 4 = forearm
     [SerializeField] private int gloveId = 20;
     [Tooltip("Leave empty to use Application.persistentDataPath")]
     [SerializeField] private string outputFolder = "";
@@ -59,7 +60,8 @@ public class UnityInternalLatencyLogger : MonoBehaviour
             {
                 if (!lastSensorRecv.TryGetValue(id, out double prev) || recv != prev)
                 {
-                    writer.WriteLine($"{now:F3},{Label(id)},{(now - recv):F3}");
+                    writer.WriteLine(string.Format(CultureInfo.InvariantCulture,
+                        "{0:F3},{1},{2:F3}", now, Label(id), now - recv));
                     lastSensorRecv[id] = recv;
                 }
             }
@@ -69,14 +71,22 @@ public class UnityInternalLatencyLogger : MonoBehaviour
         {
             if (!lastGloveRecv.TryGetValue(gloveId, out double gprev) || grecv != gprev)
             {
-                writer.WriteLine($"{now:F3},Glove,{(now - grecv):F3}");
+                writer.WriteLine(string.Format(CultureInfo.InvariantCulture,
+                    "{0:F3},Glove,{1:F3}", now, now - grecv));
                 lastGloveRecv[gloveId] = grecv;
             }
         }
     }
 
-    static string Label(int id) => id == 3 ? "IMU_Forearm" : id == 4 ? "IMU_UpperArm" : "id" + id;
+    static string Label(int id) => id == 3 ? "IMU_UpperArm" : id == 4 ? "IMU_Forearm" : $"Sensor_{id}";
 
-    void OnDestroy() { try { writer?.Flush(); writer?.Close(); } catch { } }
-    void OnApplicationQuit() { try { writer?.Flush(); writer?.Close(); } catch { } }
+    void OnApplicationQuit()
+    {
+        if (writer != null)
+        {
+            writer.Flush();
+            writer.Close();
+            writer = null;
+        }
+    }
 }

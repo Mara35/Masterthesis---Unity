@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -43,8 +44,8 @@ public class UdpMeasurementHarness : MonoBehaviour
         switch (id)
         {
             case 20: return "Glove";
-            case 3:  return "IMU_Forearm";
-            case 4:  return "IMU_UpperArm";
+            case 3:  return "IMU_UpperArm";   // strapId 3 = Oberarm
+            case 4:  return "IMU_Forearm";    // strapId 4 = Unterarm
             default: return "id" + id;
         }
     }
@@ -58,8 +59,16 @@ public class UdpMeasurementHarness : MonoBehaviour
     readonly object lockStats = new object();   // guards stats + deviceEndpoints
     readonly object lockPing  = new object();   // guards pingSent + pingDevice + rttAgg
 
-    StreamWriter pktWriter;    // written only by rxThread
-    StreamWriter pingWriter;   // written only by echoThread
+    StreamWriter pktWriter;    // written ONCE at shutdown (never during reception)
+    StreamWriter pingWriter;   // written ONCE at shutdown (never during reception)
+
+    // In-memory records. The receive threads only append to these (no disk I/O in
+    // the hot path), so a slow flush can never stall Receive() and overflow the
+    // socket buffer. The full CSVs are written once in Shutdown after the threads join.
+    struct PktRec  { public double t; public byte dev; public uint seq; public int size; public double inter; }
+    struct PingRec { public double tsend; public double trecv; public double rtt; public byte dev; }
+    readonly List<PktRec>  pktRecords  = new List<PktRec>(300000);   // ~5 min @ ~150 pkt/s with headroom
+    readonly List<PingRec> pingRecords = new List<PingRec>(30000);
 
     uint nextPingId = 0;       // only touched on the Update thread
     readonly Dictionary<uint, double> pingSent = new Dictionary<uint, double>();
@@ -231,8 +240,8 @@ public class UdpMeasurementHarness : MonoBehaviour
                 matched = true;
             }
         }
-        // disk write OUTSIDE the lock; pingWriter is only touched by this thread
-        if (matched) pingWriter.WriteLine($"{ts:F3},{t:F3},{rtt:F3},{DeviceLabel(dev)}");
+        // In-memory append only; NO disk I/O here. Written to CSV once at shutdown.
+        if (matched) pingRecords.Add(new PingRec { tsend = ts, trecv = t, rtt = rtt, dev = dev });
     }
 
     void ProcessData(byte[] d, IPEndPoint remote, double t)
@@ -275,8 +284,8 @@ public class UdpMeasurementHarness : MonoBehaviour
             s.lastArrival = t;
         }
 
-        // disk write OUTSIDE the lock; pktWriter is only touched by this thread
-        pktWriter.WriteLine($"{t:F3},{DeviceLabel(id2)},{seq},{d.Length},{inter:F3}");
+        // In-memory append only; NO disk I/O here. Written to CSV once at shutdown.
+        pktRecords.Add(new PktRec { t = t, dev = id2, seq = seq, size = d.Length, inter = inter });
         if (isNew) Debug.Log($"[Harness] NEW STREAM: {DeviceLabel(id2)} @ {ip}:{rport}  (id={id2})");
     }
 
@@ -335,7 +344,30 @@ public class UdpMeasurementHarness : MonoBehaviour
     {
         if (writersClosed) return;
         writersClosed = true;
+
+        // Safe to iterate here: this runs only after rxThread/echoThread have joined,
+        // so nothing appends to the lists anymore. InvariantCulture => dot decimals,
+        // so the comma stays a pure field separator (clean CSV for analyze_latency.py).
+        var inv = CultureInfo.InvariantCulture;
+        try
+        {
+            if (pktWriter != null)
+                foreach (var r in pktRecords)
+                    pktWriter.WriteLine(string.Format(inv, "{0:F3},{1},{2},{3},{4:F3}",
+                        r.t, DeviceLabel(r.dev), r.seq, r.size, r.inter));
+        }
+        catch { }
+        try
+        {
+            if (pingWriter != null)
+                foreach (var r in pingRecords)
+                    pingWriter.WriteLine(string.Format(inv, "{0:F3},{1:F3},{2:F3},{3}",
+                        r.tsend, r.trecv, r.rtt, DeviceLabel(r.dev)));
+        }
+        catch { }
+
         try { pktWriter?.Flush(); pktWriter?.Close(); } catch { }
         try { pingWriter?.Flush(); pingWriter?.Close(); } catch { }
+        Debug.Log($"[Harness] Wrote {pktRecords.Count} packet rows, {pingRecords.Count} ping rows.");
     }
 }
