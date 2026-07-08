@@ -1,40 +1,37 @@
 using System;
 using System.IO;
+using System.Text;
+using System.Collections.Generic;
 using System.Globalization;
 using UnityEngine;
 
 /// <summary>
 /// Mess-Controller fuer den End-to-End Accuracy Test.
-///
-/// Ablauf:
-///   - GloveGrabber/BlockItem uebernehmen Greifen + Tragen (unveraendert, wie im Spiel).
-///   - Operator markiert den Mess-Instant per Taste, sobald der reale Zylinder
-///     auf dem Nagel sitzt -> Position wird geloggt und der Zylinder eingefroren.
-///   - Reset gibt das naechste Trial frei und setzt den virtuellen Zylinder zurueck auf A.
-///
-/// Das Skript greift NICHT in den GloveGrabber ein. Es beobachtet nur den
-/// Zylinder und pinnt ihn beim Messen fest (laeuft via Execution Order NACH dem Grabber).
+/// Greift NICHT in den GloveGrabber ein - beobachtet nur den Zylinder und pinnt
+/// ihn beim Messen fest (Execution Order 1000 -> nach dem Grabber).
 /// </summary>
-[DefaultExecutionOrder(1000)] // laeuft NACH dem GloveGrabber, damit der Freeze-Pin gewinnt
+[DefaultExecutionOrder(1000)]
 public class MeasurementController : MonoBehaviour
 {
     [Header("--- Referenzen ---")]
     [Tooltip("Das GO mit BlockItem (rastet auf HoldPoint, wird geloggt). Pivot = Zylinderachse.")]
     public Transform cylinder;
-    [Tooltip("Die 5 leeren Ziel-GOs. Reihenfolge = Layout (Index 0 = Ziel 1 usw.).")]
+
+    [Tooltip("Ziel-GOs. Reihenfolge = Ziel 1..N. Wird von targetParent ueberschrieben, falls gesetzt.")]
     public Transform[] targets;
 
+    [Tooltip("Optional: TargetRig hier reinziehen -> T1..T11 werden automatisch gesammelt (Cube wird ignoriert).")]
+    public Transform targetParent;
+
     [Header("--- Tasten ---")]
-    [Tooltip("Mess-Schnappschuss + Freeze (Zylinder sitzt auf dem Nagel).")]
     public KeyCode logKey = KeyCode.Space;
-    [Tooltip("Naechstes Trial freigeben, virtuellen Zylinder zurueck auf A.")]
     public KeyCode resetKey = KeyCode.R;
-    // Zielwahl ueber Zifferntasten 1..5 (bis 9 unterstuetzt)
+    // Zielwahl: 1..9 direkt, 0 = Ziel 10, - (Minus) = Ziel 11
+    // ausserdem Pfeil links/rechts = vorheriges/naechstes Ziel (skaliert auf beliebig viele)
 
     [Header("--- Optionen ---")]
-    [Tooltip("Zylinder beim Freeze aufrecht stellen (Achse senkrecht). Rein optisch/QA - aendert die geloggte Position NICHT.")]
+    [Tooltip("Zylinder beim Freeze aufrecht stellen. Rein optisch/QA - aendert die geloggte Position NICHT.")]
     public bool forceUpright = true;
-    [Tooltip("Eigenen CSV-Pfad erzwingen. Leer = Application.persistentDataPath.")]
     public string customCsvPath = "";
 
     [Header("--- Status (read-only) ---")]
@@ -52,63 +49,91 @@ public class MeasurementController : MonoBehaviour
 
     void Start()
     {
-        // CSV vorbereiten
+        // Optional: T1..T11 automatisch aus dem Parent sammeln (Cube & Fremdes werden ignoriert)
+        if (targetParent != null)
+            targets = CollectNumberedChildren(targetParent, 'T');
+
         csvPath = string.IsNullOrEmpty(customCsvPath)
             ? Path.Combine(Application.persistentDataPath, "placement_results.csv")
             : customCsvPath;
 
         if (!File.Exists(csvPath))
-        {
             File.AppendAllText(csvPath,
                 "timestamp,trial,target,cyl_x,cyl_y,cyl_z,tgt_x,tgt_y,tgt_z,inplane_mm,height_mm\n");
-        }
         Debug.Log($"[Measurement] CSV: {csvPath}");
+        Debug.Log($"[Measurement] {(targets != null ? targets.Length : 0)} Ziele geladen.");
 
-        // Zylinder-Ausgangszustand merken (= virtuelles A, aufrechte Pose)
         if (cylinder != null)
         {
             cylRb = cylinder.GetComponent<Rigidbody>();
             startPos = cylinder.position;
-            startRot = cylinder.rotation;   // gilt als "aufrecht" fuer forceUpright
+            startRot = cylinder.rotation;
         }
-        else
-        {
-            Debug.LogWarning("[Measurement] Kein Zylinder zugewiesen!");
-        }
+        else Debug.LogWarning("[Measurement] Kein Zylinder zugewiesen!");
 
         if (targets == null || targets.Length == 0)
-            Debug.LogWarning("[Measurement] Keine Targets zugewiesen!");
+            Debug.LogWarning("[Measurement] Keine Targets!");
+    }
+
+    // Sammelt Kinder namens <prefix><Zahl> (z.B. T1..T11), sortiert nach der Zahl.
+    private Transform[] CollectNumberedChildren(Transform parent, char prefix)
+    {
+        var found = new List<KeyValuePair<int, Transform>>();
+        foreach (Transform child in parent)
+        {
+            int n = ParseIndex(child.name, prefix);
+            if (n > 0) found.Add(new KeyValuePair<int, Transform>(n, child));
+        }
+        found.Sort((a, b) => a.Key.CompareTo(b.Key));
+        var arr = new Transform[found.Count];
+        for (int i = 0; i < found.Count; i++) arr[i] = found[i].Value;
+        return arr;
+    }
+
+    private int ParseIndex(string name, char prefix)
+    {
+        if (string.IsNullOrEmpty(name) || name[0] != prefix) return -1;
+        return int.TryParse(name.Substring(1), out int n) ? n : -1;
     }
 
     void Update()
     {
-        // Zielwahl 1..9
-        if (targets != null)
-        {
-            for (int i = 0; i < targets.Length && i < 9; i++)
-            {
-                if (Input.GetKeyDown(KeyCode.Alpha1 + i))
-                {
-                    currentTarget = i;
-                    Debug.Log($"[Measurement] Aktuelles Ziel: {i + 1}");
-                }
-            }
-        }
-
+        HandleTargetSelection();
         if (Input.GetKeyDown(logKey)) CaptureAndLog();
         if (Input.GetKeyDown(resetKey)) ResetTrial();
     }
 
+    void HandleTargetSelection()
+    {
+        if (targets == null || targets.Length == 0) return;
+
+        // 1..9 -> Ziel 1..9
+        for (int i = 0; i < 9 && i < targets.Length; i++)
+            if (Input.GetKeyDown(KeyCode.Alpha1 + i)) SelectTarget(i);
+
+        // 0 -> Ziel 10, Minus -> Ziel 11
+        if (targets.Length >= 10 && Input.GetKeyDown(KeyCode.Alpha0)) SelectTarget(9);
+        if (targets.Length >= 11 && Input.GetKeyDown(KeyCode.Minus)) SelectTarget(10);
+
+        // Pfeiltasten: durchschalten (funktioniert fuer beliebig viele Ziele)
+        if (Input.GetKeyDown(KeyCode.RightArrow)) SelectTarget((currentTarget + 1) % targets.Length);
+        if (Input.GetKeyDown(KeyCode.LeftArrow)) SelectTarget((currentTarget - 1 + targets.Length) % targets.Length);
+    }
+
+    void SelectTarget(int i)
+    {
+        currentTarget = Mathf.Clamp(i, 0, targets.Length - 1);
+        Debug.Log($"[Measurement] Aktuelles Ziel: {currentTarget + 1} ({targets[currentTarget].name})");
+    }
+
     void LateUpdate()
     {
-        // Solange eingefroren: gegen Grabber/Release pinnen.
-        // Laeuft dank Execution Order (1000) nach dem GloveGrabber.
         if (isFrozen && cylinder != null)
         {
             if (cylRb != null) { cylRb.isKinematic = true; cylRb.useGravity = false; }
             cylinder.SetParent(null);
-            cylinder.position = frozenPos;    // Position bleibt der Mess-Instant
-            cylinder.rotation = frozenRot;    // aufrecht (oder Ist-Rotation, je nach Option)
+            cylinder.position = frozenPos;
+            cylinder.rotation = frozenRot;
         }
     }
 
@@ -120,8 +145,6 @@ public class MeasurementController : MonoBehaviour
             return;
         }
 
-        // Mess-Instant = genau jetzt. Position ist der Pivot (= Achse) und wird NICHT
-        // durch eine spaetere Rotationsaenderung verschoben (Rotation dreht um den Pivot).
         frozenPos = cylinder.position;
         frozenRot = forceUpright ? startRot : cylinder.rotation;
         isFrozen = true;
@@ -130,11 +153,10 @@ public class MeasurementController : MonoBehaviour
         Vector3 c = frozenPos;
         Vector3 t = targets[currentTarget].position;
 
-        // In-Plane-Fehler (horizontal, XZ) = Hauptmetrik; Hoehe (Y) = Sekundaerwert
         float inPlane = Vector2.Distance(new Vector2(c.x, c.z), new Vector2(t.x, t.z));
         float height = Mathf.Abs(c.y - t.y);
 
-        Debug.Log($"[Measurement] Trial {trialCounter} | Ziel {currentTarget + 1} " +
+        Debug.Log($"[Measurement] Trial {trialCounter} | Ziel {currentTarget + 1} ({targets[currentTarget].name}) " +
                   $"| InPlane {inPlane * 1000f:F1} mm | Hoehe {height * 1000f:F1} mm");
 
         WriteCsvLine(c, t, inPlane, height);
@@ -142,7 +164,6 @@ public class MeasurementController : MonoBehaviour
 
     void WriteCsvLine(Vector3 c, Vector3 t, float inPlane, float height)
     {
-        // InvariantCulture erzwingt Punkt als Dezimaltrenner (deutsches Windows schreibt sonst Komma!)
         var ci = CultureInfo.InvariantCulture;
         string line = string.Join(",", new[]
         {
@@ -155,21 +176,13 @@ public class MeasurementController : MonoBehaviour
             (height * 1000f).ToString("F2", ci)
         }) + "\n";
 
-        try
-        {
-            File.AppendAllText(csvPath, line);
-        }
-        catch (Exception e)
-        {
-            Debug.LogError($"[Measurement] CSV-Schreibfehler: {e.Message}");
-        }
+        try { File.AppendAllText(csvPath, line); }
+        catch (Exception e) { Debug.LogError($"[Measurement] CSV-Schreibfehler: {e.Message}"); }
     }
 
     void ResetTrial()
     {
         isFrozen = false;
-
-        // Virtuellen Zylinder zurueck auf A (Position + aufrechte Startpose)
         if (cylinder != null)
         {
             cylinder.SetParent(null);
@@ -177,22 +190,20 @@ public class MeasurementController : MonoBehaviour
             cylinder.rotation = startRot;
             if (cylRb != null)
             {
-                cylRb.isKinematic = true;
-                cylRb.useGravity = false;
-                cylRb.velocity = Vector3.zero;
-                cylRb.angularVelocity = Vector3.zero;
+                cylRb.isKinematic = true; cylRb.useGravity = false;
+                cylRb.velocity = Vector3.zero; cylRb.angularVelocity = Vector3.zero;
             }
         }
-
-        Debug.Log("[Measurement] Freigegeben - Zylinder zurueck auf A, bereit fuers naechste Trial.");
+        Debug.Log("[Measurement] Freigegeben - Zylinder zurueck auf A.");
     }
 
-    // Optionale On-Screen-Anzeige fuer den Operator
     void OnGUI()
     {
-        GUILayout.BeginArea(new Rect(10, 270, 360, 90));
-        GUILayout.Label($"[Measurement] Ziel={currentTarget + 1} | Trial={trialCounter} | Frozen={isFrozen}");
-        GUILayout.Label("Tasten: 1-5 Ziel | Space loggen+freeze | R reset");
+        GUILayout.BeginArea(new Rect(10, 270, 380, 90));
+        string tname = (targets != null && currentTarget < targets.Length && targets[currentTarget] != null)
+            ? targets[currentTarget].name : "-";
+        GUILayout.Label($"[Measurement] Ziel={currentTarget + 1} ({tname}) | Trial={trialCounter} | Frozen={isFrozen}");
+        GUILayout.Label("Ziel: 1-9, 0=10, -=11, Pfeile blaettern | Space=log+freeze | R=reset");
         GUILayout.EndArea();
     }
 }
