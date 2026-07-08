@@ -11,12 +11,12 @@
 // -----------------------------
 #define BNO08X_RESET -1
 
-// === FÜR UNTERARM (SENSOR 6): ===
-//const byte strapId = 3;
+// === FÜR UNTERARM (SENSOR 4): ===
+//const byte strapId = 4;
 //const int localPort = 9001;
 
-// === FÜR OBERARM (SENSOR 4): ===
-const byte strapId = 4;           
+// === FÜR OBERARM (SENSOR 6): ===
+const byte strapId = 3;           
 const int localPort = 9001;       
 
 //const char *ssid = "TP-Link_2582";
@@ -242,7 +242,6 @@ void setup() {
 
   wifiConnection.onMessage = onUdpMessage; // [cite: 41]
   wifiConnection.begin();
-  lastEspReport = millis();
 }
 
 // -----------------------------
@@ -257,24 +256,12 @@ void loop() {
     return;                       // [cite: 42]
   }
 
- static unsigned long nextTSendQuat = 0;
+  static unsigned long nextTSendQuat = 0;
   if (millis() >= nextTSendQuat) {
     nextTSendQuat += 15;
     if (millis() > nextTSendQuat + 100) nextTSendQuat = millis() + 15;
 
-    unsigned long tProc0 = micros();
     sendRotationWithIndex();
-    unsigned long tProc1 = micros();
-    espProcAccum += (tProc1 - tProc0);
-    espProcCount++;
-
-    if (millis() - lastEspReport >= 1000) {
-      float avgUs = espProcCount ? (float)espProcAccum / espProcCount : 0.0f;
-      Serial.print("[ESP-INT] avg send = ");
-      Serial.print(avgUs/1000.0f, 3);
-      Serial.println(" ms");
-      espProcAccum = 0; espProcCount = 0; lastEspReport = millis();
-    }
 
     if (!wifiConnection.connected) {
       Serial.print("Not connected to WiFi, status=");
