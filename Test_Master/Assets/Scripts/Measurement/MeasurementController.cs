@@ -32,7 +32,17 @@ public class MeasurementController : MonoBehaviour
     [Header("--- Optionen ---")]
     [Tooltip("Zylinder beim Freeze aufrecht stellen. Rein optisch/QA - aendert die geloggte Position NICHT.")]
     public bool forceUpright = true;
+    [Tooltip("Zylinder auch WAEHREND des Greifens/Tragens aufrecht halten (verhindert Kippen am HoldPoint).")]
+    public bool keepUprightWhileHeld = true;
     public string customCsvPath = "";
+
+    [Header("--- Manueller Greif-Fallback ---")]
+    [Tooltip("Taste zum manuellen Greifen/Loslassen, falls der Handschuh nicht ausloest.")]
+    public KeyCode manualGrabKey = KeyCode.G;
+    [Tooltip("HoldPoint der Hand - dorthin rastet der Zylinder (wie beim echten Greifen).")]
+    public Transform holdPoint;
+    [Tooltip("Optional: GloveGrabber - wird beim manuellen Greifen kurz stummgeschaltet, damit sich beide nicht streiten.")]
+    public GloveGrabber gloveGrabber;
 
     [Header("--- Status (read-only) ---")]
     public int currentTarget = 0;
@@ -43,6 +53,7 @@ public class MeasurementController : MonoBehaviour
     private Quaternion frozenRot;
     private string csvPath;
 
+    private bool manualHeld = false;
     private Rigidbody cylRb;
     private Vector3 startPos;
     private Quaternion startRot;
@@ -59,8 +70,9 @@ public class MeasurementController : MonoBehaviour
 
         if (!File.Exists(csvPath))
             File.AppendAllText(csvPath,
-                "timestamp,trial,target,cyl_x,cyl_y,cyl_z,tgt_x,tgt_y,tgt_z,inplane_mm,height_mm\n");
+                "timestamp,trial,target,cyl_x,cyl_y,cyl_z,tgt_x,tgt_y,tgt_z,dx_mm,dy_mm,dz_mm,inplane_mm,height_mm\n");
         Debug.Log($"[Measurement] CSV: {csvPath}");
+        Debug.Log("[Measurement] Fehlervorzeichen (Zylinder - Ziel): +dx=rechts, +dy=hoch, +dz=vom Koerper weg.");
         Debug.Log($"[Measurement] {(targets != null ? targets.Length : 0)} Ziele geladen.");
 
         if (cylinder != null)
@@ -99,6 +111,7 @@ public class MeasurementController : MonoBehaviour
     void Update()
     {
         HandleTargetSelection();
+        if (Input.GetKeyDown(manualGrabKey)) ToggleManualGrab();
         if (Input.GetKeyDown(logKey)) CaptureAndLog();
         if (Input.GetKeyDown(resetKey)) ResetTrial();
     }
@@ -117,7 +130,7 @@ public class MeasurementController : MonoBehaviour
 
         // Pfeiltasten: durchschalten (funktioniert fuer beliebig viele Ziele)
         if (Input.GetKeyDown(KeyCode.RightArrow)) SelectTarget((currentTarget + 1) % targets.Length);
-        if (Input.GetKeyDown(KeyCode.LeftArrow)) SelectTarget((currentTarget - 1 + targets.Length) % targets.Length);
+        if (Input.GetKeyDown(KeyCode.LeftArrow))  SelectTarget((currentTarget - 1 + targets.Length) % targets.Length);
     }
 
     void SelectTarget(int i)
@@ -128,13 +141,30 @@ public class MeasurementController : MonoBehaviour
 
     void LateUpdate()
     {
-        if (isFrozen && cylinder != null)
+        if (cylinder == null) return;
+
+        if (isFrozen)
         {
+            // Eingefroren: Position + aufrechte Rotation pinnen (gewinnt gegen Grabber/Release).
             if (cylRb != null) { cylRb.isKinematic = true; cylRb.useGravity = false; }
             cylinder.SetParent(null);
             cylinder.position = frozenPos;
             cylinder.rotation = frozenRot;
+            return;
         }
+
+        // Nicht eingefroren, aber gegriffen (folgt dem HoldPoint): aufrecht erzwingen,
+        // damit der Zylinder nicht um den Boden-Pivot kippt. Position bleibt unberuehrt.
+        if (keepUprightWhileHeld && IsHeld())
+            cylinder.rotation = startRot;
+    }
+
+    // "Gegriffen" = Zylinder haengt gerade an der Hand (per Glove ODER manuell).
+    bool IsHeld()
+    {
+        if (manualHeld) return true;
+        // Beim Greifen parentet BlockItem den Zylinder unter HoldPoint -> Parent != null & != urspruenglich.
+        return cylinder.parent != null && holdPoint != null && cylinder.parent == holdPoint;
     }
 
     void CaptureAndLog()
@@ -153,16 +183,22 @@ public class MeasurementController : MonoBehaviour
         Vector3 c = frozenPos;
         Vector3 t = targets[currentTarget].position;
 
-        float inPlane = Vector2.Distance(new Vector2(c.x, c.z), new Vector2(t.x, t.z));
-        float height = Mathf.Abs(c.y - t.y);
+        // Fehlervektor = Zylinder - Ziel. In koerperbezogene Achsen umrechnen (relativ zu TargetRig,
+        // falls gesetzt), damit +dx=rechts, +dy=hoch, +dz=vom Koerper weg gilt - unabhaengig davon,
+        // wie die Szene global gedreht ist. InverseTransformDirection = nur Rotation, Betrag bleibt erhalten.
+        Vector3 dWorld = c - t;
+        Vector3 d = (targetParent != null) ? targetParent.InverseTransformDirection(dWorld) : dWorld;
+
+        float inPlane = new Vector2(d.x, d.z).magnitude;  // horizontal (XZ)
+        float height  = Mathf.Abs(d.y);                   // vertikal (Y)
 
         Debug.Log($"[Measurement] Trial {trialCounter} | Ziel {currentTarget + 1} ({targets[currentTarget].name}) " +
-                  $"| InPlane {inPlane * 1000f:F1} mm | Hoehe {height * 1000f:F1} mm");
+                  $"| dx {d.x*1000f:F1} dy {d.y*1000f:F1} dz {d.z*1000f:F1} mm | InPlane {inPlane*1000f:F1} mm");
 
-        WriteCsvLine(c, t, inPlane, height);
+        WriteCsvLine(c, t, d, inPlane, height);
     }
 
-    void WriteCsvLine(Vector3 c, Vector3 t, float inPlane, float height)
+    void WriteCsvLine(Vector3 c, Vector3 t, Vector3 d, float inPlane, float height)
     {
         var ci = CultureInfo.InvariantCulture;
         string line = string.Join(",", new[]
@@ -172,6 +208,7 @@ public class MeasurementController : MonoBehaviour
             (currentTarget + 1).ToString(ci),
             c.x.ToString("F5", ci), c.y.ToString("F5", ci), c.z.ToString("F5", ci),
             t.x.ToString("F5", ci), t.y.ToString("F5", ci), t.z.ToString("F5", ci),
+            (d.x * 1000f).ToString("F2", ci), (d.y * 1000f).ToString("F2", ci), (d.z * 1000f).ToString("F2", ci),
             (inPlane * 1000f).ToString("F2", ci),
             (height * 1000f).ToString("F2", ci)
         }) + "\n";
@@ -180,9 +217,37 @@ public class MeasurementController : MonoBehaviour
         catch (Exception e) { Debug.LogError($"[Measurement] CSV-Schreibfehler: {e.Message}"); }
     }
 
+    // Manueller Greif-Fallback: nutzt exakt denselben Weg wie der GloveGrabber
+    // (BlockItem.Grab -> Snap auf HoldPoint). Nochmaliges Druecken laesst wieder los.
+    void ToggleManualGrab()
+    {
+        if (cylinder == null) return;
+        BlockItem block = cylinder.GetComponent<BlockItem>();
+        if (block == null) { Debug.LogWarning("[Measurement] Zylinder hat kein BlockItem - manuelles Greifen nicht moeglich."); return; }
+
+        if (!manualHeld)
+        {
+            isFrozen = false; // falls noch eingefroren -> freigeben
+            Transform hp = holdPoint != null ? holdPoint : cylinder;
+            block.Grab(hp);
+            if (gloveGrabber != null) gloveGrabber.enabled = false; // Grabber kurz aus, damit er nicht dazwischenfunkt
+            manualHeld = true;
+            Debug.Log("[Measurement] Manuell gegriffen (Taste " + manualGrabKey + ").");
+        }
+        else
+        {
+            block.Release();
+            if (gloveGrabber != null) gloveGrabber.enabled = true;
+            manualHeld = false;
+            Debug.Log("[Measurement] Manuell losgelassen (Taste " + manualGrabKey + ").");
+        }
+    }
+
     void ResetTrial()
     {
         isFrozen = false;
+        manualHeld = false;
+        if (gloveGrabber != null) gloveGrabber.enabled = true;
         if (cylinder != null)
         {
             cylinder.SetParent(null);
@@ -204,6 +269,7 @@ public class MeasurementController : MonoBehaviour
             ? targets[currentTarget].name : "-";
         GUILayout.Label($"[Measurement] Ziel={currentTarget + 1} ({tname}) | Trial={trialCounter} | Frozen={isFrozen}");
         GUILayout.Label("Ziel: 1-9, 0=10, -=11, Pfeile blaettern | Space=log+freeze | R=reset");
+        GUILayout.Label($"G = manuell greifen/loslassen (Fallback) | manualHeld={manualHeld}");
         GUILayout.EndArea();
     }
 }
