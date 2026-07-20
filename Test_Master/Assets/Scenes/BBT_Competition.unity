@@ -1857,7 +1857,6 @@ GameObject:
   - component: {fileID: 154082909}
   - component: {fileID: 154082911}
   - component: {fileID: 154082910}
-  - component: {fileID: 154082912}
   m_Layer: 0
   m_Name: PartitionZone
   m_TagString: Untagged
@@ -1915,20 +1914,6 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &154082912
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 154082908}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0730630ccbd28564087607b08cec22fb, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  triggerObjectNames:
-  - HandTarget
 --- !u!1 &169882325
 GameObject:
   m_ObjectHideFlags: 0
@@ -6945,6 +6930,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   streamController: {fileID: 204578409}
   model: {fileID: 447031653}
+  referencePoses: []
 --- !u!4 &994872431
 Transform:
   m_ObjectHideFlags: 0
