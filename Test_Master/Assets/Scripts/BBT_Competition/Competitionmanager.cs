@@ -9,13 +9,13 @@
  *   3. After 60 seconds: Result screen with scores, bonus deduction, Win/Lose
  *
  * Setup in the Inspector:
- *   - timerText          ? TimerText (TMP)
- *   - gameOverPanel      ? GameOverPanel
- *   - playerScoreCounter ? CompetitionScoreCounter on the player side
- *   - ghostScoreCounter  ? CompetitionScoreCounter on the ghost side
- *   - ghostOrb           ? GhostOrbController
- *   - bonusCubeSpawner   ? BonusCubeSpawner
- *   - startTrigger       ? BoxBoundaryTrigger Collider
+ *   - timerText          -> TimerText (TMP)
+ *   - gameOverPanel      -> GameOverPanel
+ *   - playerScoreCounter -> CompetitionScoreCounter on the player side
+ *   - ghostScoreCounter  -> CompetitionScoreCounter on the ghost side
+ *   - ghostOrb           -> GhostOrbController
+ *   - bonusCubeSpawner   -> BonusCubeSpawner
+ *   - startTrigger       -> BoxBoundaryTrigger Collider
  */
 
 using System.Collections;
@@ -40,7 +40,7 @@ public class CompetitionGameManager : MonoBehaviour
     public BonusCubeSpawner bonusCubeSpawner;
 
     [Header("Start Trigger")]
-    [Tooltip("BoxBoundaryTrigger – Game starts when Hand touches it")]
+    [Tooltip("BoxBoundaryTrigger - Game starts when Hand touches it")]
     public Collider startTrigger;
 
     [Header("Live Score (will be hidden when the game ends)")]
@@ -57,7 +57,20 @@ public class CompetitionGameManager : MonoBehaviour
     public TextMeshProUGUI resultText;        // "You Win!" / "You Lose!"
     public Button playAgainButton;
     public Button mainMenuButton;
-    public Button settingsButton;    
+    public Button settingsButton;
+
+    [Header("VR UI (World Space - display only)")]
+    [Tooltip("Live score/timer copies on Canvas_VR (hidden when game ends)")]
+    public GameObject vrLiveScoreGhost;
+    public GameObject vrLiveScorePlayer;
+    public TextMeshProUGUI vrTimerText;
+    [Tooltip("Result screen copies on Canvas_VR (buttons disabled)")]
+    public GameObject vrGameOverPanel;
+    public TextMeshProUGUI vrPlayerScoreText;
+    public TextMeshProUGUI vrGhostScoreText;
+    public TextMeshProUGUI vrPlayerBonusText;
+    public TextMeshProUGUI vrGhostBonusText;
+    public TextMeshProUGUI vrResultText;
 
     [Header("Scene")]
     public string mainMenuSceneName = "MainMenu";
@@ -82,7 +95,7 @@ public class CompetitionGameManager : MonoBehaviour
 
     private void Start()
     {
-        
+
         if (playAgainButton != null)
             playAgainButton.onClick.AddListener(OnPlayAgain);
         if (mainMenuButton != null)
@@ -90,11 +103,13 @@ public class CompetitionGameManager : MonoBehaviour
         if (settingsButton != null)
             settingsButton.onClick.AddListener(OnSettings);
 
-        // Hide Panel
+        // Hide Panel (PC + VR)
         if (gameOverPanel != null)
             gameOverPanel.SetActive(false);
+        if (vrGameOverPanel != null)
+            vrGameOverPanel.SetActive(false);
 
-        
+
         if (ghostOrb != null) ghostOrb.StopPlaying(); // GhostOrb waiting for Trigger
 
     }
@@ -141,7 +156,7 @@ public class CompetitionGameManager : MonoBehaviour
         if (gloveGrabber != null) gloveGrabber.enabled = false;
         if (bonusCubeSpawner != null) bonusCubeSpawner.StopSpawning();
 
-        // Freeze the score immediately – the GhostOrb will no longer move
+        // Freeze the score immediately - the GhostOrb will no longer move
         frozenPlayerScore = playerScoreCounter != null ? playerScoreCounter.GetScore() : 0;
         frozenGhostScore = ghostScoreCounter != null ? ghostScoreCounter.GetScore() : 0;
 
@@ -160,11 +175,15 @@ public class CompetitionGameManager : MonoBehaviour
     private void ShowResult()
     {
         if (gameOverPanel != null) gameOverPanel.SetActive(true);
+        if (vrGameOverPanel != null) vrGameOverPanel.SetActive(true);
 
-        // Hide Live-Score and Timer 
+        // Hide Live-Score and Timer (PC + VR)
         if (liveScoreGhost != null) liveScoreGhost.SetActive(false);
         if (liveScorePlayer != null) liveScorePlayer.SetActive(false);
         if (timerText != null) timerText.gameObject.SetActive(false);
+        if (vrLiveScoreGhost != null) vrLiveScoreGhost.SetActive(false);
+        if (vrLiveScorePlayer != null) vrLiveScorePlayer.SetActive(false);
+        if (vrTimerText != null) vrTimerText.gameObject.SetActive(false);
 
         StartCoroutine(RevealSequence());
     }
@@ -176,58 +195,64 @@ public class CompetitionGameManager : MonoBehaviour
         int playerFinal = playerRaw - playerBonusPoints;
         int ghostFinal = ghostRaw - ghostBonusPoints;
 
-        // Hide everything
+        // Hide everything (PC + VR)
         if (resultText != null) resultText.text = "";
         if (playerBonusText != null) playerBonusText.text = "";
         if (ghostBonusText != null) ghostBonusText.text = "";
+        if (vrResultText != null) vrResultText.text = "";
+        if (vrPlayerBonusText != null) vrPlayerBonusText.text = "";
+        if (vrGhostBonusText != null) vrGhostBonusText.text = "";
 
-        // Step 1: View raw scores
+        // Step 1: View raw scores (PC + VR)
         if (playerScoreText != null) playerScoreText.text = playerRaw.ToString();
         if (ghostScoreText != null) ghostScoreText.text = ghostRaw.ToString();
+        if (vrPlayerScoreText != null) vrPlayerScoreText.text = playerRaw.ToString();
+        if (vrGhostScoreText != null) vrGhostScoreText.text = ghostRaw.ToString();
         yield return new WaitForSecondsRealtime(1.5f);
 
         // Step 2: Show Bonus Points (deductions)
         // +X = Success (score decreases), -X = Failure (score increases)
-        if (playerBonusText != null)
-        {
-            string pSign = playerBonusPoints > 0 ? "+" : "";
-            playerBonusText.text = $"You: {pSign}{playerBonusPoints} Bonus";
-        }
-        if (ghostBonusText != null)
-        {
-            string gSign = ghostBonusPoints > 0 ? "+" : "";
-            ghostBonusText.text = $"Ghost: {gSign}{ghostBonusPoints} Bonus";
-        }
+        string pSign = playerBonusPoints > 0 ? "+" : "";
+        string playerBonusLabel = $"You: {pSign}{playerBonusPoints} Bonus";
+        if (playerBonusText != null) playerBonusText.text = playerBonusLabel;
+        if (vrPlayerBonusText != null) vrPlayerBonusText.text = playerBonusLabel;
+
+        string gSign = ghostBonusPoints > 0 ? "+" : "";
+        string ghostBonusLabel = $"Ghost: {gSign}{ghostBonusPoints} Bonus";
+        if (ghostBonusText != null) ghostBonusText.text = ghostBonusLabel;
+        if (vrGhostBonusText != null) vrGhostBonusText.text = ghostBonusLabel;
         yield return new WaitForSecondsRealtime(1.5f);
 
-        // Step 3: Score Countdown from Raw to Final
-        yield return StartCoroutine(CountdownScore(playerScoreText, playerRaw, playerFinal));
-        yield return StartCoroutine(CountdownScore(ghostScoreText, ghostRaw, ghostFinal));
+        // Step 3: Score Countdown from Raw to Final (PC + VR in parallel)
+        yield return StartCoroutine(CountdownScore(playerScoreText, vrPlayerScoreText, playerRaw, playerFinal));
+        yield return StartCoroutine(CountdownScore(ghostScoreText, vrGhostScoreText, ghostRaw, ghostFinal));
         yield return new WaitForSecondsRealtime(0.5f);
 
-        // Step 4: Show Result Text
-        if (resultText != null)
-        {
-            if (playerFinal < ghostFinal)
-                resultText.text = "You Win!";
-            else if (playerFinal > ghostFinal)
-                resultText.text = "You Lose!";
-            else
-                resultText.text = "Draw!";
-        }
+        // Step 4: Show Result Text (PC + VR)
+        string result;
+        if (playerFinal < ghostFinal)
+            result = "You Win!";
+        else if (playerFinal > ghostFinal)
+            result = "You Lose!";
+        else
+            result = "Draw!";
+
+        if (resultText != null) resultText.text = result;
+        if (vrResultText != null) vrResultText.text = result;
 
         Time.timeScale = 0f;
     }
 
-    
-    private IEnumerator CountdownScore(TextMeshProUGUI text, int start, int end)
+
+    private IEnumerator CountdownScore(TextMeshProUGUI text, TextMeshProUGUI vrText, int start, int end)
     {
-        if (text == null) yield break;
         int steps = Mathf.Abs(start - end);
         int direction = start > end ? -1 : 1;
         for (int i = 0; i <= steps; i++)
         {
-            text.text = (start + i * direction).ToString();
+            string val = (start + i * direction).ToString();
+            if (text != null) text.text = val;
+            if (vrText != null) vrText.text = val;
             yield return new WaitForSecondsRealtime(0.08f);
         }
     }

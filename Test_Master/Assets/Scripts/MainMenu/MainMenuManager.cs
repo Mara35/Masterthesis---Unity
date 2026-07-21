@@ -47,7 +47,7 @@ public class MainMenuManager : MonoBehaviour
             gripMcpThreshold = -25f,
             gripPipThreshold = -30f,
             minFingersForGrip = 2,
-            releaseHysteresis = 15f
+            releaseHysteresis = 5f
         };
         mediumConfig = new LevelConfig
         {
@@ -55,15 +55,15 @@ public class MainMenuManager : MonoBehaviour
             gripMcpThreshold = -40f,
             gripPipThreshold = -50f,
             minFingersForGrip = 3,
-            releaseHysteresis = 15f
+            releaseHysteresis = 5f
         };
         hardConfig = new LevelConfig
         {
             levelName = "Hard",
             gripMcpThreshold = -55f,
             gripPipThreshold = -70f,
-            minFingersForGrip = 5,
-            releaseHysteresis = 15f
+            minFingersForGrip = 4,
+            releaseHysteresis = 5f
         };
     }
 

@@ -13,6 +13,10 @@ public class CompetitionScoreCounter : MonoBehaviour
     public TextMeshProUGUI scoreText;
     public string prefix = "Score: ";
 
+    [Header("VR UI (World Space)")]
+    [Tooltip("Score text on Canvas_VR")]
+    public TextMeshProUGUI vrScoreText;
+
     [Header("Cube")]
     [Tooltip("Tag of Cubes (e.g. 'Block'), or leave blank to search by name")]
     public string cubeTag = "Block";
@@ -98,7 +102,7 @@ public class CompetitionScoreCounter : MonoBehaviour
         }
         catch { }
 
-        // Fallback: all GameObjects that start with “Block”
+        // Fallback: all GameObjects that start with "Block"
         var list = new System.Collections.Generic.List<GameObject>();
         foreach (GameObject go in FindObjectsOfType<GameObject>())
             if (go.name.StartsWith("Block")) list.Add(go);
@@ -107,8 +111,9 @@ public class CompetitionScoreCounter : MonoBehaviour
 
     private void UpdateUI()
     {
-        if (scoreText != null)
-            scoreText.text = prefix + currentScore;
+        string label = prefix + currentScore;
+        if (scoreText != null) scoreText.text = label;
+        if (vrScoreText != null) vrScoreText.text = label;
     }
 
     // -----------------------------------------------------------------------

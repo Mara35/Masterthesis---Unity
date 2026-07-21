@@ -20,6 +20,10 @@ public class CompetitionTimer : MonoBehaviour
     [Header("UI")]
     public TextMeshProUGUI timerText;
 
+    [Header("VR UI (World Space)")]
+    [Tooltip("Timer text on Canvas_VR")]
+    public TextMeshProUGUI vrTimerText;
+
     [Header("Reference")]
     public CompetitionGameManager gameManager;
 
@@ -51,7 +55,7 @@ public class CompetitionTimer : MonoBehaviour
 
         timeRemaining -= Time.deltaTime;
 
-        // Shake at exactly 10 seconds—just once
+        // Shake at exactly 10 seconds - just once
         if (!shakeTriggered && timeRemaining <= 10f)
         {
             shakeTriggered = true;
@@ -88,14 +92,24 @@ public class CompetitionTimer : MonoBehaviour
 
     private void UpdateUI()
     {
-        if (timerText == null) return;
-
         int seconds = Mathf.CeilToInt(timeRemaining);
-        timerText.text = "Time: " + seconds;
+        string label = "Time: " + seconds;
+        Color c = seconds <= 10 ? Color.red : Color.white;
 
-        // Last 10 seconds: red
-        timerText.color = seconds <= 10 ? Color.red : Color.white;
-        timerText.faceColor = seconds <= 10 ? Color.red : Color.white;
+        if (timerText != null)
+        {
+            timerText.text = label;
+            // Last 10 seconds: red
+            timerText.color = c;
+            timerText.faceColor = c;
+        }
+
+        if (vrTimerText != null)
+        {
+            vrTimerText.text = label;
+            vrTimerText.color = c;
+            vrTimerText.faceColor = c;
+        }
     }
 
     private IEnumerator ShakeTimer()
