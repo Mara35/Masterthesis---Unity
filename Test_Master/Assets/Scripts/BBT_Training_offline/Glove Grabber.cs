@@ -10,6 +10,18 @@ public class GloveGrabber : MonoBehaviour
     public int minFingersForGrip = 2;
     public float releaseHysteresis = 15f;
 
+    [Header("--- Active Fingers ---")]
+    public bool useThumb = false;
+    public bool useIndex = true;
+    public bool useMiddle = true;
+    public bool useRing = true;
+    public bool usePinky = true;
+
+    [Header("--- Open Check ---")]
+    [Tooltip("Hand must open below this many closed fingers before a new grasp is counted")]
+    public int openFingerThreshold = 1;
+    private bool handWasOpen = true;
+
     [Header("--- Hold Point ---")]
     public Transform holdPoint;
 
@@ -17,6 +29,8 @@ public class GloveGrabber : MonoBehaviour
     public bool showDebugGUI = true;
 
     // Angles - set by GloveController
+    public float currentThumbMcp = 0f;
+    public float currentThumbPip = 0f;
     public float currentIndexMcp = 0f;
     public float currentIndexPip = 0f;
     public float currentMiddleMcp = 0f;
@@ -51,10 +65,17 @@ public class GloveGrabber : MonoBehaviour
 
     private void Update()
     {
+        // Open check: hand counts as open once few enough fingers are closed
+        if (CountClosedFingers() <= openFingerThreshold)
+            handWasOpen = true;
+
         bool shouldGrip = CheckGripCondition();
 
-        if (!isGripping && shouldGrip)
+        if (!isGripping && shouldGrip && handWasOpen)
+        {
             TryGrab();
+            handWasOpen = false;
+        }
         else if (isGripping && !shouldGrip)
             Release();
     }
@@ -66,12 +87,25 @@ public class GloveGrabber : MonoBehaviour
         float pipT = isGripping ? gripPipThreshold + releaseHysteresis : gripPipThreshold;
 
         int count = 0;
-        if (currentIndexMcp <= mcpT && currentIndexPip <= pipT) count++;
-        if (currentMiddleMcp <= mcpT && currentMiddlePip <= pipT) count++;
-        if (currentRingMcp <= mcpT && currentRingPip <= pipT) count++;
-        if (currentPinkyMcp <= mcpT && currentPinkyPip <= pipT) count++;
+        if (useThumb && currentThumbMcp <= mcpT && currentThumbPip <= pipT) count++;
+        if (useIndex && currentIndexMcp <= mcpT && currentIndexPip <= pipT) count++;
+        if (useMiddle && currentMiddleMcp <= mcpT && currentMiddlePip <= pipT) count++;
+        if (useRing && currentRingMcp <= mcpT && currentRingPip <= pipT) count++;
+        if (usePinky && currentPinkyMcp <= mcpT && currentPinkyPip <= pipT) count++;
 
         return count >= minFingersForGrip;
+    }
+
+    // Counts closed fingers without hysteresis, for the open check
+    int CountClosedFingers()
+    {
+        int count = 0;
+        if (useThumb && currentThumbMcp <= gripMcpThreshold && currentThumbPip <= gripPipThreshold) count++;
+        if (useIndex && currentIndexMcp <= gripMcpThreshold && currentIndexPip <= gripPipThreshold) count++;
+        if (useMiddle && currentMiddleMcp <= gripMcpThreshold && currentMiddlePip <= gripPipThreshold) count++;
+        if (useRing && currentRingMcp <= gripMcpThreshold && currentRingPip <= gripPipThreshold) count++;
+        if (usePinky && currentPinkyMcp <= gripMcpThreshold && currentPinkyPip <= gripPipThreshold) count++;
+        return count;
     }
 
     void TryGrab()
@@ -191,9 +225,10 @@ public class GloveGrabber : MonoBehaviour
     void OnGUI()
     {
         if (!showDebugGUI) return;
-        GUILayout.BeginArea(new Rect(10, 150, 320, 110));
+        GUILayout.BeginArea(new Rect(10, 150, 320, 130));
         GUILayout.Label($"[GloveGrabber] Gripping={isGripping} | Candidates={candidates.Count}");
         GUILayout.Label($"Index MCP={currentIndexMcp:F1}(T={gripMcpThreshold}) PIP={currentIndexPip:F1}(T={gripPipThreshold})");
+        GUILayout.Label($"ClosedFingers={CountClosedFingers()} | HandWasOpen={handWasOpen}");
         GUILayout.Label($"CheckGrip={CheckGripCondition()} | Block={heldBlock?.name ?? "-"}");
         GUILayout.EndArea();
     }

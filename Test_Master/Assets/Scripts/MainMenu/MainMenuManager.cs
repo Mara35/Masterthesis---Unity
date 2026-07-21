@@ -44,24 +44,24 @@ public class MainMenuManager : MonoBehaviour
         easyConfig = new LevelConfig
         {
             levelName = "Easy",
-            gripMcpThreshold = -20f,
-            gripPipThreshold = -25f,
-            minFingersForGrip = 1,
+            gripMcpThreshold = -25f,
+            gripPipThreshold = -30f,
+            minFingersForGrip = 2,
             releaseHysteresis = 15f
         };
         mediumConfig = new LevelConfig
         {
             levelName = "Medium",
-            gripMcpThreshold = -35f,
-            gripPipThreshold = -35f,
+            gripMcpThreshold = -40f,
+            gripPipThreshold = -50f,
             minFingersForGrip = 3,
             releaseHysteresis = 15f
         };
         hardConfig = new LevelConfig
         {
             levelName = "Hard",
-            gripMcpThreshold = -45f,
-            gripPipThreshold = -40f,
+            gripMcpThreshold = -55f,
+            gripPipThreshold = -70f,
             minFingersForGrip = 5,
             releaseHysteresis = 15f
         };

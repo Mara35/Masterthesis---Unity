@@ -123,6 +123,8 @@ public class GloveController : MonoBehaviour
         // Passes the finger angle to GloveGrabber
         if (gloveGrabber != null)
         {
+            gloveGrabber.currentThumbMcp = glove.Thumb_MCP;
+            gloveGrabber.currentThumbPip = glove.Thumb_PIP;
             gloveGrabber.currentIndexMcp = glove.Index_MCP;
             gloveGrabber.currentIndexPip = glove.Index_PIP;
             gloveGrabber.currentMiddleMcp = glove.Middle_MCP;
@@ -157,5 +159,4 @@ public class GloveController : MonoBehaviour
             _ => Quaternion.identity
         };
     }
-};
-    
+}
