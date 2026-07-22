@@ -13,7 +13,7 @@ public class Timer : MonoBehaviour
     public TextMeshProUGUI vrTimerText;
 
     [Header("End Screen")]
-    [SerializeField] private GameOverUI_off gameOverUI;
+    [SerializeField] private GameOverUI gameOverUI;
 
     private ScoreCounter scoreCounter;
 
@@ -27,7 +27,7 @@ public class Timer : MonoBehaviour
         scoreCounter = FindAnyObjectByType<ScoreCounter>();
 
         if (gameOverUI == null)
-            gameOverUI = FindObjectOfType<GameOverUI_off>();
+            gameOverUI = FindObjectOfType<GameOverUI>();
 
         timeRemaining = testDuration;
         UpdateUI();

@@ -9,7 +9,7 @@ public class TestTimer : MonoBehaviour
     public TextMeshProUGUI timerText;
 
     [Header ("End Screen")]
-    [SerializeField] private GameOverUI gameOverUI;
+    [SerializeField] private GameOverUI_old gameOverUI;
 
     private HandProxyKeyboardControl hand;
     private StartZoneDetector startZone;
@@ -27,7 +27,7 @@ public class TestTimer : MonoBehaviour
         targetZoneCounter = FindAnyObjectByType<TargetZoneCounter>();
 
         if (gameOverUI == null)
-            gameOverUI = FindObjectOfType<GameOverUI>();
+            gameOverUI = FindObjectOfType<GameOverUI_old>();
 
         timeRemaining = testDuration;
         UpdateUI();

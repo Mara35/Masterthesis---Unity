@@ -3,7 +3,7 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using TMPro;
 
-public class GameOverUI : MonoBehaviour
+public class GameOverUI_old : MonoBehaviour
 {
     [Header("Panel (disabled by default!)")]
     [SerializeField] private GameObject gameOverPanel;
