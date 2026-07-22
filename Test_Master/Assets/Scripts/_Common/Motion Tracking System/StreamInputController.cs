@@ -15,6 +15,8 @@ public class StreamInputController : MonoBehaviour
     
     private void Update()
     {
+        // Space = vibrate all sensors once, C = recalibrate. Edge-detected so holding the key
+        // fires only once per press (pressed && !wasPressed).
         _vibrationTriggerPressed = Input.GetKey(KeyCode.Space);
         _recalibrateTriggerPressed = Input.GetKey(KeyCode.C);
 

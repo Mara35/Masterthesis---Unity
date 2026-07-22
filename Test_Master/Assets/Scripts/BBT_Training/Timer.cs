@@ -1,6 +1,13 @@
 using UnityEngine;
 using TMPro;
 
+
+/// <summary>
+/// Countdown timer for a training run. Started by BoxBoundaryTrigger when the hand enters the box,
+/// counts down from <see cref="testDuration"/>, updates the PC and VR timer labels, and on expiry
+/// reads the final score from ScoreCounter, shows the end screen and disables further interaction.
+/// </summary>
+
 public class Timer : MonoBehaviour
 {
     public float testDuration = 60f;
@@ -82,6 +89,7 @@ public class Timer : MonoBehaviour
         if (vrTimerText != null) vrTimerText.text = label;
     }
 
+    // On timeout: switch off whatever input paths might still move blocks, so the run is frozen.
     private void DisableInteraction()
     {
         GloveGrabber gloveGrabber = FindObjectOfType<GloveGrabber>();

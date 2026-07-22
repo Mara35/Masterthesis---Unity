@@ -2,6 +2,13 @@ using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 
+/// <summary>
+/// Counts blocks that reach the target side. Two validation modes selectable in the Inspector:
+/// BlockItem's own transfer flag (glove mode) or a simple "is past the partition" position check
+/// (auto-hand mode). Each block is counted at most once (tracked by instance id) and un-counted if
+/// it leaves the zone without a valid transfer. Mirrors the score to a world-space VR label.
+/// </summary>
+
 [RequireComponent(typeof(BoxCollider))]
 public class ScoreCounter : MonoBehaviour
 {
@@ -41,7 +48,7 @@ public class ScoreCounter : MonoBehaviour
         if (block == null) return;
 
         int id = other.gameObject.GetInstanceID();
-        if (countedInstanceIDs.Contains(id)) return;
+        if (countedInstanceIDs.Contains(id)) return; // already scored this block, ignore
 
         bool valid = false;
 

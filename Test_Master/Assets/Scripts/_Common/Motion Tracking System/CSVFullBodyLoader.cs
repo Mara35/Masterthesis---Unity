@@ -2,6 +2,12 @@ using System.Collections.Generic;
 using System.Globalization;
 using UnityEngine;
 
+/// <summary>
+/// Parses a full-body recording CSV into <see cref="FullBodyFrame"/>s. Each row holds 10 sensors
+/// with four quaternion components each; timestamps are synthesized from the row index and a
+/// fixed interval. Uses InvariantCulture so decimals parse regardless of system locale.
+/// </summary>
+
 public static class CsvFullBodyLoader
 {
     public static List<FullBodyFrame> LoadFromText(string csvText, float assumedDtSeconds = 0.02f)

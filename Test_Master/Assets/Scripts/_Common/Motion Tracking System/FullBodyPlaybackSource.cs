@@ -1,6 +1,13 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// Loads a full-body CSV via <see cref="CsvFullBodyLoader"/> and advances a playback cursor over
+/// its frames, exposing the current one as <see cref="CurrentFrame"/>. Supports play/pause/stop,
+/// looping and a playback speed. Because the CSV has no timestamps, a fixed frame interval
+/// (<see cref="assumedDtSeconds"/>) is assumed.
+/// </summary>
+
 public class FullBodyPlaybackSource : MonoBehaviour
 {
     [SerializeField] private TextAsset csvFile;
@@ -53,6 +60,7 @@ public class FullBodyPlaybackSource : MonoBehaviour
             }
         }
 
+        // Advance the cursor to the last frame whose timestamp has already passed.
         while (_currentIndex < _frames.Count - 1 && _frames[_currentIndex + 1].Time <= _playbackTime)
         {
             _currentIndex++;

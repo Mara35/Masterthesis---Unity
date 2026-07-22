@@ -53,7 +53,7 @@ public class HandGrip : MonoBehaviour
     [Tooltip("Blend speed of elbow flexion")]
     [SerializeField] private float elbowBlendSpeed = 4f;
 
-    [Tooltip("Reference to HandMoverGhost – its X-position controls the bending")]
+    [Tooltip("Reference to HandMoverGhost, its X-position controls the bending")]
     [SerializeField] private Transform handMoverGhost;
 
     [Tooltip("X-position of the partition (center). To the right of it = extended, to the left = flexed.")]

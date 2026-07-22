@@ -2,12 +2,12 @@ using UnityEngine;
 
 /// <summary>
 /// Invisible trigger zone above the edge of the box.
-/// Starts the timer as soon as the hand (HandTarget) enters the box —
+/// Starts the timer as soon as the hand (HandTarget) enters the box
 /// regardless of which side.
 /// </summary>
 public class BoxBoundaryTrigger : MonoBehaviour
 {
-    [Tooltip("Assign TestTimer")]
+    [Tooltip("Assign Timer")]
     public Timer testTimer;
 
     [Tooltip("Name of the Hand object")]
@@ -29,7 +29,7 @@ public class BoxBoundaryTrigger : MonoBehaviour
         if (testTimer != null)
             testTimer.StartTimer();
         else
-            Debug.LogWarning("[BoxBoundaryTrigger] TestTimer not assigned!");
+            Debug.LogWarning("[BoxBoundaryTrigger] Timer not assigned!");
     }
 
     public void Reset()

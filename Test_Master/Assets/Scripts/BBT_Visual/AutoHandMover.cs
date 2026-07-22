@@ -17,7 +17,7 @@ public class AutoHandMover : MonoBehaviour
 
     [Header("Partition & Arch Height")]
     [Tooltip("Reference to the CenterPartition GameObject." +
-             "If left blank, the system will automatically search for ‘CenterPartition’ in the scene.")]
+             "If left blank, the system will automatically search for 'CenterPartition' in the scene.")]
     [SerializeField] private Transform centerPartition = null;
 
     [Tooltip("The distance between the crest and the top edge of the partition (safety margin).")]
@@ -51,7 +51,7 @@ public class AutoHandMover : MonoBehaviour
     [SerializeField] private Transform ikTarget;
 
     [Header("Hand Grasping")]
-    [Tooltip("Das GameObject mit der Datei „HandGrip.cs“")]
+    [Tooltip("The GameObject holding HandGrip.cs")]
     [SerializeField] private HandGrip handGrip;
 
     [Header("IK Offset Correction")]
@@ -134,7 +134,7 @@ public class AutoHandMover : MonoBehaviour
             }
         }
 
-        // ikTarget auto-suchen falls nicht gesetzt
+        // auto-find ikTarget if not assigned
         if (ikTarget == null)
         {
             var go = GameObject.Find("HandIKTarget");
@@ -255,7 +255,9 @@ public class AutoHandMover : MonoBehaviour
         state = State.MovingToBlock;
     }
 
-
+    // Builds the carry arc as two quadratic Bezier segments (start->peak, peak->end). The peak is
+    // placed above the partition line with clearance, and the segments are length-measured so the
+    // hand moves at constant speed across the whole arc (tSplit = where segment A ends in [0,1]).
     private void BuildArc(Vector3 start, Vector3 end)
     {
         arcStart = start;

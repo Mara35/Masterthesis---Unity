@@ -1,5 +1,12 @@
 using UnityEngine;
 
+/// <summary>
+/// A grabbable block for the Box and Block Test. Tracks whether it was carried across the center
+/// partition in a valid way: it must start on the right, cross the partition line while held, pass
+/// through the PartitionZone trigger, and end on the left. An invalid release snaps it back to its
+/// grab pose and flashes it red. Blocks without a partition (e.g. peg cubes) skip this logic.
+/// </summary>
+
 [RequireComponent(typeof(Rigidbody), typeof(BoxCollider))]
 public class BlockItem : MonoBehaviour
 {
@@ -87,6 +94,8 @@ public class BlockItem : MonoBehaviour
         if (partition != null)
         {
             bool nowOnLeftSide = transform.position.x < partition.position.x;
+            // Valid only if the full sequence happened: started right, crossed while held,
+            // went through the zone trigger, and ended left.
             valid = startedOnRightSide
                  && crossedPartitionWhileHeld
                  && passedThroughPartitionZone

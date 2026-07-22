@@ -6,6 +6,14 @@ using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using TMPro;
 
+/// <summary>
+/// Drives the visual training run (action observation + motor imagery). For each cube in the
+/// configured sequence it highlights the drop target, shows the "imagine picking up the {color}
+/// cube" instruction on the PC and VR canvas, then lets <see cref="AutoHandMover"/> perform the
+/// transfer automatically while the patient imagines it. Shows a finished panel at the end with
+/// repeat / main-menu buttons.
+/// </summary>
+
 public class VisualTrainingController : MonoBehaviour
 {
     [Serializable]

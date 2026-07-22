@@ -1,5 +1,12 @@
 using UnityEngine;
 
+/// <summary>
+/// Trigger on the center partition. When a hand object passes through, it tells whichever grabber
+/// currently holds a block that the block crossed the partition (used by BlockItem's transfer
+/// validation). Checks the active input in priority order: AutoHandMover, then GloveGrabber, then
+/// the legacy SimpleGrabber.
+/// </summary>
+
 public class PartitionZone : MonoBehaviour
 {
     [Tooltip("Names of GameObjects that trigger this zone")]

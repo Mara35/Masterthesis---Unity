@@ -1,17 +1,18 @@
-/*
- * Shared state between GhostOrbController and PlayerOrbController.
- * Ensures that lockedCubes and recentlyDropped are truly shared by both
- * controllers—regardless of static class boundaries.
- */
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// Static shared state for the two-orb competition. Coordinates which cubes are locked (currently
+/// carried, so the other orb can't grab them) and a per-cube drop cooldown, plus freeze and active-
+/// challenge flags per side. Static so both the player and ghost controllers see the same state.
+/// </summary>
+
 public static class OrbSharedState
 {
-    // Orbs currently being carried – cannot be picked up by any other orb
+    // Orbs currently being carried, cannot be picked up by any other orb
     public static HashSet<int> lockedCubes = new HashSet<int>();
 
-    // Dice that were recently rolled – cooldown in seconds
+    // Dice that were recently rolled, cooldown in seconds
     public static Dictionary<int, float> recentlyDropped = new Dictionary<int, float>();
 
     public static float dropCooldown = 1.5f;

@@ -1,5 +1,10 @@
 using System.Net;
 
+/// <summary>
+/// Serializable data holder for one glove: id, sender IP, and the ten tracked finger angles
+/// (five fingers x MCP/PIP). Populated by <see cref="UDPServer"/> on receive.
+/// </summary>
+
 [System.Serializable]
 public class GloveSensorData
 {

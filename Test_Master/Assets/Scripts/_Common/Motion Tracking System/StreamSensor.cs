@@ -3,8 +3,8 @@ using System.Net;
 using UnityEngine;
 
 /// <summary>
-/// Class that represents the state of a stream sensor.#
-/// Holds information like its <see cref="Id"/>, the rotation <see cref="Quaternion"/>, the <see cref="BatteryPercentage"/> and whether it is <see cref="Connected"/>.
+/// Represents the runtime state of a stream sensor: its <see cref="Id"/>, current rotation
+/// <see cref="Quaternion"/>, and whether it is <see cref="Connected"/>.
 /// </summary>
 public class StreamSensor
 {
@@ -16,6 +16,7 @@ public class StreamSensor
         get => _quaternion;
         set
         {
+            // An all-zero quaternion is the sensor's "no data" marker -> treat as disconnected.
             if (value is { x: 0, y: 0, z: 0, w: 0 })
             {
                 Connected = false;
@@ -23,7 +24,7 @@ public class StreamSensor
             else
             {
                 Connected = true;
-                LastMessageTime = DateTime.Now;
+                LastMessageTime = DateTime.Now; // feeds the timeout in the Connected getter
             }
             _quaternion = value;
         }
@@ -31,6 +32,7 @@ public class StreamSensor
 
     private bool _connected = false;
     public bool Connected { get {
+         // Auto-expire if no packet has arrived for over a second.
         if (DateTime.Now - LastMessageTime > TimeSpan.FromSeconds(1)) _connected = false;
         return _connected;
     } private set => _connected = value; }

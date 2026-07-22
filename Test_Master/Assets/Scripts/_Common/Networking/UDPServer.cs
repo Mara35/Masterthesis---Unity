@@ -7,22 +7,31 @@ using System.Threading;
 using STREAM;
 using UnityEngine;
 
+/// <summary>
+/// Central UDP receiver for all sensor streams. Opens one listener socket per entry in
+/// <see cref="listenPorts"/>, runs a dedicated background thread per socket, and decodes
+/// incoming IMU-quaternion and glove packets into the thread-safe <see cref="SensorsMap"/>
+/// and <see cref="GloveMap"/>. A monotonic receive timestamp is recorded per device for
+/// latency measurement, and vibration commands can be sent back to a sensor.
+/// </summary>
 public class UDPServer : MonoBehaviour
 {
     [SerializeField] private List<int> listenPorts = new List<int> { 9001 };
 
-
     private List<UdpClient> _udpClients = new List<UdpClient>();
     private List<Thread> _readThreads = new List<Thread>();
 
+    // Latest decoded state per device. Written by the receive threads, read by the main thread,
+    // so every access must go through the lock on the respective map.
     public readonly Dictionary<int, StreamSensor> SensorsMap = new();
     public readonly Dictionary<int, GloveSensorData> GloveMap = new();
 
-    // MESS: Empfangs-Zeitstempel (ms) pro Gerät, gesetzt im Empfangs-Thread.
+    // Receive timestamp (ms) per device, set on the receive thread. Used for latency measurement.
     public readonly Dictionary<int, double> SensorRecvMs = new();
     public readonly Dictionary<int, double> GloveRecvMs = new();
 
-    // MESS: gemeinsame monotone Uhr für Empfangs-Thread und Main-Thread.
+    // Shared monotonic clock for the receive thread and the main thread. Not wall-clock time;
+    // only differences between two readings are meaningful.
     public static double NowMs() =>
         System.Diagnostics.Stopwatch.GetTimestamp() * 1000.0 / System.Diagnostics.Stopwatch.Frequency;
 
@@ -33,13 +42,13 @@ public class UDPServer : MonoBehaviour
         CleanUp();
         _reading = true;
 
+        // Open one UDP socket and one background receive thread per configured port.
         foreach (int port in listenPorts)
         {
             try
             {
                 var client = new UdpClient(port);
                 _udpClients.Add(client);
-
 
                 Thread thread = new Thread(() => ThreadFunction(client, port));
                 thread.IsBackground = true;
@@ -60,6 +69,8 @@ public class UDPServer : MonoBehaviour
         CleanUp();
     }
 
+    // Stops the receive loop, interrupts the threads (to break the blocking Receive call) and
+    // closes the sockets. Safe to call repeatedly.
     private void CleanUp()
     {
         _reading = false;
@@ -80,6 +91,8 @@ public class UDPServer : MonoBehaviour
         _udpClients.Clear();
     }
 
+    // Runs on a background thread: blocks on Receive, classifies each packet by its header and
+    // writes the decoded values into the shared maps.
     private void ThreadFunction(UdpClient client, int localPort)
     {
         try
@@ -87,20 +100,21 @@ public class UDPServer : MonoBehaviour
             while (_reading)
             {
                 var clientEndpoint = new IPEndPoint(IPAddress.Any, 0);
-                var receivedBytes = client.Receive(ref clientEndpoint);
+                var receivedBytes = client.Receive(ref clientEndpoint);   // blocks until a packet arrives
 
                 if (receivedBytes == null || receivedBytes.Length == 0)
                     continue;
 
-                double recvMs = NowMs();   // MESS: Empfangszeit sofort nehmen
+                double recvMs = NowMs();   // stamp the receive time immediately, before decoding
 
                 var receivedList = receivedBytes.ToList();
 
-                // -------- IMU Quaternion --------
+                // -------- IMU quaternion --------
                 if (StreamReceiveMessageTypes.Matches(StreamReceiveMessageType.Quaternion, receivedList))
                 {
                     var (nr, quat) = StreamReceiveMessageTypes.DecodeQuaternionData(receivedBytes);
 
+                    // Lock while touching SensorsMap: the main thread reads it concurrently.
                     lock (SensorsMap)
                     {
                         if (!SensorsMap.ContainsKey(nr))
@@ -114,16 +128,17 @@ public class UDPServer : MonoBehaviour
                         SensorsMap[nr].IpAddress = clientEndpoint.Address;
                         SensorsMap[nr].Quaternion = quat;
 
-                        SensorRecvMs[nr] = recvMs;   // MESS
+                        SensorRecvMs[nr] = recvMs;
                     }
                     continue;
                 }
 
-                // -------- Glove Daten --------
+                // -------- Glove data --------
                 if (StreamReceiveMessageTypes.Matches(StreamReceiveMessageType.Glove, receivedList))
                 {
                     var gloveData = StreamReceiveMessageTypes.DecodeGloveData(receivedBytes);
 
+                    // Lock while touching GloveMap: the main thread reads it concurrently.
                     lock (GloveMap)
                     {
                         if (!GloveMap.ContainsKey(gloveData.Id))
@@ -147,7 +162,7 @@ public class UDPServer : MonoBehaviour
                         GloveMap[gloveData.Id].Pinky_MCP = gloveData.Pinky_MCP;
                         GloveMap[gloveData.Id].Pinky_PIP = gloveData.Pinky_PIP;
 
-                        GloveRecvMs[gloveData.Id] = recvMs;   // MESS
+                        GloveRecvMs[gloveData.Id] = recvMs;
                     }
                     continue;
                 }
@@ -155,11 +170,11 @@ public class UDPServer : MonoBehaviour
                 Debug.LogWarning($"Unknown UDP packet received on port {localPort}. Length: {receivedBytes.Length}");
             }
         }
-        catch (ThreadInterruptedException) { }
-        catch (SocketException) { }
+        catch (ThreadInterruptedException) { }   // expected on shutdown (CleanUp interrupts the thread)
+        catch (SocketException) { }              // expected when the socket is closed during shutdown
         catch (Exception e)
         {
-            Debug.LogError($"UDPServer Error auf Port {localPort}: {e.Message}");
+            Debug.LogError($"UDPServer error on port {localPort}: {e.Message}");
         }
     }
 
@@ -168,6 +183,8 @@ public class UDPServer : MonoBehaviour
         CleanUp();
     }
 
+    // Sends a single vibration command to the sensor with the given id, using the IP the sensor
+    // last sent from. The reply always goes to port 9001 regardless of the receiving port.
     public void SendVibrateOne(VibrationRequest vibrationRequest)
     {
         if (!SensorsMap.TryGetValue(vibrationRequest.SensorId, out var sensor))
@@ -175,15 +192,15 @@ public class UDPServer : MonoBehaviour
 
         var data = StreamSendMessages.CreateVibrateOneRequest(vibrationRequest);
 
-
-        int targetPort =  9001;
-
+        int targetPort = 9001;
 
         if (_udpClients.Count > 0)
         {
             _udpClients[0].Send(data, data.Length, new IPEndPoint(sensor.IpAddress, targetPort));
         }
     }
+
+    // --- Thread-safe accessors for the main thread ---
 
     public bool TryGetSensor(int sensorId, out StreamSensor sensor)
     {
@@ -201,7 +218,7 @@ public class UDPServer : MonoBehaviour
         }
     }
 
-    // MESS: Empfangszeit auslesen (für UnityInternalLatencyLogger)
+    // Read the last receive timestamp (used by UnityInternalLatencyLogger).
     public bool TryGetSensorRecvMs(int sensorId, out double ms)
     {
         lock (SensorsMap)

@@ -2,6 +2,14 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// Grab logic driven by the glove finger angles (fed in by GloveController). A grab triggers when
+/// enough fingers are bent past the threshold and the hand had opened since the last grab; release
+/// uses hysteresis to avoid flicker. Picks the closest available block, coordinates with
+/// OrbSharedState so the ghost orb can't take the same block, and can be frozen by FreezeZone in
+/// the competition. Thresholds come from LevelConfig.Selected when a level was chosen.
+/// </summary>
+
 public class GloveGrabber : MonoBehaviour
 {
     [Header("--- Grab Threshold ---")]

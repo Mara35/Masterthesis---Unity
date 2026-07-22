@@ -12,7 +12,7 @@ public interface IStreamCollisionListener
 }
 
 /// <summary>
-/// Monobahviour that is related to a stream sensor collider box that can be used to subscribe to collision events related to the sensor
+/// MonoBehaviour that is related to a stream sensor collider box that can be used to subscribe to collision events related to the sensor
 /// </summary>
 public class StreamCollisionReporter : MonoBehaviour
 {

@@ -1,6 +1,12 @@
 using UnityEngine;
 using STREAM;
 
+/// <summary>
+/// Thin accessor over <see cref="UDPServer"/>. Lets consumers query the latest
+/// <see cref="StreamSensor"/> or <see cref="GloveSensorData"/> by id without touching the
+/// server's maps directly.
+/// </summary>
+
 public class UDPCommunicationGlove : MonoBehaviour
 {
     [SerializeField] private UDPServer udpServer;

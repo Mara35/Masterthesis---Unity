@@ -22,6 +22,8 @@ public static class StreamReceiveMessageTypes
     // -----------------------------
     // MATCHING
     // -----------------------------
+    // Each packet starts with a 3-byte header that identifies its type:
+    // 0xFF 0x00 0xFF -> quaternion (IMU),  0xFF 0x01 0xFF -> glove.
     public static bool Matches(StreamReceiveMessageType type, List<byte> data)
     {
         if (data == null || data.Count < 4)
@@ -41,8 +43,9 @@ public static class StreamReceiveMessageTypes
     }
 
     // -----------------------------
-    // QUATERNION (dein bestehender Code)
+    // QUATERNION
     // -----------------------------
+    // Layout: [0..2] header, [3] sensor id, [4..19] four little-endian floats x, y, z, w.
     public static (int, Quaternion) DecodeQuaternionData(byte[] data)
     {
         int id = data[3];
@@ -58,6 +61,8 @@ public static class StreamReceiveMessageTypes
     // -----------------------------
     // GLOVE DECODING
     // -----------------------------
+    // Layout: [0..2] header, [3] glove id, [4..43] ten little-endian floats,
+    // ordered per finger as MCP then PIP (thumb, index, middle, ring, pinky).
     public static GloveSensorData DecodeGloveData(byte[] data)
     {
         if (data.Length < 44)

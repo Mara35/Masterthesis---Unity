@@ -1,5 +1,12 @@
 using UnityEngine;
 
+/// <summary>
+/// Drives the avatar hand from the glove stream. Each frame it pulls the latest decoded
+/// finger angles from <see cref="UDPCommunicationGlove"/> and applies a per-joint rotation
+/// (axis, scale, offset and invert are configurable in the Inspector) to all five fingers
+/// (MCP and PIP). The raw angles are also forwarded to <see cref="GloveGrabber"/> for grab detection.
+/// </summary>
+
 public class GloveController : MonoBehaviour
 {
     [Header("Connection")]
@@ -92,9 +99,11 @@ public class GloveController : MonoBehaviour
         if (udpCommunication == null)
             return;
 
+        // Pull the latest decoded angles for this glove id; skip the frame if none have arrived yet.
         if (!udpCommunication.TryGetGloveData(gloveId, out var glove))
             return;
 
+        // Drive both joints of each finger.
         ApplyFingerRotation(thumbMCP, glove.Thumb_MCP, thumbMcpScale, thumbMcpOffset, invertThumbMCP, thumbMcpAxis);
         ApplyFingerRotation(thumbPIP, glove.Thumb_PIP, thumbPipScale, thumbPipOffset, invertThumbPIP, thumbPipAxis);
 
@@ -136,6 +145,10 @@ public class GloveController : MonoBehaviour
         }
     }
 
+    // Maps a raw finger angle to a local joint rotation: angle = raw * scale + offset,
+    // optionally negated, applied about the axis chosen per finger in the Inspector.
+    // scale/offset/invert/axis exist because the glued sensors and each avatar rig
+    // don't share the same zero pose or rotation direction.
     private void ApplyFingerRotation(Transform joint, float rawValue, float scale, float offset, bool invert, FingerAxis axis)
     {
         if (joint == null)

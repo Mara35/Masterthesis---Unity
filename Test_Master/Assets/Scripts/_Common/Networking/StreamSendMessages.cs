@@ -8,6 +8,7 @@ using STREAM;
 /// </summary>
 public static class StreamSendMessages
 {
+    // Wire format: [0xFA, 0xFB, 0x02, sensorId] + float intensity + float seconds.
     public static byte[] CreateVibrateOneRequest(VibrationRequest vibrationRequest)
     {
         return new byte[] { 0xFA, 0xFB, 0x02, vibrationRequest.SensorId }

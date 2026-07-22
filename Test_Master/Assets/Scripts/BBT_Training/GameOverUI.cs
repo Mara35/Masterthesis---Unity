@@ -3,6 +3,12 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using TMPro;
 
+/// <summary>
+/// End-of-run screen for BBT training. Shows a final-score panel on both the PC canvas and the
+/// world-space VR canvas, hides the live HUD, pauses the game (Time.timeScale = 0) and unlocks the
+/// cursor. The buttons restart the training scene or return to the main menu, restoring timescale.
+/// </summary>
+
 public class GameOverUI : MonoBehaviour
 {
     [Header("Panel (disabled by default!)")]

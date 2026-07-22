@@ -1,5 +1,11 @@
 using UnityEngine;
 
+/// <summary>
+/// Draws a square outline marker on a drop target at runtime, built from four thin cube bars under
+/// a hidden root. <see cref="SetVisible"/> shows/hides it and <see cref="SetColor"/> recolors it;
+/// the VisualTrainingController uses it to highlight where the next cube should go.
+/// </summary>
+
 public class DropTargetMarker : MonoBehaviour
 {
     [SerializeField] public Color markerColor = Color.yellow;
@@ -12,7 +18,7 @@ public class DropTargetMarker : MonoBehaviour
     // Awake: Frame under construction, not yet colored
     private void Awake()
     {
-        // Material is white for now—color will be added in Start()
+        // Material is white for now, color will be added in Start()
         frameMat = new Material(Shader.Find("Unlit/Color"));
 
         frameRoot = new GameObject("_FrameRoot");
@@ -32,7 +38,7 @@ public class DropTargetMarker : MonoBehaviour
         frameRoot.SetActive(false);
     }
 
-    // Start: Inspector values are now loaded -> Set color
+    // Start: Inspector values are now loaded, Set color
     private void Start()
     {
         if (frameMat != null)
