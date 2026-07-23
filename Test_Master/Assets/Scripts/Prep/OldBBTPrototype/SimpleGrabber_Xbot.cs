@@ -11,7 +11,7 @@ using UnityEngine;
 /// </summary>
 public class SimpleGrabber_Xbot : MonoBehaviour
 {
-    [Tooltip("XBot's Hand-Bone (mixamorig:RightHand) – NO LONGER HandProxy")]
+    [Tooltip("XBot's Hand-Bone (mixamorig:RightHand), NO LONGER HandProxy")]
     public Transform holdPoint;
 
     public KeyCode grabKey = KeyCode.E;

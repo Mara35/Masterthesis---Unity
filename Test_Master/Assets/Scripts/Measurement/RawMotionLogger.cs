@@ -5,46 +5,48 @@ using System.Globalization;
 using UnityEngine;
 
 /// <summary>
-/// Roh-Bewegungs-Logger fuer die Koerpergroessen-Replay-Simulation.
+/// Raw-motion logger for the body-size replay simulation.
 ///
-/// Schreibt pro Frame die Welt-Positionen der Armkette (Schulter, Ellbogen,
-/// Handgelenk, Greifpunkt) in eine zweite CSV - getaggt mit Trial-Segment,
-/// aktuellem Ziel und einem Marker fuer den Mess-Instant (Leertaste).
+/// Writes the world positions of the arm chain (shoulder, elbow, wrist, grip point)
+/// every frame into a second CSV - tagged with the trial segment, the current target
+/// and a marker for the measurement instant (space bar).
 ///
-/// Damit laesst sich offline die Armlaenge variieren:
-///   Hand' = Schulter + L1'*dir(Schulter->Ellbogen) + L2'*dir(Ellbogen->Handgelenk)
-/// Die Richtungen sind laengenunabhaengig -> reine Positionsdaten genuegen.
+/// This lets the arm length be varied offline:
+///   Hand' = Shoulder + L1'*dir(Shoulder->Elbow) + L2'*dir(Elbow->Wrist)
+/// The directions are length-independent -> pure position data is enough.
 ///
-/// Optional werden zusaetzlich die konvertierten IMU-Quaternionen mitgeschrieben.
-/// Laeuft NACH MeasurementController (Order 1100), damit Tags/Positionen final sind.
+/// Optionally the converted IMU quaternions are logged as well.
+/// Runs AFTER MeasurementController (order 1100) so tags/positions are final.
 /// </summary>
 [DefaultExecutionOrder(1100)]
 public class RawMotionLogger : MonoBehaviour
 {
-    [Header("--- Armkette (Welt-Positionen) ---")]
-    [Tooltip("mixamorig:RightArm  (Schultergelenk)")]
+    [Header("--- Arm chain (world positions) ---")]
+    [Tooltip("mixamorig:RightArm  (shoulder joint)")]
     public Transform shoulder;
-    [Tooltip("mixamorig:RightForeArm  (Ellbogen)")]
+    [Tooltip("mixamorig:RightForeArm  (elbow)")]
     public Transform elbow;
-    [Tooltip("mixamorig:RightHand  (Handgelenk)")]
+    [Tooltip("mixamorig:RightHand  (wrist)")]
     public Transform wrist;
-    [Tooltip("HoldPoint oder Zylinder (Greifpunkt, Referenz)")]
+    [Tooltip("HoldPoint or cylinder (grip point, reference)")]
     public Transform grip;
 
-    [Header("--- Sync mit MeasurementController ---")]
-    [Tooltip("Fuer currentTarget. Gleiche Mess-Taste wie dort verwenden.")]
+    [Header("--- Sync with MeasurementController ---")]
+    [Tooltip("For currentTarget. Use the same measurement key as there.")]
     public MeasurementController measurement;
-    public KeyCode logKey = KeyCode.Space;   // markiert den Mess-Instant
-    public KeyCode resetKey = KeyCode.R;      // startet ein neues Trial-Segment
+    public KeyCode logKey = KeyCode.Space;   // marks the measurement instant
+    public KeyCode resetKey = KeyCode.R;      // starts a new trial segment
 
-    [Header("--- Optional: konvertierte Quaternionen ---")]
+    [Header("--- Optional: converted quaternions ---")]
     public bool logQuaternions = true;
     public UDPServer streamController;
-    [Tooltip("strapId Oberarm")] public int upperArmIndex = 4;
-    [Tooltip("strapId Unterarm")] public int foreArmIndex = 3;
+    // NOTE: elsewhere in the project strapId 3 = upper arm, strapId 4 = forearm.
+    // These two defaults are the other way round - verify the mapping before trusting the quaternion columns.
+    [Tooltip("strapId upper arm")] public int upperArmIndex = 3;
+    [Tooltip("strapId forearm")] public int foreArmIndex = 4;
 
-    [Header("--- Optionen ---")]
-    [Tooltip("true = ganzer Stream pro Frame. false = nur der Mess-Instant (1 Zeile/Trial).")]
+    [Header("--- Options ---")]
+    [Tooltip("true = full stream per frame. false = measurement instant only (1 line/trial).")]
     public bool logContinuously = true;
     public string customCsvPath = "";
 
@@ -65,7 +67,7 @@ public class RawMotionLogger : MonoBehaviour
         }
         catch (Exception e)
         {
-            Debug.LogError($"[RawMotion] Datei konnte nicht geoeffnet werden: {e.Message}");
+            Debug.LogError($"[RawMotion] Could not open file: {e.Message}");
             enabled = false;
             return;
         }
@@ -86,7 +88,7 @@ public class RawMotionLogger : MonoBehaviour
 
     void Update()
     {
-        // Neues Trial-Segment bei Reset -> Reach + zugehoeriger Mess-Instant teilen sich eine ID.
+        // New trial segment on reset -> the reach and its measurement instant share one ID.
         if (Input.GetKeyDown(resetKey)) segmentId++;
     }
 
@@ -96,12 +98,12 @@ public class RawMotionLogger : MonoBehaviour
 
         bool measurementNow = Input.GetKeyDown(logKey);
 
-        // Nur-Instant-Modus: nur beim Mess-Instant schreiben.
+        // Instant-only mode: write only on the measurement instant.
         if (!logContinuously && !measurementNow) { PeriodicFlush(); return; }
 
         WriteRow(measurementNow);
 
-        if (measurementNow) writer.Flush(); // Mess-Zeile sofort sichern
+        if (measurementNow) writer.Flush(); // persist the measurement line immediately
         PeriodicFlush();
     }
 
@@ -149,7 +151,7 @@ public class RawMotionLogger : MonoBehaviour
           .Append(',').Append(v.w.ToString("F6", ci));
     }
 
-    // Gleiche Konvertierung wie im StreamSensorRotationController
+    // Same conversion as in StreamSensorRotationController
     private Quaternion? GetConvertedQuat(int index)
     {
         if (streamController == null || streamController.SensorsMap == null) return null;

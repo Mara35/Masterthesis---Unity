@@ -3,12 +3,16 @@ using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 
+/// <summary>
+/// Runs the sequence (memory) challenge: spawns numbered cubes that must be transferred in order, with a
+/// configurable ghost mistake chance and optional feedback text. Start/StopChallengeSystem gate it.
+/// </summary>
 public class SequenceChallengeManager : MonoBehaviour
 {
     [Header("Prefab")]
     public GameObject sequenceCubePrefab;
 
-    [Header("Spawn-Zonen")]
+    [Header("Spawn Zones")]
     public Transform leftSpawnZone;
     public Transform rightSpawnZone;
 
@@ -73,7 +77,8 @@ public class SequenceChallengeManager : MonoBehaviour
         Transform zone = spawnedOnLeft ? leftSpawnZone : rightSpawnZone;
         SpawnSequenceCubes(zone);
 
-        // Control only the Ghost Orb 
+        // Only the ghost gets auto-driven through the sequence; if it spawned on the player side,
+        // the human performs it. mistakeChance makes the ghost occasionally pick the wrong cube.
         if (spawnedOnLeft)
         {
             GhostOrbController ghost = FindObjectOfType<GhostOrbController>();
@@ -109,6 +114,8 @@ public class SequenceChallengeManager : MonoBehaviour
         float insetX = Mathf.Max(0.04f, b.size.x * 0.15f);
         float insetZ = Mathf.Max(0.04f, b.size.z * 0.15f);
 
+        // Shuffle which NUMBER each cube gets (not the positions), so the player must transfer them
+        // in numeric order regardless of how they're laid out - that's the memory task.
         List<int> order = new List<int> { 1, 2, 3 };
         for (int i = order.Count - 1; i > 0; i--)
         {
@@ -136,6 +143,9 @@ public class SequenceChallengeManager : MonoBehaviour
 
     private void CheckTransfers()
     {
+        // A cube counts as transferred once it crosses the partition to the other side. If it's the
+        // one whose number == nextExpectedSequence, order is kept (+progress); any other number ends
+        // the challenge as a wrong-order failure.
         foreach (SequenceCube sc in spawnedCubes)
         {
             if (sc == null || sc.IsTransferred) continue;

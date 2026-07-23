@@ -1,5 +1,9 @@
 using UnityEngine;
 
+/// <summary>
+/// Holds the selected competition DifficultyLevel (Basic..Full) and carries it from the explanation
+/// screen into the competition scene.
+/// </summary>
 public enum DifficultyLevel
 {
     Basic = 0,
@@ -16,6 +20,7 @@ public class DifficultyManager : MonoBehaviour
 
     private static DifficultyManager instance;
 
+    // Persistent singleton so the level chosen on the explanation screen survives the scene load.
     private void Awake()
     {
         if (instance != null && instance != this) { Destroy(gameObject); return; }
@@ -23,6 +28,8 @@ public class DifficultyManager : MonoBehaviour
         DontDestroyOnLoad(gameObject);
     }
 
+    // Which extras each level unlocks. Freeze and Reaction are cumulative (from Motor / Reaction up),
+    // while Peg and Sequence are exclusive to their focus level (Cognitive / Memory), both on in Full.
     public static bool HasFreeze => SelectedLevel >= DifficultyLevel.Motor;
     public static bool HasReaction => SelectedLevel >= DifficultyLevel.Reaction;
     public static bool HasPeg => SelectedLevel == DifficultyLevel.Cognitive

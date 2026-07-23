@@ -1,48 +1,43 @@
 using System;
 using System.IO;
-using System.Text;
 using System.Collections.Generic;
 using System.Globalization;
 using UnityEngine;
 
 /// <summary>
-/// Mess-Controller fuer den End-to-End Accuracy Test.
-/// Greift NICHT in den GloveGrabber ein - beobachtet nur den Zylinder und pinnt
-/// ihn beim Messen fest (Execution Order 1000 -> nach dem Grabber).
+/// Measurement controller for the end-to-end accuracy test.
+/// Purely observational, it never grabs or moves the cylinder itself. It watches the cylinder
+/// while the glove carries it, and on the log key freezes it in place and records the placement
+/// error against the currently selected target (execution order 1000 -> runs after the grabber).
 /// </summary>
 [DefaultExecutionOrder(1000)]
 public class MeasurementController : MonoBehaviour
 {
-    [Header("--- Referenzen ---")]
-    [Tooltip("Das GO mit BlockItem (rastet auf HoldPoint, wird geloggt). Pivot = Zylinderachse.")]
+    [Header("--- References ---")]
+    [Tooltip("The GO with BlockItem (snaps onto HoldPoint, gets logged). Pivot = cylinder axis.")]
     public Transform cylinder;
 
-    [Tooltip("Ziel-GOs. Reihenfolge = Ziel 1..N. Wird von targetParent ueberschrieben, falls gesetzt.")]
+    [Tooltip("The hand's HoldPoint. Used to detect whether the glove is currently carrying the cylinder.")]
+    public Transform holdPoint;
+
+    [Tooltip("Target GOs. Order = target 1..N. Overridden by targetParent if that is set.")]
     public Transform[] targets;
 
-    [Tooltip("Optional: TargetRig hier reinziehen -> T1..T11 werden automatisch gesammelt (Cube wird ignoriert).")]
+    [Tooltip("Optional: drag TargetRig here -> T1..T11 are collected automatically (Cube is ignored).")]
     public Transform targetParent;
 
-    [Header("--- Tasten ---")]
+    [Header("--- Keys ---")]
     public KeyCode logKey = KeyCode.Space;
     public KeyCode resetKey = KeyCode.R;
-    // Zielwahl: 1..9 direkt, 0 = Ziel 10, - (Minus) = Ziel 11
-    // ausserdem Pfeil links/rechts = vorheriges/naechstes Ziel (skaliert auf beliebig viele)
+    // Target selection: 1..9 directly, 0 = target 10, - (minus) = target 11
+    // Also left/right arrow = previous/next target (scales to any number of targets)
 
-    [Header("--- Optionen ---")]
-    [Tooltip("Zylinder beim Freeze aufrecht stellen. Rein optisch/QA - aendert die geloggte Position NICHT.")]
+    [Header("--- Options ---")]
+    [Tooltip("Stand the cylinder upright on freeze. Purely visual/QA - does NOT change the logged position.")]
     public bool forceUpright = true;
-    [Tooltip("Zylinder auch WAEHREND des Greifens/Tragens aufrecht halten (verhindert Kippen am HoldPoint).")]
+    [Tooltip("Keep the cylinder upright WHILE grabbed/carried too (prevents tipping at the HoldPoint).")]
     public bool keepUprightWhileHeld = true;
     public string customCsvPath = "";
-
-    [Header("--- Manueller Greif-Fallback ---")]
-    [Tooltip("Taste zum manuellen Greifen/Loslassen, falls der Handschuh nicht ausloest.")]
-    public KeyCode manualGrabKey = KeyCode.G;
-    [Tooltip("HoldPoint der Hand - dorthin rastet der Zylinder (wie beim echten Greifen).")]
-    public Transform holdPoint;
-    [Tooltip("Optional: GloveGrabber - wird beim manuellen Greifen kurz stummgeschaltet, damit sich beide nicht streiten.")]
-    public GloveGrabber gloveGrabber;
 
     [Header("--- Status (read-only) ---")]
     public int currentTarget = 0;
@@ -53,14 +48,13 @@ public class MeasurementController : MonoBehaviour
     private Quaternion frozenRot;
     private string csvPath;
 
-    private bool manualHeld = false;
     private Rigidbody cylRb;
     private Vector3 startPos;
     private Quaternion startRot;
 
     void Start()
     {
-        // Optional: T1..T11 automatisch aus dem Parent sammeln (Cube & Fremdes werden ignoriert)
+        // Optional: collect T1..T11 automatically from the parent (Cube and anything else is ignored)
         if (targetParent != null)
             targets = CollectNumberedChildren(targetParent, 'T');
 
@@ -72,8 +66,8 @@ public class MeasurementController : MonoBehaviour
             File.AppendAllText(csvPath,
                 "timestamp,trial,target,cyl_x,cyl_y,cyl_z,tgt_x,tgt_y,tgt_z,dx_mm,dy_mm,dz_mm,inplane_mm,height_mm\n");
         Debug.Log($"[Measurement] CSV: {csvPath}");
-        Debug.Log("[Measurement] Fehlervorzeichen (Zylinder - Ziel): +dx=rechts, +dy=hoch, +dz=vom Koerper weg.");
-        Debug.Log($"[Measurement] {(targets != null ? targets.Length : 0)} Ziele geladen.");
+        Debug.Log("[Measurement] Error sign (cylinder - target): +dx=right, +dy=up, +dz=away from body.");
+        Debug.Log($"[Measurement] {(targets != null ? targets.Length : 0)} targets loaded.");
 
         if (cylinder != null)
         {
@@ -81,13 +75,13 @@ public class MeasurementController : MonoBehaviour
             startPos = cylinder.position;
             startRot = cylinder.rotation;
         }
-        else Debug.LogWarning("[Measurement] Kein Zylinder zugewiesen!");
+        else Debug.LogWarning("[Measurement] No cylinder assigned!");
 
         if (targets == null || targets.Length == 0)
-            Debug.LogWarning("[Measurement] Keine Targets!");
+            Debug.LogWarning("[Measurement] No targets!");
     }
 
-    // Sammelt Kinder namens <prefix><Zahl> (z.B. T1..T11), sortiert nach der Zahl.
+    // Collects children named <prefix><number> (e.g. T1..T11), sorted by the number.
     private Transform[] CollectNumberedChildren(Transform parent, char prefix)
     {
         var found = new List<KeyValuePair<int, Transform>>();
@@ -111,7 +105,6 @@ public class MeasurementController : MonoBehaviour
     void Update()
     {
         HandleTargetSelection();
-        if (Input.GetKeyDown(manualGrabKey)) ToggleManualGrab();
         if (Input.GetKeyDown(logKey)) CaptureAndLog();
         if (Input.GetKeyDown(resetKey)) ResetTrial();
     }
@@ -120,23 +113,23 @@ public class MeasurementController : MonoBehaviour
     {
         if (targets == null || targets.Length == 0) return;
 
-        // 1..9 -> Ziel 1..9
+        // 1..9 -> target 1..9
         for (int i = 0; i < 9 && i < targets.Length; i++)
             if (Input.GetKeyDown(KeyCode.Alpha1 + i)) SelectTarget(i);
 
-        // 0 -> Ziel 10, Minus -> Ziel 11
+        // 0 -> target 10, minus -> target 11
         if (targets.Length >= 10 && Input.GetKeyDown(KeyCode.Alpha0)) SelectTarget(9);
         if (targets.Length >= 11 && Input.GetKeyDown(KeyCode.Minus)) SelectTarget(10);
 
-        // Pfeiltasten: durchschalten (funktioniert fuer beliebig viele Ziele)
+        // Arrow keys: cycle through (works for any number of targets)
         if (Input.GetKeyDown(KeyCode.RightArrow)) SelectTarget((currentTarget + 1) % targets.Length);
-        if (Input.GetKeyDown(KeyCode.LeftArrow))  SelectTarget((currentTarget - 1 + targets.Length) % targets.Length);
+        if (Input.GetKeyDown(KeyCode.LeftArrow)) SelectTarget((currentTarget - 1 + targets.Length) % targets.Length);
     }
 
     void SelectTarget(int i)
     {
         currentTarget = Mathf.Clamp(i, 0, targets.Length - 1);
-        Debug.Log($"[Measurement] Aktuelles Ziel: {currentTarget + 1} ({targets[currentTarget].name})");
+        Debug.Log($"[Measurement] Current target: {currentTarget + 1} ({targets[currentTarget].name})");
     }
 
     void LateUpdate()
@@ -145,7 +138,7 @@ public class MeasurementController : MonoBehaviour
 
         if (isFrozen)
         {
-            // Eingefroren: Position + aufrechte Rotation pinnen (gewinnt gegen Grabber/Release).
+            // Frozen: pin position + upright rotation (wins over grabber/release).
             if (cylRb != null) { cylRb.isKinematic = true; cylRb.useGravity = false; }
             cylinder.SetParent(null);
             cylinder.position = frozenPos;
@@ -153,17 +146,17 @@ public class MeasurementController : MonoBehaviour
             return;
         }
 
-        // Nicht eingefroren, aber gegriffen (folgt dem HoldPoint): aufrecht erzwingen,
-        // damit der Zylinder nicht um den Boden-Pivot kippt. Position bleibt unberuehrt.
+        // Not frozen but carried by the glove: force upright so the cylinder does not tip
+        // around its bottom pivot. Position is left untouched.
         if (keepUprightWhileHeld && IsHeld())
             cylinder.rotation = startRot;
     }
 
-    // "Gegriffen" = Zylinder haengt gerade an der Hand (per Glove ODER manuell).
+    // "Held" = the glove is currently carrying the cylinder. On grab, BlockItem parents it under
+    // HoldPoint, so parent == holdPoint means it is being carried.
     bool IsHeld()
     {
-        if (manualHeld) return true;
-        // Beim Greifen parentet BlockItem den Zylinder unter HoldPoint -> Parent != null & != urspruenglich.
+        if (cylinder == null) return false;
         return cylinder.parent != null && holdPoint != null && cylinder.parent == holdPoint;
     }
 
@@ -171,7 +164,7 @@ public class MeasurementController : MonoBehaviour
     {
         if (cylinder == null || targets == null || currentTarget >= targets.Length || targets[currentTarget] == null)
         {
-            Debug.LogWarning("[Measurement] Referenzen unvollstaendig - nichts geloggt.");
+            Debug.LogWarning("[Measurement] References incomplete - nothing logged.");
             return;
         }
 
@@ -183,17 +176,17 @@ public class MeasurementController : MonoBehaviour
         Vector3 c = frozenPos;
         Vector3 t = targets[currentTarget].position;
 
-        // Fehlervektor = Zylinder - Ziel. In koerperbezogene Achsen umrechnen (relativ zu TargetRig,
-        // falls gesetzt), damit +dx=rechts, +dy=hoch, +dz=vom Koerper weg gilt - unabhaengig davon,
-        // wie die Szene global gedreht ist. InverseTransformDirection = nur Rotation, Betrag bleibt erhalten.
+        // Error vector = cylinder, target. Convert into body-relative axes (relative to TargetRig,
+        // if set) so that +dx=right, +dy=up, +dz=away from body holds, regardless of how the scene
+        // is globally rotated. InverseTransformDirection = rotation only, magnitude is preserved.
         Vector3 dWorld = c - t;
         Vector3 d = (targetParent != null) ? targetParent.InverseTransformDirection(dWorld) : dWorld;
 
         float inPlane = new Vector2(d.x, d.z).magnitude;  // horizontal (XZ)
-        float height  = Mathf.Abs(d.y);                   // vertikal (Y)
+        float height = Mathf.Abs(d.y);                   // vertical (Y)
 
-        Debug.Log($"[Measurement] Trial {trialCounter} | Ziel {currentTarget + 1} ({targets[currentTarget].name}) " +
-                  $"| dx {d.x*1000f:F1} dy {d.y*1000f:F1} dz {d.z*1000f:F1} mm | InPlane {inPlane*1000f:F1} mm");
+        Debug.Log($"[Measurement] Trial {trialCounter} | target {currentTarget + 1} ({targets[currentTarget].name}) " +
+                  $"| dx {d.x * 1000f:F1} dy {d.y * 1000f:F1} dz {d.z * 1000f:F1} mm | InPlane {inPlane * 1000f:F1} mm");
 
         WriteCsvLine(c, t, d, inPlane, height);
     }
@@ -214,40 +207,12 @@ public class MeasurementController : MonoBehaviour
         }) + "\n";
 
         try { File.AppendAllText(csvPath, line); }
-        catch (Exception e) { Debug.LogError($"[Measurement] CSV-Schreibfehler: {e.Message}"); }
-    }
-
-    // Manueller Greif-Fallback: nutzt exakt denselben Weg wie der GloveGrabber
-    // (BlockItem.Grab -> Snap auf HoldPoint). Nochmaliges Druecken laesst wieder los.
-    void ToggleManualGrab()
-    {
-        if (cylinder == null) return;
-        BlockItem block = cylinder.GetComponent<BlockItem>();
-        if (block == null) { Debug.LogWarning("[Measurement] Zylinder hat kein BlockItem - manuelles Greifen nicht moeglich."); return; }
-
-        if (!manualHeld)
-        {
-            isFrozen = false; // falls noch eingefroren -> freigeben
-            Transform hp = holdPoint != null ? holdPoint : cylinder;
-            block.Grab(hp);
-            if (gloveGrabber != null) gloveGrabber.enabled = false; // Grabber kurz aus, damit er nicht dazwischenfunkt
-            manualHeld = true;
-            Debug.Log("[Measurement] Manuell gegriffen (Taste " + manualGrabKey + ").");
-        }
-        else
-        {
-            block.Release();
-            if (gloveGrabber != null) gloveGrabber.enabled = true;
-            manualHeld = false;
-            Debug.Log("[Measurement] Manuell losgelassen (Taste " + manualGrabKey + ").");
-        }
+        catch (Exception e) { Debug.LogError($"[Measurement] CSV write error: {e.Message}"); }
     }
 
     void ResetTrial()
     {
         isFrozen = false;
-        manualHeld = false;
-        if (gloveGrabber != null) gloveGrabber.enabled = true;
         if (cylinder != null)
         {
             cylinder.SetParent(null);
@@ -259,17 +224,16 @@ public class MeasurementController : MonoBehaviour
                 cylRb.velocity = Vector3.zero; cylRb.angularVelocity = Vector3.zero;
             }
         }
-        Debug.Log("[Measurement] Freigegeben - Zylinder zurueck auf A.");
+        Debug.Log("[Measurement] Released - cylinder back to A.");
     }
 
     void OnGUI()
     {
-        GUILayout.BeginArea(new Rect(10, 270, 380, 90));
+        GUILayout.BeginArea(new Rect(10, 270, 380, 70));
         string tname = (targets != null && currentTarget < targets.Length && targets[currentTarget] != null)
             ? targets[currentTarget].name : "-";
-        GUILayout.Label($"[Measurement] Ziel={currentTarget + 1} ({tname}) | Trial={trialCounter} | Frozen={isFrozen}");
-        GUILayout.Label("Ziel: 1-9, 0=10, -=11, Pfeile blaettern | Space=log+freeze | R=reset");
-        GUILayout.Label($"G = manuell greifen/loslassen (Fallback) | manualHeld={manualHeld}");
+        GUILayout.Label($"[Measurement] target={currentTarget + 1} ({tname}) | Trial={trialCounter} | Frozen={isFrozen}");
+        GUILayout.Label("Target: 1-9, 0=10, -=11, arrows to page | Space=log+freeze | R=reset");
         GUILayout.EndArea();
     }
 }

@@ -3,6 +3,12 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using TMPro;
 
+/// <summary>
+/// LEGACY. PC-only end-of-run screen for the old BBT_Training_HandProxy prototype. Shows the final
+/// score, hides the HUD and reloads the scene / returns to the menu. The live scenes use the
+/// VR-capable GameOverUI instead.
+/// </summary>
+
 public class GameOverUI_old : MonoBehaviour
 {
     [Header("Panel (disabled by default!)")]

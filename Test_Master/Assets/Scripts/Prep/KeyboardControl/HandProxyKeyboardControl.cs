@@ -1,5 +1,10 @@
 using UnityEngine;
 
+/// <summary>
+/// LEGACY. Keyboard steering of the HandProxy, from before IMU/glove input existed. Superseded by
+/// the sensor-driven avatar and, in visual training, by AutoHandMover (which disables this).
+/// </summary>
+
 [RequireComponent(typeof(Rigidbody))]
 public class HandProxyKeyboardControl : MonoBehaviour
 {

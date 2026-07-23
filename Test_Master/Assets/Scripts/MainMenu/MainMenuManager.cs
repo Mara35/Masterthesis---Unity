@@ -2,11 +2,19 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
+/// <summary>
+/// Drives the main menu on both the PC and VR (world-space) canvases. Toggles between the main,
+/// training-info and level-select panels, and loads the chosen scene (manual training, visual
+/// training, or the competition explanation). For manual training it writes the picked difficulty
+/// into <see cref="LevelConfig.Selected"/> so the gameplay scene can read it after the load.
+/// The Easy/Medium/Hard defaults are seeded in <see cref="Reset"/>.
+/// </summary>
+
 public class MainMenuManager : MonoBehaviour
 {
     [Header("Scene Names")]
-    [SerializeField] private string manuellesTrainingSceneName = "BBT_Training";
-    [SerializeField] private string visuellesTrainingSceneName = "BBT_VisualTraining";
+    [SerializeField] private string manualTrainingSceneName = "BBT_Training";
+    [SerializeField] private string visualTrainingSceneName = "BBT_VisualTraining";
     [SerializeField] private string competitionSceneName = "BBT_Explanation_Competition";
 
     [Header("Panels")]
@@ -24,9 +32,9 @@ public class MainMenuManager : MonoBehaviour
     [SerializeField] private Button competitionButton;
 
     [Header("Training Info Buttons")]
-    [SerializeField] private Button manuellesTrainingButton;
-    [SerializeField] private Button visuellesTrainingButton;
-    [SerializeField] private Button zurueckButton;
+    [SerializeField] private Button manualTrainingButton;
+    [SerializeField] private Button visualTrainingButton;
+    [SerializeField] private Button backButton;
 
     [Header("Level Select Buttons")]
     [SerializeField] private Button easyButton;
@@ -76,9 +84,9 @@ public class MainMenuManager : MonoBehaviour
         if (competitionButton != null) competitionButton.onClick.AddListener(LoadCompetitionScene);
 
         // Training Info
-        if (manuellesTrainingButton != null) manuellesTrainingButton.onClick.AddListener(ShowLevelSelect);
-        if (visuellesTrainingButton != null) visuellesTrainingButton.onClick.AddListener(LoadVisuellesTraining);
-        if (zurueckButton != null) zurueckButton.onClick.AddListener(ShowMainMenu);
+        if (manualTrainingButton != null) manualTrainingButton.onClick.AddListener(ShowLevelSelect);
+        if (visualTrainingButton != null) visualTrainingButton.onClick.AddListener(LoadVisualTraining);
+        if (backButton != null) backButton.onClick.AddListener(ShowMainMenu);
 
         // Level Select
         if (easyButton != null) easyButton.onClick.AddListener(SelectEasy);
@@ -91,9 +99,9 @@ public class MainMenuManager : MonoBehaviour
     {
         if (trainingButton != null) trainingButton.onClick.RemoveListener(ShowTrainingInfo);
         if (competitionButton != null) competitionButton.onClick.RemoveListener(LoadCompetitionScene);
-        if (manuellesTrainingButton != null) manuellesTrainingButton.onClick.RemoveListener(ShowLevelSelect);
-        if (visuellesTrainingButton != null) visuellesTrainingButton.onClick.RemoveListener(LoadVisuellesTraining);
-        if (zurueckButton != null) zurueckButton.onClick.RemoveListener(ShowMainMenu);
+        if (manualTrainingButton != null) manualTrainingButton.onClick.RemoveListener(ShowLevelSelect);
+        if (visualTrainingButton != null) visualTrainingButton.onClick.RemoveListener(LoadVisualTraining);
+        if (backButton != null) backButton.onClick.RemoveListener(ShowMainMenu);
         if (easyButton != null) easyButton.onClick.RemoveListener(SelectEasy);
         if (mediumButton != null) mediumButton.onClick.RemoveListener(SelectMedium);
         if (hardButton != null) hardButton.onClick.RemoveListener(SelectHard);
@@ -140,31 +148,31 @@ public class MainMenuManager : MonoBehaviour
     private void SelectEasy()
     {
         LevelConfig.Selected = easyConfig;
-        LoadManuellesTraining();
+        LoadManualTraining();
     }
 
     private void SelectMedium()
     {
         LevelConfig.Selected = mediumConfig;
-        LoadManuellesTraining();
+        LoadManualTraining();
     }
 
     private void SelectHard()
     {
         LevelConfig.Selected = hardConfig;
-        LoadManuellesTraining();
+        LoadManualTraining();
     }
 
     // --- Scene Loading ---
 
-    private void LoadManuellesTraining()
+    private void LoadManualTraining()
     {
-        SceneManager.LoadScene(manuellesTrainingSceneName);
+        SceneManager.LoadScene(manualTrainingSceneName);
     }
 
-    private void LoadVisuellesTraining()
+    private void LoadVisualTraining()
     {
-        SceneManager.LoadScene(visuellesTrainingSceneName);
+        SceneManager.LoadScene(visualTrainingSceneName);
     }
 
     private void LoadCompetitionScene()

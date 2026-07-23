@@ -44,8 +44,8 @@ public class UdpMeasurementHarness : MonoBehaviour
         switch (id)
         {
             case 20: return "Glove";
-            case 3:  return "IMU_UpperArm";   // strapId 3 = Oberarm
-            case 4:  return "IMU_Forearm";    // strapId 4 = Unterarm
+            case 3:  return "IMU_UpperArm";   // strapId 3 = upper arm
+            case 4:  return "IMU_Forearm";    // strapId 4 = forearm
             default: return "id" + id;
         }
     }
@@ -135,8 +135,8 @@ public class UdpMeasurementHarness : MonoBehaviour
         }
         catch (Exception e)
         {
-            Debug.LogError($"[Harness] KANN PORT {port} NICHT BINDEN: {e.Message}\n" +
-                           "Ein anderer Socket haelt den Port noch. Unity komplett schliessen und neu oeffnen.");
+            Debug.LogError($"[Harness] CANNOT BIND PORT {port}: {e.Message}\n" +
+                           "Another socket still holds the port. Close Unity completely and reopen.");
             running = false;
             return;
         }
@@ -301,7 +301,7 @@ public class UdpMeasurementHarness : MonoBehaviour
                 snap.Add((kv.Key, s.received, s.lost, s.jitter, s.srcPort, s.srcIp, s.duplicateId, 0));
             }
         }
-        if (snap.Count == 0) { Debug.Log("[Harness] (noch keine Daten)"); return; }
+        if (snap.Count == 0) { Debug.Log("[Harness] (no data yet)"); return; }
 
         for (int i = 0; i < snap.Count; i++)
         {

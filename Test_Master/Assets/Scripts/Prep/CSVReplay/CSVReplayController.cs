@@ -12,7 +12,7 @@ public class CSVReplayController : MonoBehaviour
 {
     [Header("--- Activation ---")]
     public bool useCSVReplay = true;
-    [Tooltip("Keyboard Control Script – is disabled when CSV is active")]
+    [Tooltip("Keyboard Control Script is disabled when CSV is active")]
     public HandTargetKeyboardControl keyboardControl;
 
     [Header("--- CSV files (Assets/Data/) ---")]
@@ -43,7 +43,7 @@ public class CSVReplayController : MonoBehaviour
     public Transform handTarget;
 
     [Header("--- Automatic Gripping ---")]
-    [Tooltip("GloveGrabber script on HandTarget – calculates finger angles")]
+    [Tooltip("GloveGrabber script on HandTarget, calculates finger angles")]
     public GloveGrabber gloveGrabber;
 
     [Header("--- Playback ---")]

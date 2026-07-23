@@ -1,6 +1,11 @@
 using UnityEngine;
 using TMPro;
 
+/// <summary>
+/// Counts the cubes that have reached one side of the board (RightSide = player, LeftSide = ghost),
+/// polling at updateInterval, and mirrors the score to the PC and VR labels. GetScore returns the total.
+/// </summary>
+
 public class CompetitionScoreCounter : MonoBehaviour
 {
     public enum Side { RightSide, LeftSide }
@@ -18,7 +23,7 @@ public class CompetitionScoreCounter : MonoBehaviour
     public TextMeshProUGUI vrScoreText;
 
     [Header("Cube")]
-    [Tooltip("Tag of Cubes (e.g. 'Block'), or leave blank to search by name")]
+    [Tooltip("Tag of Cubes (e.g. Block), or leave blank to search by name")]
     public string cubeTag = "Block";
 
     [Header("Update rate")]
@@ -43,7 +48,7 @@ public class CompetitionScoreCounter : MonoBehaviour
         if (cp != null)
             partitionX = cp.transform.position.x;
         else
-            Debug.LogWarning("[CompetitionScoreCounter] 'CenterPartition' not found!");
+            Debug.LogWarning("[CompetitionScoreCounter] CenterPartition not found!");
 
         // Wait one frame until all GameObjects have been initialized
         StartCoroutine(InitialCount());
@@ -65,6 +70,8 @@ public class CompetitionScoreCounter : MonoBehaviour
     // -----------------------------------------------------------------------
     // Count
     // -----------------------------------------------------------------------
+    // Counts cubes purely by X position relative to the partition (a cube "belongs" to the side
+    // it currently sits on), so cubes carried over by either orb are counted correctly.
 
     private void CountAndUpdate()
     {
@@ -81,7 +88,7 @@ public class CompetitionScoreCounter : MonoBehaviour
 
             if (!onMySide) continue;
 
-            // BonusCube count for their point value; regular dice count as 1
+            // BonusCube count for their point value; regular cubes count as 1
             BonusCube bonus = cube.GetComponent<BonusCube>();
             count += (bonus != null) ? bonus.pointValue : 1;
         }

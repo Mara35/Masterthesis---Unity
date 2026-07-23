@@ -9,50 +9,55 @@
  * The game logic (cube detection by position) remains the same.
  *
  * Setup in the Inspector:
- *   - playerTargetZone ? Ghost's start zone (left side, drop zone)
- *   - cubeTag          ? Tag for all cubes (e.g., “Block”)
+ *   - playerTargetZone -> Ghost's start zone (left side, drop zone)
+ *   - cubeTag          -> Tag for all cubes (e.g., Block)
  */
 
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// LEGACY. The original player-controlled competition orb: auto-searches cubes on the XBot (right)
+/// side, carries them over the partition to the ghost (left) side, and handles the freeze, peg and
+/// sequence challenges. Replaced by the hand + GloveGrabber; kept for reference.
+/// </summary>
 public class PlayerOrbController : MonoBehaviour
 {
     // -----------------------------------------------------------------------
     // Inspector
     // -----------------------------------------------------------------------
 
-    [Header("Scene-Reference")]
-    [Tooltip("Ablagebereich auf der Ghost-Seite (linke Seite)")]
+    [Header("Scene Reference")]
+    [Tooltip("Drop area on the ghost side (left side)")]
     public Transform playerTargetZone;
 
-    [Tooltip("FreezeZone für eigene FreezeCubes (links für Player, rechts für Ghost)")]
+    [Tooltip("FreezeZone for own FreezeCubes (left for player, right for ghost)")]
     public Transform freezeZone;
 
-    [Tooltip("Eigene Ablageseite des Players (StartZone – rechte Seite)")]
+    [Tooltip("The player's own drop side (StartZone - right side)")]
     public Transform playerOwnZone;
 
-    [Tooltip("Tag aller Würfel-GameObjects")]
+    [Tooltip("Tag of all cube GameObjects")]
     public string cubeTag = "Block";
 
-    [Header("Bewegung")]
+    [Header("Movement")]
     [Range(0.1f, 1.0f)]
     public float speed = 1.0f;
 
-    [Tooltip("Wie hoch der Orb über die Partition-Oberkante hebt (Meter)")]
+    [Tooltip("How high the orb lifts above the partition top edge (meters)")]
     public float liftHeight = 0.15f;
 
-    [Tooltip("Minimale Y-Höhe des Orbs – manuell auf Tischoberfläche setzen")]
+    [Tooltip("Minimum Y height of the orb - set manually to the table surface")]
     public float minSafeY = 0.9f;
 
-    [Tooltip("Radius zum Aufnehmen eines Würfels")]
+    [Tooltip("Radius to pick up a cube")]
     public float pickupRadius = 0.12f;
 
-    [Tooltip("Radius zum Erreichen eines Wegpunkts")]
+    [Tooltip("Radius to reach a waypoint")]
     public float waypointRadius = 0.05f;
 
-    [Tooltip("Pause (s) bevor der nächste Würfel gesucht wird")]
+    [Tooltip("Pause (s) before searching for the next cube")]
     [Range(0f, 2f)]
     public float reactionDelay = 0.5f;
 
@@ -111,14 +116,14 @@ public class PlayerOrbController : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning("[PlayerOrb] 'CenterPartition' nicht gefunden!");
+            Debug.LogWarning("[PlayerOrb] 'CenterPartition' not found!");
             partitionTopY = 1.0f;
             partitionX = 0f;
         }
 
         flyHeight = partitionTopY + liftHeight;
 
-        isActive = true; // PlayerOrb startet sofort
+        isActive = true; // PlayerOrb starts immediately
 
     }
 
@@ -126,11 +131,11 @@ public class PlayerOrbController : MonoBehaviour
     {
         if (!isActive) return;
 
-        // Peg Challenge Interrupt: nur einmal unterbrechen wenn Challenge startet
+        // Peg challenge interrupt: interrupt only once when the challenge starts
         if (isPegChallenge && state != State.Idle && targetCube != null)
         {
             PegChallengeCube currentPeg = targetCube.GetComponent<PegChallengeCube>();
-            // Nur unterbrechen wenn aktuell kein Peg getragen wird
+            // Only interrupt if no peg is currently being carried
             if (currentPeg == null)
             {
                 targetRb.isKinematic = false;
@@ -161,7 +166,7 @@ public class PlayerOrbController : MonoBehaviour
 
     private void HandleIdle()
     {
-        // Höchste Priorität: Peg Challenge
+        // Highest priority: peg challenge
         if (isPegChallenge)
         {
             GameObject nextPeg = FindNextUnplacedPeg();
@@ -176,17 +181,17 @@ public class PlayerOrbController : MonoBehaviour
                 if (targetRb != null)
                     targetRb.constraints = RigidbodyConstraints.FreezeRotation;
 
-                // Erst zum Peg fahren (MovingToCube), dropTarget wird in PickUp gesetzt
+                // Move to the peg first (MovingToCube); dropTarget is set in PickUp
                 state = State.MovingToCube;
                 return;
             }
         }
 
-        // Priorität 2: Sequence Challenge
+        // Priority 2: sequence challenge
         if (isSequenceChallenge)
         {
-            // Nächsten Würfel nach sequenceNumber finden (richtige Reihenfolge)
-            int nextNumber = sequenceNextIdx + 1; // sequenceNextIdx = wie viele bereits übertragen
+            // Find the next cube by sequenceNumber (correct order)
+            int nextNumber = sequenceNextIdx + 1; // sequenceNextIdx = how many have already been transferred
             SequenceCube correctCube = null;
             SequenceCube wrongCube = null;
 
@@ -197,14 +202,14 @@ public class PlayerOrbController : MonoBehaviour
                 else if (wrongCube == null) wrongCube = s;
             }
 
-            // Fehler machen?
+            // Make a mistake?
             SequenceCube toPickup = null;
             if (Random.value < sequenceMistakeChance && wrongCube != null)
-                toPickup = wrongCube;   // absichtlich falscher
+                toPickup = wrongCube;   // intentionally wrong one
             else if (correctCube != null)
-                toPickup = correctCube; // richtiger
+                toPickup = correctCube; // correct one
             else
-                toPickup = wrongCube;   // kein richtiger mehr verfügbar
+                toPickup = wrongCube;   // no correct one left
 
             if (toPickup != null)
             {
@@ -212,7 +217,7 @@ public class PlayerOrbController : MonoBehaviour
 
                 SequenceCube sc = pickIdx >= 0 ? sequenceCubes[pickIdx] : null;
                 if (sc != null && !sc.IsTransferred && OrbSharedState.IsAvailable(sc.gameObject.GetInstanceID())
-                    && !sc.SpawnedOnGhostSide()) // nur eigene Seite
+                    && !sc.SpawnedOnGhostSide()) // own side only
                 {
                     targetCube = sc.gameObject;
                     targetRb = targetCube.GetComponent<Rigidbody>();
@@ -221,13 +226,13 @@ public class PlayerOrbController : MonoBehaviour
                     OrbSharedState.Lock(targetCube.GetInstanceID());
                     sequenceNextIdx++;
                     state = State.MovingToCube;
-                    Debug.Log($"[PlayerOrb] Sequence Würfel #{sc.sequenceNumber} aufnehmen (mistakeChance={sequenceMistakeChance}).");
+                    Debug.Log($"[PlayerOrb] Pick up sequence cube #{sc.sequenceNumber} (mistakeChance={sequenceMistakeChance}).");
                     return;
                 }
             } // end if toPickup
         }
 
-        // Priorität 3: ReactionCube im eigenen Feld
+        // Priority 3: ReactionCube on own field
         GameObject reactionTarget = FindReactionCubeOnOwnSide();
         if (reactionTarget != null)
         {
@@ -236,7 +241,7 @@ public class PlayerOrbController : MonoBehaviour
             isStealingMalus = false;
             isCarryingFreeze = false;
             OrbSharedState.Lock(targetCube.GetInstanceID());
-            Debug.Log($"[PlayerOrb] ReactionCube gefunden – höchste Priorität!");
+            Debug.Log($"[PlayerOrb] ReactionCube found - highest priority!");
 
             if (transform.position.x < partitionX)
             {
@@ -252,14 +257,14 @@ public class PlayerOrbController : MonoBehaviour
 
         GameObject freezeTarget = FindFreezeCubeOnOwnSide();
 
-        // 50% Chance: versuche roten Würfel vom Gegner zu klauen
+        // 50% chance: try to steal a red cube from the opponent
         GameObject stealTarget = null;
         if (freezeTarget == null && Random.value < 0.5f)
             stealTarget = FindMalusCubeOnEnemySide();
 
         targetCube = freezeTarget ?? stealTarget ?? FindNearestCubeOnMySide();
 
-        // Fallback: Cooldown ignorieren falls kein Würfel gefunden (verhindert Stillstand)
+        // Fallback: ignore cooldown if no cube found (prevents a standstill)
         if (targetCube == null)
             targetCube = FindNearestCubeOnMySide(ignoreCooldown: true);
 
@@ -269,10 +274,10 @@ public class PlayerOrbController : MonoBehaviour
         isCarryingFreeze = (freezeTarget != null);
         targetRb = targetCube.GetComponent<Rigidbody>();
 
-        // Sofort sperren damit kein anderer Orb denselben Würfel wählt
+        // Lock immediately so no other orb picks the same cube
         OrbSharedState.Lock(targetCube.GetInstanceID());
 
-        // Orb auf falscher Seite ? erst zurückfliegen
+        // Orb on the wrong side -> fly back first
         if (transform.position.x < partitionX)
         {
             returnTarget = new Vector3(targetCube.transform.position.x, flyHeight,
@@ -287,7 +292,7 @@ public class PlayerOrbController : MonoBehaviour
         }
     }
 
-    // Sucht einen Malus-Würfel auf der GEGNERISCHEN Seite (links = Ghost-Seite)
+    // Finds a malus cube on the OPPONENT's side (left = ghost side)
     private GameObject FindMalusCubeOnEnemySide()
     {
         GameObject nearest = null;
@@ -295,11 +300,11 @@ public class PlayerOrbController : MonoBehaviour
 
         foreach (BonusCube bc in FindObjectsOfType<BonusCube>())
         {
-            if (bc.pointValue > 0) continue; // nur negative (rote) Würfel
+            if (bc.pointValue > 0) continue; // negative (red) cubes only
             if (!bc.gameObject.activeInHierarchy) continue;
             if (!OrbSharedState.IsAvailable(bc.gameObject.GetInstanceID())) continue;
 
-            // Gegnerische Seite = links der Partition (Player ist rechts)
+            // Opponent side = left of the partition (player is on the right)
             if (bc.transform.position.x >= partitionX) continue;
 
             float d = Vector3.Distance(transform.position, bc.transform.position);
@@ -383,20 +388,20 @@ public class PlayerOrbController : MonoBehaviour
     }
 
     // -----------------------------------------------------------------------
-    // Bewegung / Würfel mitführen
+    // Movement / carrying the cube
     // -----------------------------------------------------------------------
 
     private void MoveTowards(Vector3 target)
     {
         Vector3 next = Vector3.MoveTowards(transform.position, target, speed * Time.deltaTime);
-        next.y = Mathf.Max(next.y, minSafeY); // nie unter Tischoberfläche
+        next.y = Mathf.Max(next.y, minSafeY); // never below the table surface
         transform.position = next;
     }
 
     private void CarryCube()
     {
         if (targetCube != null)
-            // Würfel leicht über dem Orb-Mittelpunkt halten damit er nicht durch Geometrie drückt
+            // hold the cube slightly above the orb center so it doesn't clip through geometry
             targetCube.transform.position = transform.position + Vector3.up * 0.01f;
     }
 
@@ -412,12 +417,12 @@ public class PlayerOrbController : MonoBehaviour
             targetRb.isKinematic = true;
         }
 
-        // ReactionCube informieren wer ihn trägt
+        // tell the ReactionCube who is carrying it
         ReactionCube rc = targetCube.GetComponent<ReactionCube>();
         if (rc != null) rc.RegisterCarrier(false);
 
         Vector3 pos = transform.position;
-        // Ablageposition bestimmen
+        // determine the drop position
         PegChallengeCube pegComp = targetCube.GetComponent<PegChallengeCube>();
         if (pegComp != null && isPegChallenge)
             dropTarget = FindMatchingZonePosition(pegComp.colorId);
@@ -432,13 +437,13 @@ public class PlayerOrbController : MonoBehaviour
         crossTarget = new Vector3(dropTarget.x, flyHeight, dropTarget.z);
         state = State.LiftUp;
 
-        string actionLabel = pegComp != null ? "Peg " + pegComp.colorId : isStealingMalus ? "Klaue Malus" : "Transfer";
-        Debug.Log($"[PlayerOrb] {actionLabel}: {targetCube.name} ? {dropTarget}");
+        string actionLabel = pegComp != null ? "Peg " + pegComp.colorId : isStealingMalus ? "Steal malus" : "Transfer";
+        Debug.Log($"[PlayerOrb] {actionLabel}: {targetCube.name} -> {dropTarget}");
     }
 
     private void Drop()
     {
-        // Sicherheitscheck – Würfel könnte bereits zerstört sein (z.B. ReactionCube)
+        // Safety check - the cube may already be destroyed (e.g. ReactionCube)
         if (targetCube == null)
         {
             targetRb = null;
@@ -447,7 +452,7 @@ public class PlayerOrbController : MonoBehaviour
             return;
         }
 
-        // Peg Challenge: Zylinder senkrecht in Zone stecken und fixieren
+        // Peg challenge: place the cylinder upright into the zone and fix it
         PegChallengeCube peg = targetCube.GetComponent<PegChallengeCube>();
         if (peg != null && isPegChallenge)
         {
@@ -461,8 +466,8 @@ public class PlayerOrbController : MonoBehaviour
                 targetRb.velocity = Vector3.zero;
             }
             peg.IsPlaced = true;
-            // Peg NICHT entsperren – bleibt gesperrt damit er nicht nochmal aufgenommen wird
-            Debug.Log($"[PlayerOrb] Peg {peg.colorId} abgelegt und gesperrt.");
+            // Do NOT unlock the peg - it stays locked so it isn't picked up again
+            Debug.Log($"[PlayerOrb] Peg {peg.colorId} placed and locked.");
         }
         else
         {
@@ -475,7 +480,7 @@ public class PlayerOrbController : MonoBehaviour
         isCarryingFreeze = false;
         isStealingMalus = false;
 
-        Debug.Log($"[PlayerOrb] Abgelegt: {targetCube.name} an {dropTarget}");
+        Debug.Log($"[PlayerOrb] Dropped: {targetCube.name} at {dropTarget}");
 
         targetCube = null;
         targetRb = null;
@@ -492,7 +497,7 @@ public class PlayerOrbController : MonoBehaviour
     }
 
     // -----------------------------------------------------------------------
-    // Würfelsuche per POSITION – rechte Seite (positive X)
+    // Cube search by POSITION - right side (positive X)
     // -----------------------------------------------------------------------
 
     private GameObject FindNearestCubeOnMySide(bool ignoreCooldown = false)
@@ -516,12 +521,12 @@ public class PlayerOrbController : MonoBehaviour
         {
             if (!cube.activeInHierarchy) continue;
 
-            // Nur Würfel auf der rechten (XBot-)Seite
+            // Only cubes on the right (XBot) side
             if (cube.transform.position.x <= partitionX) continue;
 
-            // Würfel der gerade getragen wird überspringen
+            // Skip the cube currently being carried
             if (cube == targetCube) continue;
-            // Gesperrte oder kürzlich abgelegte Würfel überspringen (shared state)
+            // Skip locked or recently dropped cubes (shared state)
             if (ignoreCooldown ? !OrbSharedState.IsAvailableIgnoreCooldown(cube.GetInstanceID()) : !OrbSharedState.IsAvailable(cube.GetInstanceID())) continue;
 
             float d = Vector3.Distance(transform.position, cube.transform.position);
@@ -542,7 +547,7 @@ public class PlayerOrbController : MonoBehaviour
         return result.ToArray();
     }
 
-    // Zufällige Position auf der eigenen (Player-)Seite – für gestohlene rote Würfel
+    // Random position on the own (player) side - for stolen red cubes
     private GameObject FindReactionCubeOnOwnSide()
     {
         GameObject nearest = null;
@@ -558,7 +563,7 @@ public class PlayerOrbController : MonoBehaviour
         {
             if (!rc.activeInHierarchy) continue;
             if (!OrbSharedState.IsAvailable(rc.GetInstanceID())) continue;
-            if (rc.transform.position.x < partitionX) continue; // Player-Seite = rechts
+            if (rc.transform.position.x < partitionX) continue; // player side = right
 
             float d = Vector3.Distance(transform.position, rc.transform.position);
             if (d < bestDist) { bestDist = d; nearest = rc; }
@@ -568,14 +573,14 @@ public class PlayerOrbController : MonoBehaviour
 
     private GameObject FindFreezeCubeOnOwnSide()
     {
-        // FreezeCube auf beiden Seiten suchen – nächsten verfügbaren nehmen
-        // (freezeZone wird nur für Ablage gebraucht, nicht für die Suche)
+        // Search FreezeCubes on both sides - take the nearest available one
+        // (freezeZone is only needed for dropping, not for the search)
         GameObject nearest = null;
         float bestDist = float.MaxValue;
         GameObject[] freezeCubes = null;
 
         try { freezeCubes = GameObject.FindGameObjectsWithTag("Freeze"); }
-        catch { Debug.LogWarning("[Orb] Tag 'Freeze' nicht registriert!"); return null; }
+        catch { Debug.LogWarning("[Orb] Tag 'Freeze' not registered!"); return null; }
 
         if (freezeCubes == null || freezeCubes.Length == 0) return null;
 
@@ -588,7 +593,7 @@ public class PlayerOrbController : MonoBehaviour
         }
 
         if (nearest != null)
-            Debug.Log($"[PlayerOrb] FreezeCube gefunden: {nearest.name}");
+            Debug.Log($"[PlayerOrb] FreezeCube found: {nearest.name}");
 
         return nearest;
     }
@@ -597,11 +602,11 @@ public class PlayerOrbController : MonoBehaviour
     {
         if (freezeZone == null)
         {
-            Debug.LogWarning("[Orb] freezeZone nicht zugewiesen! Bitte im Inspector setzen.");
+            Debug.LogWarning("[Orb] freezeZone not assigned! Please set it in the Inspector.");
             return transform.position;
         }
 
-        Debug.Log($"[Orb] Lege FreezeCube in {freezeZone.name} ab.");
+        Debug.Log($"[Orb] Dropping FreezeCube in {freezeZone.name}.");
 
         Collider col = freezeZone.GetComponent<Collider>();
         if (col != null)
@@ -634,7 +639,7 @@ public class PlayerOrbController : MonoBehaviour
                 );
             }
         }
-        // Fallback: rechts der Partition
+        // Fallback: right of the partition
         return new Vector3(partitionX + 0.15f, partitionTopY + 0.05f, Random.Range(-0.1f, 0.1f));
     }
 
@@ -647,7 +652,7 @@ public class PlayerOrbController : MonoBehaviour
             {
                 Bounds b = col.bounds;
 
-                // Inset: 20% der Größe von jeder Seite abziehen
+                // Inset: subtract 20% of the size from each side
                 float insetX = Mathf.Max(0.06f, b.size.x * 0.2f);
                 float insetZ = Mathf.Max(0.06f, b.size.z * 0.2f);
 
@@ -684,7 +689,7 @@ public class PlayerOrbController : MonoBehaviour
 
         StopAllCoroutines();
         StartCoroutine(FreezeRoutine(seconds));
-        Debug.Log($"[PlayerOrb] Eingefroren für {seconds}s.");
+        Debug.Log($"[PlayerOrb] Frozen for {seconds}s.");
     }
 
     private System.Collections.IEnumerator FreezeRoutine(float seconds)
@@ -694,7 +699,7 @@ public class PlayerOrbController : MonoBehaviour
         isActive = true;
         state = State.Idle;
         OrbSharedState.playerFrozen = false;
-        Debug.Log($"[PlayerOrb] Freeze beendet.");
+        Debug.Log($"[PlayerOrb] Freeze ended.");
     }
 
     private GameObject FindNextUnplacedPeg()
@@ -715,7 +720,7 @@ public class PlayerOrbController : MonoBehaviour
         {
             if (zone.colorId == colorId && !zone.IsOccupied)
             {
-                // Exakte Zone-Mitte nehmen, leicht über dem Tisch
+                // Take the exact zone center, slightly above the table
                 Vector3 pos = zone.transform.position;
                 pos.y = zone.transform.position.y + 0.02f;
                 return pos;
@@ -729,7 +734,7 @@ public class PlayerOrbController : MonoBehaviour
         pendingPegs = new List<GameObject>(pegs);
         pegZoneTargets = new List<Vector3>(zonePositions);
         isPegChallenge = true;
-        Debug.Log("[PlayerOrb] Peg Challenge gestartet!");
+        Debug.Log("[PlayerOrb] Peg challenge started!");
     }
 
     public void EndPegChallenge()
@@ -737,7 +742,7 @@ public class PlayerOrbController : MonoBehaviour
         isPegChallenge = false;
         pendingPegs.Clear();
         pegZoneTargets.Clear();
-        Debug.Log("[PlayerOrb] Peg Challenge beendet.");
+        Debug.Log("[PlayerOrb] Peg challenge ended.");
     }
 
     public void StartSequenceChallenge(List<SequenceCube> cubes, float mistakeChance)
@@ -746,7 +751,7 @@ public class PlayerOrbController : MonoBehaviour
         sequenceMistakeChance = mistakeChance;
         sequenceNextIdx = 0;
         isSequenceChallenge = true;
-        Debug.Log($"[PlayerOrb] Sequence Challenge gestartet! MistakeChance={mistakeChance}");
+        Debug.Log($"[PlayerOrb] Sequence challenge started! MistakeChance={mistakeChance}");
     }
 
     public void EndSequenceChallenge()
@@ -754,7 +759,7 @@ public class PlayerOrbController : MonoBehaviour
         isSequenceChallenge = false;
         sequenceCubes.Clear();
         sequenceNextIdx = 0;
-        Debug.Log($"[PlayerOrb] Sequence Challenge beendet.");
+        Debug.Log($"[PlayerOrb] Sequence challenge ended.");
     }
 
     public void StopPlaying()

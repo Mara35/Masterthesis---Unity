@@ -3,6 +3,11 @@ using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using TMPro;
 
+/// <summary>
+/// Drives the pre-competition explanation screen (PC and VR). Shows a level-select page and a detail
+/// page describing each of the six levels (title, cube preview, colors), and launches the competition
+/// or returns to the menu.
+/// </summary>
 public class ExplanationManager : MonoBehaviour
 {
     [Header("Pages")]
@@ -78,9 +83,9 @@ public class ExplanationManager : MonoBehaviour
         {
             new LevelData {
                 title         = "Basic",
-                subtitle      = "Learn the core mechanic � transfer as many blocks as possible in 60 seconds.",
+                subtitle      = "Learn the core mechanic. Transfer as many blocks as possible in 60 seconds.",
                 newBlockLabel = "Bonus & Malus Blocks",
-                description   = "Green dice give you bonus points when they're on your side of the board�your score goes down. Try to steal them from your opponent's side.\r\n\r\nRed dice give you penalty points when they're on your side of the board�your score goes up. Try to place them on your opponent's side",
+                description   = "Green dice give you bonus points when they're on your side of the board, your score goes down. Try to steal them from your opponent's side.\r\n\r\nRed dice give you penalty points when they're on your side of the board, your score goes up. Try to place them on your opponent's side",
                 cubeColor     = colorGreen,
                 difficulty    = DifficultyLevel.Basic
             },
@@ -102,7 +107,7 @@ public class ExplanationManager : MonoBehaviour
             },
             new LevelData {
                 title         = "Cognitive",
-                subtitle      = "Focus on the Peg Challenge � a colour-matching dual task.",
+                subtitle      = "Focus on the Peg Challenge, a colour-matching dual task.",
                 newBlockLabel = "Peg Challenge",
                 description   = "3 coloured cylinders spawn in your zone with 3 matching target zones outside the box. Place each cylinder in the correct colour zone within 8 seconds. Combines fine motor control with colour recognition.",
                 cubeColor     = colorRed,
@@ -110,17 +115,17 @@ public class ExplanationManager : MonoBehaviour
             },
             new LevelData {
                 title         = "Memory",
-                subtitle      = "Focus on working memory � remember and reproduce the correct sequence.",
+                subtitle      = "Focus on working memory, remember and reproduce the correct sequence.",
                 newBlockLabel = "Sequence Blocks",
-                description   = "3 purple blocks appear with numbers 1, 2 and 3. Remember the order � the numbers disappear after 3 seconds. Transfer them in the correct sequence for +5 bonus points. A wrong order means -2 points.",
+                description   = "3 purple blocks appear with numbers 1, 2 and 3. Remember the order, the numbers disappear after 3 seconds. Transfer them in the correct sequence for +5 bonus points. A wrong order means -2 points.",
                 cubeColor     = colorPurple,
                 difficulty    = DifficultyLevel.Memory
             },
             new LevelData {
                 title         = "Full Challenge",
-                subtitle      = "All block types active � maximum motor and cognitive challenge.",
+                subtitle      = "All block types active, maximum motor and cognitive challenge.",
                 newBlockLabel = "Everything Combined",
-                description   = "All block types are active at once: Bonus/Malus, Freeze, Reaction, Peg Challenge and Sequence Blocks. This level combines multiple cognitive functions simultaneously � attention, working memory, colour recognition and motor control.",
+                description   = "All block types are active at once: Bonus/Malus, Freeze, Reaction, Peg Challenge and Sequence Blocks. This level combines multiple cognitive functions simultaneously, attention, working memory, colour recognition and motor control.",
                 cubeColor     = colorPurple,
                 difficulty    = DifficultyLevel.Full
             }
@@ -173,7 +178,7 @@ public class ExplanationManager : MonoBehaviour
                     vrpreviewPanels[i].SetActive(i == index);
         }
 
-        // Save Selected Level
+        // Persist the chosen level for the competition scene, then show its detail page.
         DifficultyManager.SelectedLevel = l.difficulty;
 
         ShowDetailPage();

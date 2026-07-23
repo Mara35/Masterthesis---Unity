@@ -2,7 +2,7 @@ using UnityEngine;
 
 /// <summary>
 /// Moves the HandTarget GameObject using the keyboard.
-/// Replaces HandProxyKeyboardControl – same keys, same logic.
+/// Replaces HandProxyKeyboardControl, same keys, same logic.
 /// The HandTarget is the IK target for the XBot arm (Two Bone IK Constraint).
 /// </summary>
 [RequireComponent(typeof(Rigidbody))]

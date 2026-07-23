@@ -1,13 +1,10 @@
-/*
- * Attach to:  PegZone Prefab
- * Accepts only the cylinder with the matching colorId.
- */
-
 using UnityEngine;
+
+/// <summary>Target slot for the peg challenge. Accepts only the cylinder whose colorId matches (0=Red, 1=Blue, 2=Yellow); Reset clears it.</summary>
 
 public class PegChallengeZone : MonoBehaviour
 {
-    [Tooltip("Color ID – must match the cylinder (0=Red, 1=Blue, 2=Yellow)")]
+    [Tooltip("Color ID, must match the cylinder (0=Red, 1=Blue, 2=Yellow)")]
     public int colorId = 0;
 
     public bool IsOccupied { get; private set; } = false;

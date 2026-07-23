@@ -1,6 +1,11 @@
 using System;
 using UnityEngine;
 
+/// <summary>
+/// LEGACY. Applies recorded glove frames (from GlovePlaybackSource) to the avatar hand for offline
+/// playback without hardware. Caches each bone's rest rotation via CacheBaseRotations().
+/// </summary>
+
 public class GlovePlaybackHandController : MonoBehaviour
 {
     public enum Axis { X, Y, Z }

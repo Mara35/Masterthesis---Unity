@@ -6949,8 +6949,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cf2d16f2797df0741933fda3ea17042b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  manuellesTrainingSceneName: BBT_Training
-  visuellesTrainingSceneName: BBT_VisualTraining
+  manualTrainingSceneName: BBT_Training
+  visualTrainingSceneName: BBT_VisualTraining
   competitionSceneName: BBT_Explanation_Competition
   mainMenuPanel: {fileID: 124892705}
   trainingInfoPanel: {fileID: 1641542244}
@@ -6960,9 +6960,9 @@ MonoBehaviour:
   vrLevelSelectPanel: {fileID: 956938557}
   trainingButton: {fileID: 180859013}
   competitionButton: {fileID: 1307559961}
-  manuellesTrainingButton: {fileID: 2022606478}
-  visuellesTrainingButton: {fileID: 2041445941}
-  zurueckButton: {fileID: 470052656}
+  manualTrainingButton: {fileID: 2022606478}
+  visualTrainingButton: {fileID: 2041445941}
+  backButton: {fileID: 470052656}
   easyButton: {fileID: 1444709857}
   mediumButton: {fileID: 876381559}
   hardButton: {fileID: 357687862}

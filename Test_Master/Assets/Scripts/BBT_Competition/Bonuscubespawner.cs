@@ -1,16 +1,11 @@
-/*
- * Summary:
- * 
- * Assigned to:  CompetitionGameManager
- *
- * Restrictions:
- *   - Maximum of 5 bonus cubes (green/red) in 60 seconds
- *   - Maximum of 2–3 freeze cubes in 60 seconds, with a maximum of 1 on the board at a time
- *   - First spawn 8–15 seconds after the game starts
- */
-
 using System.Collections;
 using UnityEngine;
+
+/// <summary>
+/// Spawns the timed extras during a competition round: bonus/penalty/freeze cubes and, if enabled,
+/// reaction cubes, into the left/right zones at randomized intervals with per-round caps. Also owns
+/// references to the peg and sequence challenge managers. Start/StopSpawning gate the whole system.
+/// </summary>
 
 public class BonusCubeSpawner : MonoBehaviour
 {
@@ -100,7 +95,7 @@ public class BonusCubeSpawner : MonoBehaviour
 
     private IEnumerator SpawnRoutine()
     {
-        // First spawn after 8–15 seconds
+        // First spawn after 8-15 seconds
         yield return new WaitForSeconds(Random.Range(firstSpawnMin, firstSpawnMax));
 
         while (isActive && totalBonusSpawned < maxBonusCubesTotal)
@@ -114,6 +109,8 @@ public class BonusCubeSpawner : MonoBehaviour
     {
         if (bonusCubePrefab == null) return;
 
+        // Keep green (bonus) and red (malus) roughly balanced: force the under-represented type
+        // once the difference exceeds 1, otherwise pick randomly.
         bool isMalus;
         if (malusCubePrefab == null)
             isMalus = false;
@@ -137,7 +134,7 @@ public class BonusCubeSpawner : MonoBehaviour
         totalBonusSpawned++;
 
         string label = isMalus ? "Malus" : "Bonus";
-        Debug.Log($"[BonusCubeSpawner] {label} gespawnt ({totalBonusSpawned}/{maxBonusCubesTotal})");
+        Debug.Log($"[BonusCubeSpawner] {label} spawned ({totalBonusSpawned}/{maxBonusCubesTotal})");
     }
 
     // -----------------------------------------------------------------------
@@ -151,7 +148,7 @@ public class BonusCubeSpawner : MonoBehaviour
 
         while (isActive && totalFreezeSpawned < maxFreezeCubesTotal)
         {
-            // Wait until there are no FreezeCubes on the field, no players are frozen, and there is no Peg Challenge
+            // Only spawn a freeze cube when the field is clear: none present, nobody frozen, no peg running.
             yield return new WaitUntil(() =>
                 !FreezeCubeExistsInScene() &&
                 !OrbSharedState.playerFrozen &&
@@ -187,7 +184,7 @@ public class BonusCubeSpawner : MonoBehaviour
         if (rb != null) { rb.velocity = Vector3.zero; rb.isKinematic = false; rb.useGravity = true; }
 
         totalFreezeSpawned++;
-        Debug.Log($"[BonusCubeSpawner] FreezeCube gespawnt ({totalFreezeSpawned}/{maxFreezeCubesTotal})");
+        Debug.Log($"[BonusCubeSpawner] FreezeCube spawned ({totalFreezeSpawned}/{maxFreezeCubesTotal})");
     }
 
     // -----------------------------------------------------------------------

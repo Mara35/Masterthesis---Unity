@@ -1,12 +1,16 @@
 using System.Collections;
 using UnityEngine;
 
+/// <summary>
+/// Trigger zone that freezes its target (an orb controller) for freezeDuration when a matching freeze
+/// cube is dropped in, with a color tint and a floating countdown as feedback.
+/// </summary>
 public class FreezeZone : MonoBehaviour
 {
     [Header("Target")]
     public MonoBehaviour targetToFreeze;
 
-    [Header("Settingss")]
+    [Header("Settings")]
     public float freezeDuration = 5f;
 
     [Header("Visual feedback")]
@@ -85,6 +89,9 @@ public class FreezeZone : MonoBehaviour
 
         isFrozen = true;
         UpdateVisual(true);
+
+        // targetToFreeze is a MonoBehaviour because it can be either the GhostOrbController
+        // or the human's GloveGrabber - we cast to whichever it is and freeze that one.
 
         GhostOrbController ghost = targetToFreeze as GhostOrbController;
         GloveGrabber player = targetToFreeze as GloveGrabber;

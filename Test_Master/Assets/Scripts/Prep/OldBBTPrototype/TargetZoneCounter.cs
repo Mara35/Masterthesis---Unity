@@ -2,6 +2,10 @@ using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 
+/// <summary>
+/// LEGACY. Counts blocks in the target zone for the old prototype. Replaced by ScoreCounter.
+/// </summary>
+
 [RequireComponent(typeof(BoxCollider))]
 public class TargetZoneCounter : MonoBehaviour
 {
@@ -26,7 +30,7 @@ public class TargetZoneCounter : MonoBehaviour
         // Count only if the transfer has been marked as valid
         if (!block.IsValidlyTransferred)
         {
-            Debug.Log("[TargetZone] Block rejected – invalid transfer.");
+            Debug.Log("[TargetZone] Block rejected, invalid transfer.");
             return;
         }
 

@@ -1,5 +1,9 @@
 using UnityEngine;
 
+/// <summary>
+/// Applies the chosen DifficultyLevel to the round: enables/tunes the spawner, peg and sequence
+/// challenge managers so each level exposes the right set of cube types and challenges.
+/// </summary>
 public class DifficultyApplier : MonoBehaviour
 {
     public BonusCubeSpawner bonusCubeSpawner;
@@ -10,6 +14,8 @@ public class DifficultyApplier : MonoBehaviour
     private PegChallengeManager cachedPegManager;
     private SequenceChallengeManager cachedSeqManager;
 
+    // Cache the "full" set of prefabs/managers BEFORE any level nulls them out, so a level switch
+    // can restore exactly the ones its difficulty allows (see ApplyDifficulty).
     private void Awake()
     {
         if (bonusCubeSpawner != null)
@@ -29,7 +35,7 @@ public class DifficultyApplier : MonoBehaviour
 
         if (bonusCubeSpawner == null) return;
 
-        // Install prefabs
+        // Restore or null each prefab/manager depending on what this level unlocks (DifficultyManager).
         bonusCubeSpawner.freezeCubePrefab = DifficultyManager.HasFreeze ? cachedFreezePrefab : null;
         bonusCubeSpawner.reactionCubePrefab = DifficultyManager.HasReaction ? cachedReactionPrefab : null;
         bonusCubeSpawner.pegChallengeManager = DifficultyManager.HasPeg ? cachedPegManager : null;
@@ -67,7 +73,7 @@ public class DifficultyApplier : MonoBehaviour
                 break;
 
             case DifficultyLevel.Cognitive:
-                // focus on Peg – no reaction for clear dual-task focus
+                // focus on Peg, no reaction for clear dual-task focus
                 SetBonus(3, 4, 12, 18);
                 SetFreeze(2, 3);
                 SetReaction(0, 0, 0);
@@ -76,7 +82,7 @@ public class DifficultyApplier : MonoBehaviour
                 break;
 
             case DifficultyLevel.Memory:
-                // Focus on working memory – no Peg, no Reaction
+                // Focus on working memory, no Peg, no Reaction
                 SetBonus(3, 4, 12, 18);
                 SetFreeze(2, 3);
                 SetReaction(0, 0, 0);

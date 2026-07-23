@@ -1,5 +1,6 @@
 using UnityEngine;
 
+/// <summary>Keeps a world-space progress bar floating upright above its parent cube (used by ReactionCube).</summary>
 public class ProgressBarUpright : MonoBehaviour
 {
     [Tooltip("Height above the parent cube (world space)")]

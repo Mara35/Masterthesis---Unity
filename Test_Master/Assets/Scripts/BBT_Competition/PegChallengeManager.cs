@@ -2,6 +2,10 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// Runs the peg challenge: spawns colored pegs and matching zones in front of the box at timed
+/// intervals, and cleans them up when the challenge ends. Start/StopChallengeSystem gate it.
+/// </summary>
 public class PegChallengeManager : MonoBehaviour
 {
     [Header("Prefabs")]
@@ -61,7 +65,7 @@ public class PegChallengeManager : MonoBehaviour
         SpawnPegs();
         SpawnZones();
 
-        // Mensch spielt selbst - keine PlayerOrb Steuerung nötig
+        // The human plays themselves, no PlayerOrb control needed
 
         float remaining = challengeDuration;
         while (remaining > 0f && isActive)
@@ -110,6 +114,7 @@ public class PegChallengeManager : MonoBehaviour
     {
         if (zonePrefab == null || tableInFrontOfBox == null) return;
 
+        // Shuffle the three colors (Fisher-Yates) so the target slots appear in random order each round.
         int[] colorOrder = { 0, 1, 2 };
         for (int i = colorOrder.Length - 1; i > 0; i--)
         {
@@ -146,6 +151,7 @@ public class PegChallengeManager : MonoBehaviour
         catch { return false; }
     }
 
+    // A peg counts as placed if it sits within 10 cm of the zone with the SAME colorId.
     private int CountPlacedPegs()
     {
         int count = 0;
@@ -172,6 +178,7 @@ public class PegChallengeManager : MonoBehaviour
         return count;
     }
 
+    // Reward scales with how many of the 3 pegs were placed correctly: 1->2, 2->3, 3->5 bonus points.
     private void AwardBonusPoints(int placed)
     {
         int bonus = 0;

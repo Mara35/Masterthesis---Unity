@@ -1,8 +1,9 @@
 using UnityEngine;
 
+/// <summary>A colored peg for the peg challenge. colorId must match its target PegChallengeZone (0=Red, 1=Blue, 2=Yellow).</summary>
 public class PegChallengeCube : MonoBehaviour
 {
-    [Tooltip("Color ID – must match the zone (0=Red, 1=Blue, 2=Yellow)")]
+    [Tooltip("Color ID, must match the zone (0=Red, 1=Blue, 2=Yellow)")]
     public int colorId = 0;
 
     public bool IsPlaced { get; set; } = false;

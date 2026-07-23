@@ -1,16 +1,11 @@
-﻿/*
- * summary:
- * 
- * Attach to:  ReactionCube Prefab
- *
- * Success = Pick up within timeLimit
- * Cube remains on the ground for 1 second after being placed, then Destroy
- * Bonus points are awarded to the correct player
- */
-
-using System.Collections;
+﻿using System.Collections;
 using UnityEngine;
 
+/// <summary>
+/// A cube that must be picked up within timeLimit. Success awards +bonusSuccess, failure -bonusFail;
+/// shows a countdown progress bar and lingers briefly before destroying itself. RegisterCarrier records
+/// who grabbed it (player vs ghost).
+/// </summary>
 public class ReactionCube : MonoBehaviour
 {
     [Header("Settings")]
@@ -60,7 +55,7 @@ public class ReactionCube : MonoBehaviour
         if (progressBarGO != null)
             barOriginalScale = progressBarGO.transform.localScale;
 
-        // Set a flag to prevent further spawns on this side
+        //Block a second reaction cube from spawning on the same side while this one is live.
         if (transform.position.x < partitionX)
             OrbSharedState.ghostSideHasReaction = true;
         else
@@ -74,6 +69,8 @@ public class ReactionCube : MonoBehaviour
     {
         if (isPickedUp || isExpired) return;
 
+        // A cube is "picked up" when its Rigidbody was switched to kinematic by an orb/grabber.
+        // carrierRegistered tells us who grabbed it; if nobody registered, fall back to distance.
         Rigidbody rb = GetComponent<Rigidbody>();
         if (rb != null && rb.isKinematic && carrierRegistered)
             OnPickedUp();

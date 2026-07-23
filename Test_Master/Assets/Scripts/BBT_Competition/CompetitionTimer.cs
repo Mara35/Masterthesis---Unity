@@ -1,17 +1,12 @@
-/*
- * Summary
- * 
- * Attach to:  CompetitionGameManager GameObject (or your own GameObject)
- *
- * Similar structure to Timer.cs in BBT_Training_offline.
- * Triggered by BoxStartTrigger when Hand touches the box.
- * Calls CompetitionGameManager.EndGame() at the end.
- */
-
 using UnityEngine;
 using TMPro;
 using System.Collections;
 
+/// <summary>
+/// Counts a competition round down from gameDuration, updates the PC and VR timer labels, shakes the
+/// timer near the end, and tells the CompetitionGameManager to end the game at zero.
+/// </summary>
+/// 
 public class CompetitionTimer : MonoBehaviour
 {
     [Header("Duration")]
@@ -55,7 +50,7 @@ public class CompetitionTimer : MonoBehaviour
 
         timeRemaining -= Time.deltaTime;
 
-        // Shake at exactly 10 seconds - just once
+        // Shake at exactly 10 seconds, just once
         if (!shakeTriggered && timeRemaining <= 10f)
         {
             shakeTriggered = true;
@@ -85,7 +80,7 @@ public class CompetitionTimer : MonoBehaviour
 
     private void EndGame()
     {
-        Debug.Log("[CompetitionTimer] Time!s up!");
+        Debug.Log("[CompetitionTimer] Time's up!");
         if (gameManager != null)
             gameManager.EndGame();
     }

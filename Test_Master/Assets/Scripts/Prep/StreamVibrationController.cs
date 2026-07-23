@@ -1,6 +1,10 @@
 using STREAM;
 using UnityEngine;
 
+/// <summary>
+/// DEBUG (SampleScene). Triggers a sensor's vibration motor when a stream collision is reported
+/// (OnStreamCollisionEnter/Exit). A wiring test, not part of the training scenes.
+/// </summary>
 public class StreamVibrationController : MonoBehaviour, IStreamCollisionListener
 {
     [SerializeField] private UDPServer streamController;

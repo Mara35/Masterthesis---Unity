@@ -1,6 +1,11 @@
 using System.Collections;
 using UnityEngine;
 
+/// <summary>
+/// A numbered cube for the sequence challenge. Init sets its number and briefly shows it; tracks whether
+/// it was transferred and which side it spawned on; LingerAndDestroy removes it after use.
+/// </summary>
+
 public class SequenceCube : MonoBehaviour
 {
     public float numberDisplayTime = 3f;
@@ -23,6 +28,7 @@ public class SequenceCube : MonoBehaviour
 
         GameObject cp = GameObject.Find("CenterPartition");
         partitionX = cp != null ? cp.transform.position.x : 0f;
+        // Remember which half of the board this cube spawned on (X < partition = ghost side).
         spawnedOnGhostSide = transform.position.x < partitionX;
 
         

@@ -1,6 +1,10 @@
 using System.Collections.Generic;
 using System.Globalization;
 
+/// <summary>
+/// LEGACY. Parses a glove recording CSV into GloveFrames (timestamp + finger angles) for offline
+/// replay. Uses InvariantCulture for locale-independent decimals.
+/// </summary>
 public static class CsvGloveLoader
 {
     public static List<GloveFrame> LoadFromText(string csvText)

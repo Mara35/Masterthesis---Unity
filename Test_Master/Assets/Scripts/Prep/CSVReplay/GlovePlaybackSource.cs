@@ -1,6 +1,11 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// LEGACY. Playback cursor over a glove CSV loaded by CsvGloveLoader. Play/Pause/Stop advance a
+/// time index and expose the current GloveFrame; used only for offline replay.
+/// </summary>
+
 public class GlovePlaybackSource : MonoBehaviour
 {
     [SerializeField] private TextAsset csvFile;

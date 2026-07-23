@@ -1,19 +1,12 @@
-/*
- * summary:
- * 
- * Attach to:  GhostOrb GameObject
- *
- * Searches for cubes by POSITION (left side of the partition) – not by parent hierarchy.
- * This also detects cubes that have been moved over by the PlayerOrb.
- *
- * Setup in the Inspector:
- *   - ghostTargetZone  ? XBot's StartZone (right side, drop zone)
- *   - cubeTag          ? Tag for all cubes (e.g., “Block”), or leave blank for name search
- */
-
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+
+/// <summary>
+/// The competition opponent. Finds cubes by position on its (left) side of the partition, carries
+/// them over to the XBot start zone, and handles the freeze, sequence and peg challenges plus stealing
+/// the player's cubes. Active counterpart to the legacy PlayerOrbController.
+/// </summary>
 
 public class GhostOrbController : MonoBehaviour
 {
@@ -28,7 +21,7 @@ public class GhostOrbController : MonoBehaviour
     [Tooltip("FreezeZone for your own FreezeCubes (left for Player, right for Ghost)")]
     public Transform freezeZone;
 
-    [Tooltip("The Ghost's dedicated drop-off side (TargetZone – left side)")]
+    [Tooltip("The Ghost's dedicated drop-off side (TargetZone, left side)")]
     public Transform ghostOwnZone;
 
     [Tooltip("Tag of all Cube-GameObjects")]
@@ -41,7 +34,7 @@ public class GhostOrbController : MonoBehaviour
     [Tooltip("How high the orb rises above the top edge of the partition")]
     public float liftHeight = 0.15f;
 
-    [Tooltip("Minimal Y-Hight of orb")]
+    [Tooltip("Minimum Y-Hight of orb")]
     public float minSafeY = 0.9f;
 
     [Tooltip("Radius to pick up a cube")]
@@ -122,7 +115,7 @@ public class GhostOrbController : MonoBehaviour
         else
         {
             // CenterPartition not found: Estimate table surface using all renderers
-            Debug.LogWarning("[Orb] 'CenterPartition' not found – looking for table surface.");
+            Debug.LogWarning("[Orb] 'CenterPartition' not found, looking for table surface.");
             GameObject table = GameObject.Find("Table");
             if (table != null)
             {
@@ -161,7 +154,7 @@ public class GhostOrbController : MonoBehaviour
     // -----------------------------------------------------------------------
     // State Handlers
     // -----------------------------------------------------------------------
-
+   
     private void HandleIdle()
     {
         // FreezeCube is top priority
@@ -219,7 +212,7 @@ public class GhostOrbController : MonoBehaviour
             isStealingMalus = false;
             isCarryingFreeze = false;
             OrbSharedState.Lock(targetCube.GetInstanceID());
-            Debug.Log($"[GhostOrb] ReactionCube found – highest Priority!");
+            Debug.Log($"[GhostOrb] ReactionCube found, highest Priority!");
 
             if (transform.position.x > partitionX)
             {
@@ -416,7 +409,7 @@ public class GhostOrbController : MonoBehaviour
 
     private void Drop()
     {
-        // Safety check – the cube may already be destroyed (e.g., ReactionCube)
+        // Safety check, the cube may already be destroyed (e.g., ReactionCube)
         if (targetCube == null)
         {
             targetRb = null;
@@ -434,7 +427,7 @@ public class GhostOrbController : MonoBehaviour
         isCarryingFreeze = false;
         isStealingMalus = false;
 
-        Debug.Log($"[GhostOrb] Abgelegt: {targetCube.name} an {dropTarget}");
+        Debug.Log($"[GhostOrb] Stored: {targetCube.name} at {dropTarget}");
 
         targetCube = null;
         targetRb = null;
@@ -504,7 +497,7 @@ public class GhostOrbController : MonoBehaviour
         return result.ToArray();
     }
 
-    // Random position on your own (ghost) side – for stolen green cubes
+    // Random position on your own (ghost) side, for stolen green cubes
     private GameObject FindReactionCubeOnOwnSide()
     {
         GameObject nearest = null;
@@ -530,7 +523,7 @@ public class GhostOrbController : MonoBehaviour
 
     private GameObject FindFreezeCubeOnOwnSide()
     {
-        // Search for FreezeCube on both sides – take the next available one
+        // Search for FreezeCube on both sides, take the next available one
         // (freezeZone is only used for storage, not for searching)
         GameObject nearest = null;
         float bestDist = float.MaxValue;

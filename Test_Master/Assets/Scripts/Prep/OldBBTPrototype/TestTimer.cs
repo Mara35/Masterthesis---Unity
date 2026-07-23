@@ -1,6 +1,10 @@
 using UnityEngine;
 using TMPro;
 
+/// <summary>
+/// LEGACY. Countdown for the old BBT_Training_HandProxy prototype scene (StartTest). The live
+/// scenes use Timer instead.
+/// </summary>
 public class TestTimer : MonoBehaviour
 {
     public float testDuration = 60f;

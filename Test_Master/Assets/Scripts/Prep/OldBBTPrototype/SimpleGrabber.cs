@@ -1,6 +1,11 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// LEGACY. Proximity/trigger-based grab used before the glove existed. Replaced by GloveGrabber;
+/// some active scripts still reference the type, which is why it stays compiled.
+/// </summary>
+/// 
 public class SimpleGrabber : MonoBehaviour
 {
     public Transform holdPoint;

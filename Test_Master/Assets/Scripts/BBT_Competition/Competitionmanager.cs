@@ -1,28 +1,14 @@
-/* 
- * Summary
- * 
- * Attach to:  CompetitionGameManager GameObject
- *
- * Gameplay:
- *   1. Wait until the hand touches the box (BoxBoundaryTrigger)
- *   2. 60-second countdown starts, GhostOrb begins playing
- *   3. After 60 seconds: Result screen with scores, bonus deduction, Win/Lose
- *
- * Setup in the Inspector:
- *   - timerText          -> TimerText (TMP)
- *   - gameOverPanel      -> GameOverPanel
- *   - playerScoreCounter -> CompetitionScoreCounter on the player side
- *   - ghostScoreCounter  -> CompetitionScoreCounter on the ghost side
- *   - ghostOrb           -> GhostOrbController
- *   - bonusCubeSpawner   -> BonusCubeSpawner
- *   - startTrigger       -> BoxBoundaryTrigger Collider
- */
-
 using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using TMPro;
+
+/// <summary>
+/// Orchestrates a competition round: starts on the box trigger, runs the ghost orb and spawner, tracks
+/// both scores, and on timeout shows the result screen (win/lose plus bonus totals) on the PC and VR
+/// canvases with play-again / menu / settings buttons.
+/// </summary>
 
 public class CompetitionGameManager : MonoBehaviour
 {
@@ -40,7 +26,7 @@ public class CompetitionGameManager : MonoBehaviour
     public BonusCubeSpawner bonusCubeSpawner;
 
     [Header("Start Trigger")]
-    [Tooltip("BoxBoundaryTrigger - Game starts when Hand touches it")]
+    [Tooltip("BoxBoundaryTrigger, Game starts when Hand touches it")]
     public Collider startTrigger;
 
     [Header("Live Score (will be hidden when the game ends)")]
@@ -59,7 +45,7 @@ public class CompetitionGameManager : MonoBehaviour
     public Button mainMenuButton;
     public Button settingsButton;
 
-    [Header("VR UI (World Space - display only)")]
+    [Header("VR UI (World Space, display only)")]
     [Tooltip("Live score/timer copies on Canvas_VR (hidden when game ends)")]
     public GameObject vrLiveScoreGhost;
     public GameObject vrLiveScorePlayer;
@@ -85,7 +71,8 @@ public class CompetitionGameManager : MonoBehaviour
     private int frozenPlayerScore = 0;
     private int frozenGhostScore = 0;
 
-    // Bonus points that are deducted at the end
+    // Bonus points accumulated during the round (by ReactionCube etc.), applied as a
+    // deduction at the end. Static so the cubes can add to them from anywhere in the scene.
     public static int playerBonusPoints = 0;
     public static int ghostBonusPoints = 0;
 
@@ -128,7 +115,7 @@ public class CompetitionGameManager : MonoBehaviour
         // Activate Orbs
         if (ghostOrb != null) ghostOrb.StartPlaying();
         else Debug.LogWarning("[CompetitionGameManager] ghostOrb not assigned!");
-        // PlayerOrb startet bereits in Start() automatisch // Replaced by Hand + GloveGrabber
+        // PlayerOrb already starts automatically in Start() // Replaced by Hand + GloveGrabber
 
         // Start Spawners
         if (bonusCubeSpawner != null) bonusCubeSpawner.StartSpawning();
@@ -194,6 +181,9 @@ public class CompetitionGameManager : MonoBehaviour
         int ghostRaw = frozenGhostScore;
         int playerFinal = playerRaw - playerBonusPoints;
         int ghostFinal = ghostRaw - ghostBonusPoints;
+        // NOTE: the raw score counts cubes still on your OWN side, so a LOWER score is better
+        // (you have transferred more away). A successful bonus (positive) lowers the final further;
+        // a failure (negative) raises it. Lowest final wins, see the comparison in Step 4.
 
         // Hide everything (PC + VR)
         if (resultText != null) resultText.text = "";
@@ -228,7 +218,7 @@ public class CompetitionGameManager : MonoBehaviour
         yield return StartCoroutine(CountdownScore(ghostScoreText, vrGhostScoreText, ghostRaw, ghostFinal));
         yield return new WaitForSecondsRealtime(0.5f);
 
-        // Step 4: Show Result Text (PC + VR)
+        // Step 4: lower final wins (fewer cubes left on own side = more transferred)
         string result;
         if (playerFinal < ghostFinal)
             result = "You Win!";
@@ -240,7 +230,7 @@ public class CompetitionGameManager : MonoBehaviour
         if (resultText != null) resultText.text = result;
         if (vrResultText != null) vrResultText.text = result;
 
-        Time.timeScale = 0f;
+        Time.timeScale = 0f; // freeze the scene on the result screen; buttons reset it to 1
     }
 
 
